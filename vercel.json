@@ -1,5 +1,9 @@
 {
   "rewrites": [
-    { "source": "/:string", "destination": "https://luvavn.com/?p=:string", "statusCode": 301 }
+    { 
+      "source": "/:string", 
+      "destination": "https://luvavn.com/?p=:string", 
+      "statusCode": 301 
+    }
   ]
 }
