@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Báo giá sản phẩm</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      width: 210mm;
+      margin: auto;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    td, th {
+      border: 1px solid rgba(0, 0, 0, 0.4);
+      padding: 5px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .header-cell {
+      text-align: left;
+      vertical-align: top;
+      padding-top: 5px;
+    }
+    
+     .header-cell2 {
+    text-align: left;
+    vertical-align: top;
+    padding-top: 5px;
+    padding-left: 30px;
+    width: 250px;
+}
+    
+    .header-cell span {
+      display: inline-block;
+      vertical-align: top;
+      margin: 0;
+    }
+    
+     .header-cell2 span {
+      display: inline-block;
+      vertical-align: top;
+      margin: 0;
+    }
+    
+    .header-cell2 input 
+{
+      margin: 0px 2px;
+      padding: 0;
+      vertical-align: top;
+      text-align: left;
+      resize: none;
+      overflow: hidden;
+      width: auto; /* Giảm chiều rộng để sát với nhãn */
+      min-height: 20px;
+      font-weight: bold;
+      font-family: inherit;
+      font-size: 14px;
+      border: none;
+      display: inline-block;
+    }
+    .header-cell input, .header-cell textarea {
+      margin: 0px 2px;
+      padding: 0;
+      vertical-align: top;
+      text-align: left;
+      resize: none;
+      overflow: hidden;
+      width: auto; /* Giảm chiều rộng để sát với nhãn */
+      min-height: 20px;
+      font-weight: bold;
+      font-family: inherit;
+      font-size: 14px;
+      border: none;
+      display: inline-block;
+    }
+    .header-cell2 input {
+      width: 100px; /* Đặt chiều rộng cố định cho ô ngày để trông gọn gàng */
+    }
+     
+.header-cell textarea {
+    width: 400px;
+}
+input#dateInput {
+    text-align: left;
+}
+    .header-cell input:focus, .header-cell input:focus, .header-cell textarea:focus {
+      outline: none;
+    }
+    input[type="text"], input[type="number"], textarea {
+      width: 95%;
+      border: none;
+      text-align: center;
+      resize: none;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    textarea.product-info {
+      text-align: left;
+    }
+    textarea {
+      min-height: 60px;
+      overflow: hidden;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+    }
+    img.preview {
+      max-width: 100px;
+      max-height: 100px;
+      display: block;
+      margin: auto;
+    }
+    input.image-url {
+      display: block;
+      width: 95%;
+      margin: auto;
+    }
+    input.image-url.hidden {
+      display: none;
+    }
+    #printBtn, #addRowBtn {
+      position: fixed;
+      bottom: 20px;
+      padding: 10px 20px;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #printBtn {
+      right: 20px;
+      background-color: #4CAF50;
+    }
+    #addRowBtn {
+      right: 100px;
+      background-color: #008CBA;
+    }
+    @media print {
+            @page {
+                size: A4 portrait;
+                margin: 20mm;
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+            header, footer, #printBtn, #addRowBtn, input::placeholder, textarea::placeholder {
+                display: none !important;
+            }
+            .editable {
+                border: none !important;
+                padding: 0;
+                display: inline;
+                background: transparent;
+            }
+            input, textarea {
+                border: none;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+            }
+        }
+    .sib {
+      font-weight: 400;
+      font-size: 12px;
+      color: #000;
+      font-style: italic;
+    }
+    p.vaofd {
+      margin: -10px 0px 30px;
+    }
+  </style>
+</head>
+<body>
+  <p><strong><img src="https://cantieuly.net/wp-content/uploads/2022/07/cropped-VNUSE.webp" alt="logo" width="133" height="32"></strong></p>
+  <p><strong>CÔNG TY TNHH QUANG MINH VN</strong></p>
+  <p class="vaofd">Thôn Hữu Định, xã Hợp Thịnh, Bắc Giang</p>
+
+  <table>
+    <tr>
+      <td colspan="2" class="header-cell">
+        <span><i>Kính gửi: </i></span>
+        <span><textarea placeholder="Nhập tên công ty" oninput="autoResize(this)"></textarea></span>
+      </td>
+      <td class="header-cell2">
+        <span><i>Ngày: </i></span>
+        <span><input type="text" id="dateInput" placeholder="dd/mm/yyyy"></span>
+      </td>
+    </tr>
+  </table>
+
+  <h1 style="text-align: center;">BÁO GIÁ SẢN PHẨM</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Chủng loại</th>
+        <th>Tên sản phẩm</th>
+        <th>Thông tin sản phẩm</th>
+        <th>Hình ảnh</th>
+        <th>Giá bán lẻ <br><span class="sib">(đ) (Chưa VAT)</span></th>
+        <th>Số lượng<br><span class="sib">(cái)</span></th>
+        <th>Thành tiền<br><span class="sib">(đ)</span></th>
+      </tr>
+    </thead>
+    <tbody id="productRows">
+      <tr>
+        <td><input type="text" value="Điện tử" placeholder="Chủng loại"></td>
+        <td><textarea placeholder="Tên sản phẩm" oninput="autoResize(this)"></textarea></td>
+        <td><textarea class="product-info" placeholder="Thông tin sản phẩm" oninput="autoResize(this)"></textarea></td>
+        <td>
+          <input type="text" class="image-url" placeholder="Link ảnh" oninput="updateImage(this)">
+          <img class="preview" src="" alt="">
+        </td>
+        <td><input type="number" placeholder="Giá" oninput="calcTotal()"></td>
+        <td><input type="number" placeholder="SL" oninput="calcTotal()"></td>
+        <td><input type="text" readonly></td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="6" style="text-align:right">VAT (8%)<span class="sib"> (đ)</span></td>
+        <td><input type="text" id="vat" readonly></td>
+      </tr>
+      <tr>
+        <td colspan="6" style="text-align:right"><strong>Tổng<span class="sib"> (đ)</span></strong></td>
+        <td><input type="text" id="total" readonly></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <p><strong>Miễn phí giao hàng đến địa chỉ khách hàng</strong></p>
+  <p><em>Áp dụng từ: 01/01/2025</em></p>
+  <p><strong>STK:</strong> 0071001073219</p>
+  <p><strong>Ngân hàng TMCP Ngoại Thương Việt Nam - Chi nhánh: Tân Sơn Nhất</strong></p>
+  <p><strong>CÔNG TY TNHH CÂN ĐIỆN TỬ PHÁT TIẾN</strong></p>
+  <p><strong>Bảo hành:</strong> Sản phẩm bảo hành 1 năm tại công ty, theo tem và phiếu mua hàng.</p>
+
+  <ol>
+    <li><strong>Hàng được phép bảo hành</strong>
+      <ul>
+        <li>Không đảm bảo chất lượng.</li>
+        <li>Lỗi kỹ thuật không do người dùng.</li>
+        <li>Không đúng mẫu mã, chủng loại.</li>
+        <li>Hỏng/vỡ do vận chuyển của công ty.</li>
+      </ul>
+    </li>
+    <li><strong>Quy định bảo hành</strong>
+      <ul>
+        <li>Đúng hàng do công ty cung cấp, còn tem mác.</li>
+        <li>Báo lỗi trong vòng 1 ngày.</li>
+        <li>Hàng đổi mới phải bằng hoặc cao hơn giá trị đã mua.</li>
+      </ul>
+    </li>
+  </ol>
+
+  <button id="addRowBtn" onclick="addRow()">Thêm hàng</button>
+  <button id="printBtn" onclick="window.print()">In PDF</button>
+
+  <script>
+    // Hàm tự động điều chỉnh kích thước textarea
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+
+    // Hàm cập nhật hình ảnh
+    function updateImage(input) {
+      const img = input.parentElement.querySelector('img');
+      img.src = input.value;
+      img.onload = () => input.classList.add('hidden');
+      img.onerror = () => input.classList.remove('hidden');
+    }
+
+    // Hàm tính tổng
+    function calcTotal() {
+      const rows = document.querySelectorAll("#productRows tr");
+      let subtotal = 0;
+      rows.forEach(row => {
+        const price = parseFloat(row.cells[4].querySelector('input').value) || 0;
+        const qty = parseFloat(row.cells[5].querySelector('input').value) || 0;
+        const total = price * qty;
+        row.cells[6].querySelector('input').value = total ? total.toLocaleString() : '';
+        subtotal += total;
+      });
+      const vat = subtotal * 0.08;
+      document.getElementById('vat').value = vat ? vat.toLocaleString() : '';
+      document.getElementById('total').value = (subtotal + vat) ? (subtotal + vat).toLocaleString() : '';
+    }
+
+    // Hàm thêm hàng mới
+    function addRow() {
+      const tbody = document.getElementById('productRows');
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = `
+        <td><input type="text" value="Điện tử" placeholder="Chủng loại"></td>
+        <td><textarea placeholder="Tên sản phẩm" oninput="autoResize(this)"></textarea></td>
+        <td><textarea class="product-info" placeholder="Thông tin sản phẩm" oninput="autoResize(this)"></textarea></td>
+        <td>
+          <input type="text" class="image-url" placeholder="Link ảnh" oninput="updateImage(this)">
+          <img class="preview" src="" alt="">
+        </td>
+        <td><input type="number" placeholder="Giá" oninput="calcTotal()"></td>
+        <td><input type="number" placeholder="SL" oninput="calcTotal()"></td>
+        <td><input type="text" readonly></td>
+      `;
+      tbody.appendChild(newRow);
+    }
+
+    // Hàm định dạng ngày hiện tại thành dd/mm/yyyy
+    function getCurrentDate() {
+      const today = new Date();
+      const day = String(today.getDate()).padStart(2, '0');
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const year = today.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    // Điền ngày hiện tại vào input khi trang được tải
+    window.onload = function() {
+      const dateInput = document.getElementById('dateInput');
+      dateInput.value = getCurrentDate();
+    };
+  </script>
+</body>
+</html>
