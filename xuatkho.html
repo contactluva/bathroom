@@ -150,9 +150,39 @@
       color: #000;
       font-style: italic;
     }
-    p.vaofd {
-      margin: -10px 0px 30px;
+    .vaofd {
+     margin: -10px 0px 20px 0px;
     }
+
+    .vaofd p {
+    color: #7a7979;
+    font-weight: 300;
+    font-size: 12px;
+    margin: 3px 0px !important;
+}
+ .logo {
+    position: relative;
+    
+    padding-left: 73px; /* chừa khoảng cho logo bên trái */
+    background-color: #fff; /* nền trắng */
+}
+
+.logo::before {
+    content: "";
+    position: absolute;
+    left: 0px; /* vị trí logo bên trái */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 66px;  /* chiều rộng logo */
+    height: 66px; /* chiều cao logo */
+    background-image: url('https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/logo%20QM.webp');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    
+    pointer-events: none; /* không ảnh hưởng tới click */
+}
+
     .signature-container {
       display: flex;
       justify-content: space-between;
@@ -176,9 +206,11 @@ textarea {
   </style>
 </head>
 <body>
-  <p><strong><img src="https://cantieuly.net/wp-content/uploads/2022/07/cropped-VNUSE.webp" alt="logo" width="133" height="32"></strong></p>
-  <p><strong>CÔNG TY TNHH QUANG MINH VN</strong></p>
-  <p class="vaofd">Thôn Hữu Định, xã Hợp Thịnh, Bắc Giang</p>
+   <div class="logo"> <p><strong>CÔNG TY TNHH QUANG MINH VN</strong></p>
+<div class="vaofd">
+<p>MST:2401038011</p>
+  <p>Thôn Hữu Định, xã Hợp Thịnh, Bắc Giang</p>
+</div></div>
 
   <table>
     <tr>
