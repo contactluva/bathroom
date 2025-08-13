@@ -181,14 +181,28 @@ input#dateInput {
     margin: 3px 0px !important;
 }
  .logo {
+    position: relative;
     border-left: 1px solid #000;
-    padding-left: 8px;
+    padding-left: 38px; /* chừa khoảng cho logo bên trái */
+    background-color: #fff; /* nền trắng */
+}
+
+.logo::before {
+    content: "";
+    position: absolute;
+    left: 8px; /* vị trí logo bên trái */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;  /* chiều rộng logo */
+    height: 32px; /* chiều cao logo */
     background-image: url('https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/logo%20QM.webp');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    opacity: 0.3; /* Toàn bộ vùng (gồm cả border & nội dung) trong suốt 30% */
+    opacity: 0.3; /* chỉ logo mờ */
+    pointer-events: none; /* không ảnh hưởng tới click */
 }
+
   </style>
 </head>
 <body>
