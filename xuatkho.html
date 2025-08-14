@@ -154,34 +154,9 @@
      margin: -10px 0px 20px 0px;
     }
 
-    .vaofd p {
-    color: #7a7979;
-    font-weight: 300;
-    font-size: 12px;
-    margin: 3px 0px !important;
-}
- .logo {
-    position: relative;
-    
-    padding-left: 73px; /* chừa khoảng cho logo bên trái */
-    background-color: #fff; /* nền trắng */
-}
+    .vaofd p { color: #7a7979; font-weight: 300; font-size: 12px; margin: 3px 0px !important; }
 
-.logo::before {
-    content: "";
-    position: absolute;
-    left: 0px; /* vị trí logo bên trái */
-    top: 50%;
-    transform: translateY(-50%);
-    width: 66px;  /* chiều rộng logo */
-    height: 66px; /* chiều cao logo */
-    background-image: url('https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/logo%20QM.webp');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    
-    pointer-events: none; /* không ảnh hưởng tới click */
-}
+    .logo { position: relative; background-color: #fff; padding: 10px 0; margin-bottom: 20px; }
 
     .signature-container {
       display: flex;
@@ -205,12 +180,18 @@ textarea {
 }
   </style>
 </head>
-<body>
-   <div class="logo"> <p><strong>CÔNG TY TNHH QUANG MINH VN</strong></p>
-<div class="vaofd">
-<p>MST:2401038011</p>
-  <p>Thôn Hữu Định, xã Hợp Thịnh, Bắc Giang</p>
-</div></div>
+<body><br/>
+   <div class="logo">
+    <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/logo%20QM.webp" 
+         alt="Logo" style="width:66px;height:66px;vertical-align:middle;margin-right:10px;">
+    <div style="display:inline-block;vertical-align:middle;">
+      <p><strong>CÔNG TY TNHH QUANG MINH VN</strong></p>
+      <div class="vaofd">
+        <p>MST:2401038011</p>
+        <p>Thôn Hữu Định, xã Hợp Thịnh, Bắc Giang</p>
+      </div>
+    </div>
+  </div>
 
   <table>
     <tr>
