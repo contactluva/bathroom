@@ -12,6 +12,7 @@
     table {
       border-collapse: collapse;
       width: 100%;
+      table-layout: auto; /* Đảm bảo bảng tự điều chỉnh kích thước */
     }
     td, th {
       border: 1px solid rgba(0, 0, 0, 0.4);
@@ -24,6 +25,8 @@
       vertical-align: top;
       padding-top: 5px;
       padding-left: 15px;
+      height: auto; /* Cho phép cell tự mở rộng */
+      min-height: 50px;
     }
     .header-cell2 {
       text-align: left;
@@ -31,6 +34,8 @@
       padding-top: 5px;
       padding-left: 30px;
       width: 250px;
+      height: auto; /* Cho phép cell tự mở rộng */
+      min-height: 50px;
     }
     .header-cell span, .header-cell2 span {
       display: inline-block;
@@ -52,12 +57,13 @@
       border: none;
       display: inline-block;
     }
-   .header-cell textarea.address {
-    margin-top: 2px;
-    height: 23px !important;
-    font-weight: normal;
-    font-size: 14px;
-}
+    .header-cell textarea.address {
+      margin-top: 2px;
+      height: auto !important; /* Cho phép textarea tự mở rộng */
+      font-weight: normal;
+      font-size: 14px;
+      line-height: 1.5; /* Tăng khoảng cách dòng */
+    }
     .header-cell2 input {
       width: 100px;
     }
@@ -79,8 +85,8 @@
       font-size: 14px;
     }
     textarea.product-name {
-      text-align: center; /* Canh giữa tên sản phẩm theo chiều ngang */
-      vertical-align: middle; /* Canh giữa theo chiều dọc */
+      text-align: center;
+      vertical-align: middle;
     }
     textarea {
       min-height: 60px;
@@ -121,29 +127,29 @@
       background-color: #008CBA;
     }
     @media print {
-            @page {
-                size: A4 portrait;
-                margin: 20mm;
-                margin-top: 0;
-                margin-bottom: 0;
-            }
-            header, footer, #printBtn, #addRowBtn, input::placeholder, textarea::placeholder {
-                display: none !important;
-            }
-            .editable {
-                border: none !important;
-                padding: 0;
-                display: inline;
-                background: transparent;
-            }
-            input, textarea {
-                border: none;
-            }
-            body {
-                margin: 0;
-                padding: 0;
-            }
-        }
+      @page {
+        size: A4 portrait;
+        margin: 20mm;
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+      header, footer, #printBtn, #addRowBtn, input::placeholder, textarea::placeholder {
+        display: none !important;
+      }
+      .editable {
+        border: none !important;
+        padding: 0;
+        display: inline;
+        background: transparent;
+      }
+      input, textarea {
+        border: none;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    }
     .sib {
       font-weight: 400;
       font-size: 12px;
@@ -151,13 +157,20 @@
       font-style: italic;
     }
     .vaofd {
-     margin: -10px 0px 20px 0px;
+      margin: -10px 0px 20px 0px;
     }
-
-    .vaofd p { color: #7a7979; font-weight: 300; font-size: 12px; margin: 3px 0px !important; }
-
-    .logo { position: relative; background-color: #fff; padding: 10px 0; margin-bottom: 20px; }
-
+    .vaofd p {
+      color: #7a7979;
+      font-weight: 300;
+      font-size: 12px;
+      margin: 3px 0px !important;
+    }
+    .logo {
+      position: relative;
+      background-color: #fff;
+      padding: 10px 0;
+      margin-bottom: 20px;
+    }
     .signature-container {
       display: flex;
       justify-content: space-between;
@@ -171,17 +184,16 @@
     .signature p {
       margin: 10px 0;
     }
-    textarea.product-name
- {
-    align-content: center;
-}
-textarea {
-    height: 23px;
-}
+    textarea.product-name {
+      align-content: center;
+    }
+    textarea {
+      height: 23px;
+    }
   </style>
 </head>
 <body><br/>
-   <div class="logo">
+  <div class="logo">
     <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/logo%20QM.webp" 
          alt="Logo" style="width:66px;height:66px;vertical-align:middle;margin-right:10px;">
     <div style="display:inline-block;vertical-align:middle;">
@@ -222,7 +234,7 @@ textarea {
     <tbody id="productRows">
       <tr>
         <td><textarea class="product-name" placeholder="Tên sản phẩm" oninput="autoResize(this)"></textarea></td>
-        <td><input type="number" placeholder="Giá" oninput="calcTotal()"></td>
+        <td><input type="text" placeholder="Giá" oninput="formatNumber(this); calcTotal()"></td>
         <td><input type="number" placeholder="SL" oninput="calcTotal()"></td>
         <td><input type="text" readonly></td>
       </tr>
@@ -237,7 +249,9 @@ textarea {
         <td><input type="text" id="total" readonly></td>
       </tr>
       <tr>
-        <td colspan="4" style="text-align:left; font-size: 12px;font-weight: 300;"><strong>Sản phẩm mới 100% . Được Bảo hành 12 tháng tại CÔNG TY TNHH QUANG MINH VN kể từ ngày giao hàng.</strong></td>
+        <td colspan="4" style="text-align:left; font-size: 12px;font-weight: 300;">
+          <strong>Sản phẩm mới 100% . Được Bảo hành 12 tháng tại CÔNG TY TNHH QUANG MINH VN kể từ ngày giao hàng.</strong>
+        </td>
       </tr>
     </tfoot>
   </table>
@@ -261,6 +275,20 @@ textarea {
     function autoResize(textarea) {
       textarea.style.height = 'auto';
       textarea.style.height = `${textarea.scrollHeight}px`;
+      textarea.closest('td').style.height = 'auto'; // Đảm bảo cell mở rộng
+    }
+
+    // Hàm định dạng số với dấu phẩy
+    function formatNumber(input) {
+      let value = input.value.replace(/,/g, ''); // Xóa dấu phẩy cũ
+      if (value && !isNaN(value)) {
+        input.value = parseFloat(value).toLocaleString('en-US'); // Thêm dấu phẩy
+      }
+    }
+
+    // Hàm bỏ dấu phẩy để tính toán
+    function removeCommas(str) {
+      return str.replace(/,/g, '');
     }
 
     // Hàm tính tổng
@@ -268,15 +296,15 @@ textarea {
       const rows = document.querySelectorAll("#productRows tr");
       let subtotal = 0;
       rows.forEach(row => {
-        const price = parseFloat(row.cells[1].querySelector('input').value) || 0; // Giá
+        const price = parseFloat(removeCommas(row.cells[1].querySelector('input').value)) || 0; // Giá
         const qty = parseFloat(row.cells[2].querySelector('input').value) || 0; // Số lượng
         const total = price * qty;
-        row.cells[3].querySelector('input').value = total ? total.toLocaleString() : ''; // Thành tiền
+        row.cells[3].querySelector('input').value = total ? total.toLocaleString('en-US') : ''; // Thành tiền
         subtotal += total;
       });
       const vat = subtotal * 0.08;
-      document.getElementById('vat').value = vat ? vat.toLocaleString() : '';
-      document.getElementById('total').value = (subtotal + vat) ? (subtotal + vat).toLocaleString() : '';
+      document.getElementById('vat').value = vat ? vat.toLocaleString('en-US') : '';
+      document.getElementById('total').value = (subtotal + vat) ? (subtotal + vat).toLocaleString('en-US') : '';
     }
 
     // Hàm thêm hàng mới
@@ -285,7 +313,7 @@ textarea {
       const newRow = document.createElement('tr');
       newRow.innerHTML = `
         <td><textarea class="product-name" placeholder="Tên sản phẩm" oninput="autoResize(this)"></textarea></td>
-        <td><input type="number" placeholder="Giá" oninput="calcTotal()"></td>
+        <td><input type="text" placeholder="Giá" oninput="formatNumber(this); calcTotal()"></td>
         <td><input type="number" placeholder="SL" oninput="calcTotal()"></td>
         <td><input type="text" readonly></td>
       `;
