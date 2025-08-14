@@ -67,8 +67,12 @@
     .header-cell2 input {
       width: 100px;
     }
+
+    .header-cell textarea.namecty {
+      margin-top: 0px;}
+    
     .header-cell textarea {
-      width: 300px;
+      width: 350px;
     }
     input#dateInput {
       text-align: left;
@@ -209,7 +213,7 @@
     <tr>
       <td colspan="2" class="header-cell">
         <span><i>Khách hàng: </i></span>
-        <span><textarea placeholder="Nhập tên công ty" oninput="autoResize(this)"></textarea></span><br>
+        <span><textarea class="namecty" placeholder="Nhập tên công ty" oninput="autoResize(this)"></textarea></span><br>
         <span><i>Địa chỉ: </i></span>
         <span><textarea class="address" placeholder="Nhập địa chỉ" oninput="autoResize(this)"></textarea></span>
       </td>
