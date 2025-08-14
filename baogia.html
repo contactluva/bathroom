@@ -84,7 +84,25 @@
       width: 95%;
       margin: auto;
     }
-    input.image-url.hidden { display: none; }
+    input.image-url.hidden, input[type="file"].hidden, label.upload-btn.hidden {
+      display: none;
+    }
+    .upload-btn {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      background-color: #008CBA;
+      color: white;
+      border-radius: 50%;
+      cursor: pointer;
+      margin: 5px auto;
+      font-size: 20px;
+    }
+    input[type="file"] {
+      display: none;
+    }
     #printBtn, #addRowBtn {
       position: fixed;
       bottom: 20px;
@@ -99,9 +117,11 @@
 
     @media print {
       @page { size: A4 portrait; margin: 20mm; margin-top: 0; margin-bottom: 0; }
-      header, footer, #printBtn, #addRowBtn, input::placeholder, textarea::placeholder { display: none !important; }
+      header, footer, #printBtn, #addRowBtn, input::placeholder, textarea::placeholder,
+      input.image-url, input[type="file"], label.upload-btn { display: none !important; }
       .editable { border: none !important; padding: 0; display: inline; background: transparent; }
       input, textarea { border: none; }
+      img.preview { display: block !important; }
       body { margin: 0; padding: 0; }
     }
 
@@ -179,6 +199,8 @@
         </td>
         <td>
           <input type="text" class="image-url" placeholder="Link ảnh" oninput="updateImage(this)">
+          <label for="fileInput-0" class="upload-btn">+</label>
+          <input type="file" id="fileInput-0" class="image-file" accept="image/*" onchange="handleFileUpload(this)">
           <img class="preview" src="" alt="">
         </td>
         <td><input type="text" placeholder="Giá" oninput="formatPriceInput(this)"></td>
@@ -224,16 +246,52 @@
   <button id="printBtn" onclick="window.print()">In PDF</button>
 
   <script>
+    let fileInputCounter = 0; // Counter for unique file input IDs
+
     function autoResize(textarea) {
       textarea.style.height = 'auto';
       textarea.style.height = `${textarea.scrollHeight}px`;
     }
 
     function updateImage(input) {
-      const img = input.parentElement.querySelector('img');
+      const td = input.parentElement;
+      const img = td.querySelector('img');
+      const fileInput = td.querySelector('.image-file');
+      const uploadBtn = td.querySelector('.upload-btn');
       img.src = input.value;
-      img.onload = () => input.classList.add('hidden');
-      img.onerror = () => input.classList.remove('hidden');
+      img.onload = () => {
+        input.classList.add('hidden');
+        fileInput.classList.add('hidden');
+        uploadBtn.classList.add('hidden');
+      };
+      img.onerror = () => {
+        input.classList.remove('hidden');
+        fileInput.classList.remove('hidden');
+        uploadBtn.classList.remove('hidden');
+      };
+    }
+
+    function handleFileUpload(input) {
+      const td = input.parentElement;
+      const img = td.querySelector('img');
+      const urlInput = td.querySelector('.image-url');
+      const uploadBtn = td.querySelector('.upload-btn');
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        img.src = URL.createObjectURL(file); // Temporary URL for display
+        img.onload = () => {
+          urlInput.classList.add('hidden');
+          input.classList.add('hidden');
+          uploadBtn.classList.add('hidden');
+          // Note: URL.revokeObjectURL is not called to keep image for printing
+          // It will be automatically cleaned up when the page is closed
+        };
+        img.onerror = () => {
+          urlInput.classList.remove('hidden');
+          input.classList.remove('hidden');
+          uploadBtn.classList.remove('hidden');
+        };
+      }
     }
 
     function handleProductInfoKeyDown(e) {
@@ -251,46 +309,34 @@
       }
     }
 
- 
-  function formatPriceInput(input) {
-    // Bỏ hết dấu chấm và ký tự không phải số
-    let value = input.value.replace(/\./g, '').replace(/\D/g, '');
-    if (value) {
-      // Hiển thị dạng 1.234.567
-      input.value = Number(value).toLocaleString('vi-VN');
-    } else {
-      input.value = '';
+    function formatPriceInput(input) {
+      let value = input.value.replace(/\./g, '').replace(/\D/g, '');
+      if (value) {
+        input.value = Number(value).toLocaleString('vi-VN');
+      } else {
+        input.value = '';
+      }
+      calcTotal();
     }
-    calcTotal();
-  }
 
-  function calcTotal() {
-    const rows = document.querySelectorAll("#productRows tr");
-    let subtotal = 0;
-    rows.forEach(row => {
-      // Lấy giá bán lẻ (bỏ dấu chấm)
-      const priceStr = row.cells[4].querySelector('input').value.replace(/\./g, '');
-      const price = parseFloat(priceStr) || 0;
-
-      // Lấy số lượng
-      const qty = parseFloat(row.cells[5].querySelector('input').value) || 0;
-
-      // Tính thành tiền
-      const total = price * qty;
-
-      // Hiển thị thành tiền với dấu chấm
-      row.cells[6].querySelector('input').value = total ? total.toLocaleString('vi-VN') : '';
-
-      subtotal += total;
-    });
-
-    // Tính VAT và Tổng cộng
-    const vat = subtotal * 0.08;
-    document.getElementById('vat').value = vat ? vat.toLocaleString('vi-VN') : '';
-    document.getElementById('total').value = (subtotal + vat) ? (subtotal + vat).toLocaleString('vi-VN') : '';
-  }
+    function calcTotal() {
+      const rows = document.querySelectorAll("#productRows tr");
+      let subtotal = 0;
+      rows.forEach(row => {
+        const priceStr = row.cells[4].querySelector('input').value.replace(/\./g, '');
+        const price = parseFloat(priceStr) || 0;
+        const qty = parseFloat(row.cells[5].querySelector('input').value) || 0;
+        const total = price * qty;
+        row.cells[6].querySelector('input').value = total ? total.toLocaleString('vi-VN') : '';
+        subtotal += total;
+      });
+      const vat = subtotal * 0.08;
+      document.getElementById('vat').value = vat ? vat.toLocaleString('vi-VN') : '';
+      document.getElementById('total').value = (subtotal + vat) ? (subtotal + vat).toLocaleString('vi-VN') : '';
+    }
 
     function addRow() {
+      fileInputCounter++; // Increment counter for unique ID
       const tbody = document.getElementById('productRows');
       const newRow = document.createElement('tr');
       newRow.innerHTML = `
@@ -301,6 +347,8 @@
 • Bảo hành 1 năm</textarea></td>
         <td>
           <input type="text" class="image-url" placeholder="Link ảnh" oninput="updateImage(this)">
+          <label for="fileInput-${fileInputCounter}" class="upload-btn">+</label>
+          <input type="file" id="fileInput-${fileInputCounter}" class="image-file" accept="image/*" onchange="handleFileUpload(this)">
           <img class="preview" src="" alt="">
         </td>
         <td><input type="text" placeholder="Giá" oninput="formatPriceInput(this)"></td>
@@ -310,7 +358,7 @@
       tbody.appendChild(newRow);
       newRow.querySelectorAll('textarea').forEach(textarea => {
         autoResize(textarea);
-        textarea.selectionStart = textarea.selectionEnd = 0; // Đặt con trỏ ở đầu
+        textarea.selectionStart = textarea.selectionEnd = 0;
       });
     }
 
@@ -326,7 +374,7 @@
       document.getElementById('dateInput').value = getCurrentDate();
       document.querySelectorAll('textarea').forEach(textarea => {
         autoResize(textarea);
-        textarea.selectionStart = textarea.selectionEnd = 0; // Đặt con trỏ ở đầu
+        textarea.selectionStart = textarea.selectionEnd = 0;
       });
     };
   </script>
