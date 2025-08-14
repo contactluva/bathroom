@@ -251,30 +251,44 @@
       }
     }
 
-    function formatPriceInput(input) {
-      let value = input.value.replace(/,/g, '').replace(/\D/g, '');
-      if (value) {
-        input.value = Number(value).toLocaleString();
-      } else {
-        input.value = '';
-      }
-      calcTotal();
+ 
+  function formatPriceInput(input) {
+    // Bỏ hết dấu chấm và ký tự không phải số
+    let value = input.value.replace(/\./g, '').replace(/\D/g, '');
+    if (value) {
+      // Hiển thị dạng 1.234.567
+      input.value = Number(value).toLocaleString('vi-VN');
+    } else {
+      input.value = '';
     }
+    calcTotal();
+  }
 
-    function calcTotal() {
-      const rows = document.querySelectorAll("#productRows tr");
-      let subtotal = 0;
-      rows.forEach(row => {
-        const price = parseFloat(row.cells[4].querySelector('input').value.replace(/,/g, '')) || 0;
-        const qty = parseFloat(row.cells[5].querySelector('input').value) || 0;
-        const total = price * qty;
-        row.cells[6].querySelector('input').value = total ? total.toLocaleString() : '';
-        subtotal += total;
-      });
-      const vat = subtotal * 0.08;
-      document.getElementById('vat').value = vat ? vat.toLocaleString() : '';
-      document.getElementById('total').value = (subtotal + vat) ? (subtotal + vat).toLocaleString() : '';
-    }
+  function calcTotal() {
+    const rows = document.querySelectorAll("#productRows tr");
+    let subtotal = 0;
+    rows.forEach(row => {
+      // Lấy giá bán lẻ (bỏ dấu chấm)
+      const priceStr = row.cells[4].querySelector('input').value.replace(/\./g, '');
+      const price = parseFloat(priceStr) || 0;
+
+      // Lấy số lượng
+      const qty = parseFloat(row.cells[5].querySelector('input').value) || 0;
+
+      // Tính thành tiền
+      const total = price * qty;
+
+      // Hiển thị thành tiền với dấu chấm
+      row.cells[6].querySelector('input').value = total ? total.toLocaleString('vi-VN') : '';
+
+      subtotal += total;
+    });
+
+    // Tính VAT và Tổng cộng
+    const vat = subtotal * 0.08;
+    document.getElementById('vat').value = vat ? vat.toLocaleString('vi-VN') : '';
+    document.getElementById('total').value = (subtotal + vat) ? (subtotal + vat).toLocaleString('vi-VN') : '';
+  }
 
     function addRow() {
       const tbody = document.getElementById('productRows');
