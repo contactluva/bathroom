@@ -178,6 +178,7 @@ input#dateInput {
   position: relative;
   background-color: #fff;
   padding: 10px 0;
+     margin-bottom: 20px;
 }
 
 .vaofd p {
@@ -187,7 +188,15 @@ input#dateInput {
   margin: 3px 0px !important;
 }
 
-
+textarea.center-vertical {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  vertical-align: middle;
+  padding: 0;
+}
 
   </style>
 </head>
@@ -234,19 +243,24 @@ input#dateInput {
       </tr>
     </thead>
     <tbody id="productRows">
-      <tr>
-        <td><input type="text" value="Điện tử" placeholder="Chủng loại"></td>
-        <td><textarea placeholder="Tên sản phẩm" oninput="autoResize(this)"></textarea></td>
-        <td><textarea class="product-info" placeholder="Thông tin sản phẩm" oninput="autoResize(this)"></textarea></td>
-        <td>
-          <input type="text" class="image-url" placeholder="Link ảnh" oninput="updateImage(this)">
-          <img class="preview" src="" alt="">
-        </td>
-        <td><input type="number" placeholder="Giá" oninput="calcTotal()"></td>
-        <td><input type="number" placeholder="SL" oninput="calcTotal()"></td>
-        <td><input type="text" readonly></td>
-      </tr>
-    </tbody>
+  <tr>
+    <td><input type="text" value="Điện tử" placeholder="Chủng loại"></td>
+    <td><textarea class="center-vertical" placeholder="Tên sản phẩm" oninput="autoResize(this)"></textarea></td>
+    <td>
+      <textarea class="product-info" onkeydown="handleProductInfoKeyDown(event)">• Giới hạn cân:
+• Bước nhảy: d=
+• Bảo hành 1 năm</textarea>
+    </td>
+    <td>
+      <input type="text" class="image-url" placeholder="Link ảnh" oninput="updateImage(this)">
+      <img class="preview" src="" alt="">
+    </td>
+    <td><input type="text" placeholder="Giá" oninput="formatPriceInput(this)"></td>
+    <td><input type="number" placeholder="SL" oninput="calcTotal()"></td>
+    <td><input type="text" readonly></td>
+  </tr>
+</tbody>
+
     <tfoot>
       <tr>
         <td colspan="6" style="text-align:right">VAT (8%)<span class="sib"> (đ)</span></td>
@@ -333,6 +347,30 @@ input#dateInput {
       `;
       tbody.appendChild(newRow);
     }
+
+    function handleProductInfoKeyDown(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const start = e.target.selectionStart;
+    const end = e.target.selectionEnd;
+    const value = e.target.value;
+    const before = value.substring(0, start);
+    const after = value.substring(end);
+    e.target.value = before + '\n• ' + after;
+    e.target.selectionStart = e.target.selectionEnd = start + 3;
+  }
+}
+
+function formatPriceInput(input) {
+  let value = input.value.replace(/,/g, '').replace(/\D/g, '');
+  if (value) {
+    input.value = Number(value).toLocaleString();
+  } else {
+    input.value = '';
+  }
+  calcTotal();
+}
+
 
     // Hàm định dạng ngày hiện tại thành dd/mm/yyyy
     function getCurrentDate() {
