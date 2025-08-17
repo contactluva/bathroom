@@ -24,16 +24,61 @@
       min-height: 100vh; /* canh giữa dọc */
     }
     .logo {
-    max-width: 88px;
-    margin-bottom: 50px;
-    border-radius: 6px;
-    border: 2px solid #fbffb159;
-    padding: 6px;
-}
+      max-width: 88px;
+      margin-bottom: 50px;
+      border-radius: 6px;
+      border: 2px solid #fbffb159;
+      padding: 6px;
+      animation: spinY 2s ease-in-out;
+    }
+    @keyframes spinY {
+      from { transform: rotateY(0deg); }
+      to { transform: rotateY(360deg); }
+    }
+
     h1 {
       color: #333;
       font-family: 'Bebas Neue', sans-serif;
+      margin: 0 0 6px 0;
+      line-height: 1;
     }
+
+    /* --- Chips MST / TK --- */
+    .meta {
+      display: inline-flex;
+      gap: 10px;
+      margin-bottom: 16px; /* khoảng cách với cụm nút */
+    }
+    .copy-chip {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      padding: 3px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: saturate(180%) blur(8px);
+      -webkit-backdrop-filter: saturate(180%) blur(8px);
+      cursor: pointer;
+      user-select: none;
+      transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    }
+    .copy-chip:hover { 
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      border-color: rgba(255,255,255,0.9);
+    }
+    .copy-chip.flash {
+      animation: flash 900ms ease;
+      border-color: #fff;
+    }
+    @keyframes flash {
+      0% { box-shadow: 0 0 0 rgba(255,255,255,0.0); }
+      30% { box-shadow: 0 0 0 6px rgba(255,255,255,0.35); }
+      100% { box-shadow: 0 0 0 rgba(255,255,255,0.0); }
+    }
+
     .button-container {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -115,6 +160,22 @@
 <body>
   <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/logo%20QM%202.jpg" alt="Logo" class="logo">
   <h1><span class="goldBG goldText">QUANG MINH LTD</span></h1>
+<br/>
+  <!-- Nhóm text nhỏ (MST / TK) dưới tiêu đề -->
+  <div class="meta" aria-label="Thông tin nhanh">
+    <button class="copy-chip" type="button"
+            data-label="MST"
+            data-copy="CÔNG TY TNHH QUANG MINH VN - MST: 2401038011  - Thôn Hữu Định, xã Hợp Thịnh, tỉnh Bắc Ninh, Việt Nam"
+            aria-label="Sao chép MST">
+      MST
+    </button>
+    <button class="copy-chip" type="button"
+            data-label="TK"
+            data-copy="66889900 - Ngân hàng Vietcombank - Chi Nhánh Hà Nội"
+            aria-label="Sao chép số tài khoản">
+      TK
+    </button>
+  </div>
 
   <div class="button-container">
     <a href="https://qmltd.vercel.app/baogia.html" class="button">BÁO GIÁ</a>
@@ -130,5 +191,43 @@
       </div>
     </div>
   </div>
+
+  <script>
+    // Sao chép nội dung + báo hiệu
+    (function(){
+      const chips = document.querySelectorAll('.copy-chip');
+      chips.forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const text = btn.dataset.copy || '';
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(text);
+            } else {
+              // Fallback cũ
+              const ta = document.createElement('textarea');
+              ta.value = text;
+              ta.style.position = 'fixed';
+              ta.style.opacity = '0';
+              document.body.appendChild(ta);
+              ta.focus();
+              ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+            }
+            const old = btn.textContent.trim();
+            btn.textContent = 'ĐÃ COPY';
+            btn.classList.add('flash');
+            setTimeout(() => {
+              btn.textContent = btn.dataset.label || old;
+              btn.classList.remove('flash');
+            }, 1200);
+          } catch (e) {
+            console.error('Copy failed:', e);
+            alert('Không thể sao chép. Hãy thử lại.');
+          }
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
