@@ -105,29 +105,7 @@
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
       transform: translateY(-2px);
     }
-.accordion {
-  background-color: #eee;
-  color: #444;
-  cursor: pointer;
-  padding: 18px;
-  width: 100%;
-  border: none;
-  text-align: left;
-  outline: none;
-  font-size: 15px;
-  transition: 0.4s;
-}
 
-.active, .accordion:hover {
-  background-color: #ccc; 
-}
-
-.panel {
-  padding: 0 18px;
-  display: none;
-  background-color: white;
-  overflow: hidden;
-}
     /* Dropdown styles */
     .dropdown {
       position: relative;
@@ -217,12 +195,29 @@
 
 <button class="accordion">Tài chính hiện tại</button>
 <div class="panel">
- <iframe 
-  src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRE0sMqqfewnVFqE4-AlxlNCrblM3TkoX-SF7PpQWqIioJy_ujwexJmRnDiEKRGwRcwrABrB6jKZcfm/pubhtml?gid=1355620887&single=true" 
-  width="79%" 
-  height="368px"
-  style="border:1px solid #ccc;border-radius:10px;">
-</iframe> 
+<!-- Accordion: Xem tình hình tài chính -->
+<details class="finance-accordion" style="width: 62%; margin: 0 auto;">
+ <summary style="
+    cursor: pointer;
+    padding: 10px 14px;
+    background-color: rgba(255, 255, 255, 0.4);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+    user-select: none;">
+    📊 Xem tình hình tài chính
+  </summary>
+
+  <iframe
+    src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRE0sMqqfewnVFqE4-AlxlNCrblM3TkoX-SF7PpQWqIioJy_ujwexJmRnDiEKRGwRcwrABrB6jKZcfm/pubhtml?gid=1355620887&single=true"
+    width="100%"
+    height="368"
+    style="border: 1px solid #ccc; border-radius: 0 0 10px 10px; margin-top: 6px;">
+  </iframe>
+</details>
 </div>
  
   <br/><br/>
