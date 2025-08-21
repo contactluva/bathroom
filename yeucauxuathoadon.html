@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Nhập tên công ty → bung form</title>
+  <style>
+  body {
+    margin: 0;
+    font-family: Arial;
+    text-align: center;
+    background: #f5f5f7;
+    color: #111;
+  }
+
+  #topArea {
+    margin: 20px 0;
+  }
+
+  #companyBox {
+    width: 90%;
+    max-width: 400px;
+    min-height: 40px;
+    padding: 12px 14px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.4;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    resize: vertical;              /* Cho phép kéo dãn chiều cao */
+    overflow-wrap: break-word;     /* Ngắt chữ nếu quá dài */
+    white-space: pre-wrap;         /* Xuống dòng tự động */
+    transition: border .2s, box-shadow .2s;
+  }
+
+  #companyBox:focus {
+    outline: none;
+    border: 1px solid #007aff;     /* Xanh iOS */
+    box-shadow: 0 0 0 3px rgba(0,122,255,0.2);
+  }
+
+  #okBtn {
+    margin: 5px 0;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 20px;
+    background: #007aff;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+
+  #okBtn:hover {
+    background: #005ecb;
+  }
+
+  /* Khung iframe – ban đầu ẩn */
+  .form-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    height: 68px;
+    overflow: hidden;
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    margin: 10px auto 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,.08);
+    transition: all .4s ease;
+    display: none;
+    background: #fff;
+  }
+
+  .form-wrapper.show {
+    display: block;
+  }
+
+  .form-wrapper iframe {
+    width: 100%;
+    height: 1000px;
+    border: none;
+    transform: translateY(-566px);
+    pointer-events: auto;
+  }
+
+  .form-wrapper.full {
+    max-width: 100vw;
+    height: 100vh;
+    border: none;
+    border-radius: 0;
+    display: block;
+  }
+
+  .form-wrapper.full iframe {
+    transform: none;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .hidden {
+    display: none;
+  }
+</style>
+<body>
+  <div id="topArea">
+    <h2>XUẤT HÓA ĐƠN</h2>
+    <textarea id="companyBox"
+  placeholder="Nhập tên công ty, MST, ghi chú...">Xuất hóa đơn công ty X - MST: 12345 - Chưa VAT</textarea>
+
+    <button id="okBtn">OK</button>
+  </div>
+
+  <div class="form-wrapper" id="formBox">
+    <iframe id="gForm" src=""></iframe>
+  </div>
+
+  <script>
+    const BASE =
+      'https://docs.google.com/forms/d/e/1FAIpQLSeC_Q7HbU3-PrDFXL-pXDpICYLM2nAmdjqD2tYiuv4Yx70AdQ/viewform' +
+      '?usp=pp_url&entry.502829689=' + new Date().toISOString().split('T')[0] +
+      '&entry.668594151=Xuất kho&entry.1023052439=';
+
+    const box     = document.getElementById('formBox');
+    const iframe  = document.getElementById('gForm');
+    const topArea = document.getElementById('topArea');
+    const okBtn   = document.getElementById('okBtn');
+    const company = document.getElementById('companyBox');
+
+    // Nhấn OK → build URL mới & hiện iframe
+    okBtn.addEventListener('click', () => {
+      const companyName = company.value.trim();
+      iframe.src = BASE + encodeURIComponent(companyName);
+      box.classList.add('show');
+    });
+
+    // Sau khi bấm Tiếp → bung full
+    let loadedOnce = false;
+    iframe.addEventListener('load', () => {
+      if (loadedOnce) {
+        box.classList.add('full');
+        topArea.classList.add('hidden');
+      }
+      loadedOnce = true;
+    });
+  </script>
+</body>
+</html>
