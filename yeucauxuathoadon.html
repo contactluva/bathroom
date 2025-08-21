@@ -74,9 +74,10 @@
 
     /* Khung iframe */
     .form-wrapper {
+    max-width: 400px;
       min-width: 330px;
       width: 100%;
-      height: 70px;
+      height: 90px;
       overflow: hidden;
       border: 0px solid #ccc;
       border-radius: 12px;
@@ -97,7 +98,7 @@
       width: 100%;
       height: 1000px;
       border: none;
-      transform: translateY(-618px);
+      transform: translateY(-568px);
     }
 
     .form-wrapper.full {
@@ -111,11 +112,11 @@
     .form-wrapper.full iframe {
       transform: none;
       width: 100vw;
-      height: 100vh;
+      height: 120%;
     }
 
     .hidden {
-      display: none;
+      display: none !important;
     }
 
     /* Responsive nhỏ hơn 400px: full màn hình */
@@ -138,7 +139,7 @@
       }
       .form-wrapper {
         width: 100vw;
-        min-width: 330px;
+        max-width: 330px;
         border-radius: 6px;
       }
     }
@@ -156,31 +157,37 @@
   </div>
 
   <script>
-    const BASE =
-      'https://docs.google.com/forms/d/e/1FAIpQLSeC_Q7HbU3-PrDFXL-pXDpICYLM2nAmdjqD2tYiuv4Yx70AdQ/viewform' +
-      '?usp=pp_url&entry.502829689=' + new Date().toISOString().split('T')[0] +
-      '&entry.668594151=Xuất kho&entry.1023052439=';
+  const BASE =
+    'https://docs.google.com/forms/d/e/1FAIpQLSeC_Q7HbU3-PrDFXL-pXDpICYLM2nAmdjqD2tYiuv4Yx70AdQ/viewform' +
+    '?usp=pp_url&entry.502829689=' + new Date().toISOString().split('T')[0] +
+    '&entry.668594151=Xuất kho&entry.1023052439=';
 
-    const box     = document.getElementById('formBox');
-    const iframe  = document.getElementById('gForm');
-    const topArea = document.getElementById('topArea');
-    const okBtn   = document.getElementById('okBtn');
-    const company = document.getElementById('companyBox');
+  const box     = document.getElementById('formBox');
+  const iframe  = document.getElementById('gForm');
+  const topArea = document.getElementById('topArea');
+  const okBtn   = document.getElementById('okBtn');
+  const company = document.getElementById('companyBox');
 
-    okBtn.addEventListener('click', () => {
-      const companyName = company.value.trim();
-      iframe.src = BASE + encodeURIComponent(companyName);
-      box.classList.add('show');
-    });
+  okBtn.addEventListener('click', () => {
+    const companyName = company.value.trim();
+    iframe.src = BASE + encodeURIComponent(companyName);
+    box.classList.add('show');
+  });
 
-    let loadedOnce = false;
-    iframe.addEventListener('load', () => {
-      if (loadedOnce) {
-        box.classList.add('full');
-        topArea.classList.add('hidden');
-      }
+  /* ---------- NEW CODE ---------- */
+  let loadedOnce = false;
+
+  iframe.addEventListener('load', () => {
+    if (!loadedOnce) {               // first load → do nothing special
       loadedOnce = true;
-    });
-  </script>
+      return;
+    }
+
+    // second load (form submitted) → full-screen
+    topArea.classList.add('hidden'); // hide the top area
+    box.classList.add('full');       // widen & heighten the form wrapper
+    iframe.style.transform = 'translateY(-200px)'; // apply the required offset
+  });
+</script>
 </body>
 </html>
