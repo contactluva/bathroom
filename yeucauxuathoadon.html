@@ -33,7 +33,7 @@
 
     #companyBox {
       width: 90%;
-      min-height: 50px;
+      min-height: 160px;
       padding: 12px 14px;
       border: 1px solid #ccc;
       border-radius: 12px;
@@ -225,8 +225,21 @@ clearBtn.addEventListener('click', () => {
   companyBox.value = '';
   companyBox.focus();
   toggleClear();
+  
 });
 toggleClear(); // run once on load
+/* --- tự động thay toàn bộ xuống dòng thành " - " khi paste --- */
+companyBox.addEventListener('paste', e => {
+  // 1. Lấy nội dung thuần túy trong clipboard
+  let text = (e.clipboardData || window.clipboardData).getData('text');
+
+  // 2. Thay tất cả ký tự xuống dòng (Windows, Mac, Linux) thành " - "
+  text = text.replace(/\r\n|\r|\n/g, ' - ');
+
+  // 3. Bỏ paste mặc định, chèn văn bản đã xử lý
+  e.preventDefault();
+  document.execCommand('insertText', false, text);
+});
 </script>
 </body>
 </html>
