@@ -187,6 +187,8 @@
       <a href="#" class="button">HÓA ĐƠN</a>
       <div class="dropdown-content">
         <a href="/yeucauxuathoadon.html">Viết hóa đơn</a>
+<!-- Nút Nhập hàng -->
+<a href="/phieunhaphang.html" id="nhapHangBtn" style="cursor:pointer">Nhập hàng</a>
 <a href="#" id="openForm" style="cursor:pointer">Khác</a>      
     </div> 
     </div>
@@ -275,20 +277,26 @@
   const okBtn   = document.getElementById('pwdOk');
   const cancel  = document.getElementById('pwdCancel');
   const trigger = document.getElementById('openForm');
+  const triggerNhap = document.getElementById('nhapHangBtn');   // ← thêm
 
-  const realUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSeC_Q7HbU3-PrDFXL-pXDpICYLM2nAmdjqD2tYiuv4Yx70AdQ/viewform';
+  const realUrlKhac = 'https://docs.google.com/forms/d/e/1FAIpQLSeC_Q7HbU3-PrDFXL-pXDpICYLM2nAmdjqD2tYiuv4Yx70AdQ/viewform ';
+  const realUrlNhap = '/phieunhaphang.html';                    // ← thêm
 
-  trigger.addEventListener('click', e => {
+  const openModal = (url) => (e) => {                           // ← helper
     e.preventDefault();
+    modal.dataset.targetUrl = url;        // lưu url vào dataset
     modal.style.display = 'flex';
     input.value = '';
     input.focus();
-  });
+  };
+
+  trigger.addEventListener('click', openModal(realUrlKhac));
+  triggerNhap.addEventListener('click', openModal(realUrlNhap)); // ← thêm
 
   okBtn.addEventListener('click', () => {
     if (input.value === '1515') {
       modal.style.display = 'none';
-      window.location.href = realUrl;
+      window.location.href = modal.dataset.targetUrl;          // dùng url đã lưu
     } else {
       alert('Sai mật khẩu!');
     }
