@@ -98,7 +98,7 @@
       width: 100%;
       height: 1000px;
       border: none;
-      transform: translateY(-612px);
+      transform: translateY(-552px);
     }
 
     .form-wrapper.full {
@@ -183,9 +183,9 @@
 
   <script>
   const BASE =
-    'https://docs.google.com/forms/d/e/1FAIpQLSeC_Q7HbU3-PrDFXL-pXDpICYLM2nAmdjqD2tYiuv4Yx70AdQ/viewform ' +
-    '?usp=pp_url&entry.502829689=' + new Date().toISOString().split('T')[0] +
-    '&entry.668594151=Xuất kho&entry.1023052439=';
+  'https://docs.google.com/forms/d/e/1FAIpQLSeC_Q7HbU3-PrDFXL-pXDpICYLM2nAmdjqD2tYiuv4Yx70AdQ/viewform' +
+  '?usp=pp_url&entry.502829689=' + new Date().toISOString().split('T')[0] +
+  '&entry.668594151=Xuất kho&entry.1023052439=';
 
   const box     = document.getElementById('formBox');
   const iframe  = document.getElementById('gForm');
@@ -193,13 +193,11 @@
   const okBtn   = document.getElementById('okBtn');
   const company = document.getElementById('companyBox');
 
- okBtn.addEventListener('click', () => {
-  const companyName = company.value
-    .trim()
-    .replace(/\n+/g, ' - ');          // thay mọi xuống dòng/dòng trống bằng " - "
-  iframe.src = BASE + encodeURIComponent(companyName);
-  box.classList.add('show');
-});
+  okBtn.addEventListener('click', () => {
+    const companyName = company.value.trim();
+    iframe.src = BASE + encodeURIComponent(companyName);
+    box.classList.add('show');
+  });
 
   /* ---------- NEW CODE ---------- */
   let loadedOnce = false;
