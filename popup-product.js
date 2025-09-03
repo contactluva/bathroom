@@ -73,10 +73,10 @@
 }
 
 .top-infox1 .namex1 {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 700;
     color: #202124;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .qty-rowx1, .total-rowx1 {
@@ -97,7 +97,7 @@
 }
 
 span#totalSpanx1 {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 600;
     color: #266d2f;
 }
@@ -227,7 +227,7 @@ span#totalSpanx1 {
             <select id="districtx1"><option value="" selected>Q/Huyện</option></select>
           </div>
           <div class="form-rowx1 fullx1">
-            <select id="wardx1"><option value="" selected>P/Xã</option></select>
+            <select id="wardx1"><option value="" selected>Phường/Xã</option></select>
           </div>
           <div class="form-rowx1">
             <input type="text" id="addressx1" placeholder="Số nhà, xóm, ngõ..." required>
