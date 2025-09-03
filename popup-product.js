@@ -3,7 +3,7 @@
   /* 1. CSS inline */
   const style = document.createElement('style');
   style.textContent = `
-    /* Ẩn nút mặc định */
+/* Ẩn nút mặc định */
 #muahangx1 {
     position: fixed;
     left: 19px;
@@ -195,11 +195,11 @@ span#totalSpanx1 {
   if (!document.getElementById('muahangx1')) {
     const btn = document.createElement('button');
     btn.id = 'muahangx1';
-    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bag-heart" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10.5 3.5a2.5 2.5 0 0 0-5 0V4h5zm1 0V4H15v10a2 2 0 0 1-2 2H3a 2 2 0 0 1-2-2V4h3.5v-.5a3.5 3.5 0 1 1 7 0M14 14V5H2v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1M8 7.993c1.664-1.711 5.825 1.283 0 5.132-5.825-3.85-1.664-6.843 0-5.132"/></svg> Mua ngay`;
+    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 3.5a2.5 2.5 0 0 0-5 0V4h5zm1 0V4H15v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4h3.5v-.5a3.5 3.5 0 1 1 7 0M14 14V5H2v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1M8 7.993c1.664-1.711 5.825 1.283 0 5.132-5.825-3.85-1.664-6.843 0-5.132"/></svg> Mua ngay`;
     document.body.appendChild(btn);
   }
 
-  /* 3. HTML popup – chèn động */
+  /* 3. HTML popup */
   if (!document.getElementById('overlayx1')) {
     const popupHTML = `
       <div id="overlayx1" style="display:none;">
@@ -223,11 +223,11 @@ span#totalSpanx1 {
           <div class="free-shipx1">Đơn hàng này được <strong>FREE SHIP</strong>!</div>
           <div class="headingx1">Thông tin người nhận</div>
           <div class="form-rowx1 addr-linex1">
-            <select class="form-selectx1 form-select-smx1" id="cityx1"><option value="" selected>Tỉnh/TP</option></select>
-            <select class="form-selectx1 form-select-smx1" id="districtx1"><option value="" selected>Q/Huyện</option></select>
+            <select id="cityx1"><option value="" selected>Tỉnh/TP</option></select>
+            <select id="districtx1"><option value="" selected>Q/Huyện</option></select>
           </div>
           <div class="form-rowx1 fullx1">
-            <select class="form-selectx1 form-select-smx1" id="wardx1"><option value="" selected>P/Xã</option></select>
+            <select id="wardx1"><option value="" selected>P/Xã</option></select>
           </div>
           <div class="form-rowx1">
             <input type="text" id="addressx1" placeholder="Số nhà, xóm, ngõ..." required>
@@ -239,7 +239,7 @@ span#totalSpanx1 {
           <div class="form-rowx1 fullx1" id="noteBoxx1" style="display:none">
             <textarea id="notex1" placeholder="Ghi chú hoặc yêu cầu thêm của bạn..." rows="2"></textarea>
           </div>
-          <div class="honeypotx1"><input type="text" id="websitex1"></div>
+          <div class="honeypotx1" style="display:none"><input type="text" id="websitex1"></div>
           <button class="submit-btnx1" id="submitOrderx1">Hoàn thành</button>
           <div style="font-size:14px;color:#5f6368;margin-top:8px">Thanh toán khi nhận hàng (COD)</div>
           <div id="responseMsgx1"></div>
@@ -252,210 +252,214 @@ span#totalSpanx1 {
     document.body.insertAdjacentHTML('beforeend', popupHTML);
   }
 
-  /* 4. Lấy data sản phẩm từ DOM WooCommerce */
+  /* 4. Lấy data sản phẩm */
   const img = document.querySelector('.woocommerce-product-gallery__wrapper img')?.src || '';
   const title = document.querySelector('.product_title')?.textContent || '';
-  const price = document.querySelector('.price .woocommerce-Price-amount bdi')?.textContent || '';
-  const priceRaw = parseFloat(price.replace(/[^\d]/g,''));
-
+  const priceEl = document.querySelector('.price .woocommerce-Price-amount bdi');
+  const priceText = priceEl?.textContent || '0 ₫';
+  const priceRaw = parseFloat(priceText.replace(/[^\d]/g, ''));
   document.getElementById('popupImg').src = img;
   document.getElementById('popupTitle').textContent = title;
-  document.getElementById('totalSpanx1').textContent = price;
+  document.getElementById('totalSpanx1').textContent = priceText;
   document.getElementById('totalSpanx1').dataset.price = priceRaw;
 
-  /* 5. Xử lý JS còn lại (open/close, tính tổng, gửi Telegram, lưu localStorage,…) */
-  
-<!-- Axios & địa chỉ VN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
-<script>
-/* ===== ĐỊA CHỈ VIỆT NAM ===== */
-const cityx1   = document.getElementById('cityx1');
-const districtx1 = document.getElementById('districtx1');
-const wardx1   = document.getElementById('wardx1');
-axios({url:'https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json',method:'GET',responseType:'json'})
-  .then(res=>{
-    const data=res.data;
-    data.forEach(p=>cityx1.add(new Option(p.Name,p.Id)));
-    cityx1.addEventListener('change',()=>{
-      districtx1.length=1;wardx1.length=1;
-      if(cityx1.value){
-        data.find(p=>p.Id===cityx1.value).Districts.forEach(d=>districtx1.add(new Option(d.Name,d.Id)));
-      }
+  /* 5. Khai báo các biến dùng chung */
+  const citySel   = document.getElementById('cityx1');
+  const districtSel = document.getElementById('districtx1');
+  const wardSel   = document.getElementById('wardx1');
+  const qtySel    = document.getElementById('qtyx1');
+  const overlay   = document.getElementById('overlayx1');
+  const closeBtn  = document.getElementById('closeBtnx1');
+  const submitBtn = document.getElementById('submitOrderx1');
+  const responseMsg = document.getElementById('responseMsgx1');
+  const modalFooter = document.getElementById('modalFooterx1');
+
+  /* 6. Load Axios & địa chỉ VN */
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
     });
-    districtx1.addEventListener('change',()=>{
-      wardx1.length=1;
-      if(districtx1.value){
-        const p=data.find(p=>p.Id===cityx1.value);
-        p.Districts.find(d=>d.Id===districtx1.value).Wards.forEach(w=>wardx1.add(new Option(w.Name,w.Id)));
-      }
+  }
+
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js')
+    .then(() => {
+      return axios.get('https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json');
+    })
+    .then(res => {
+      const data = res.data;
+      data.forEach(p => citySel.add(new Option(p.Name, p.Id)));
+      citySel.addEventListener('change', () => {
+        districtSel.length = 1;
+        wardSel.length = 1;
+        if (!citySel.value) return;
+        data.find(p => p.Id === citySel.value).Districts.forEach(d =>
+          districtSel.add(new Option(d.Name, d.Id))
+        );
+      });
+      districtSel.addEventListener('change', () => {
+        wardSel.length = 1;
+        if (!districtSel.value) return;
+        const p = data.find(p => p.Id === citySel.value);
+        p.Districts.find(d => d.Id === districtSel.value).Wards.forEach(w =>
+          wardSel.add(new Option(w.Name, w.Id))
+        );
+      });
     });
-  });
 
-/* ===== XỬ LÝ POPUP ===== */
-const btnOpenx1  = document.getElementById('muahangx1');
-const overlayx1  = document.getElementById('overlayx1');
-const closeBtnx1 = document.getElementById('closeBtnx1');
-const submitBtnx1 = document.getElementById('submitOrderx1');
-const responseMsgx1 = document.getElementById('responseMsgx1');
-const modalFooterx1 = document.getElementById('modalFooterx1');
+  /* 7. Xử lý popup */
+  document.getElementById('muahangx1').addEventListener('click', () => overlay.style.display = 'flex');
+  closeBtn.addEventListener('click', closePopup);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closePopup(); });
+  function closePopup() {
+    overlay.style.display = 'none';
+    responseMsg.textContent = '';
+    modalFooter.style.display = 'none';
+  }
 
-btnOpenx1.addEventListener('click',()=>overlayx1.style.display='flex');
-closeBtnx1.addEventListener('click',closePopup);
-overlayx1.addEventListener('click',e=>{if(e.target===overlayx1)closePopup();});
-function closePopup(){overlayx1.style.display='none';responseMsgx1.textContent='';modalFooterx1.style.display='none';}
+  /* 8. Tính tổng tiền */
+  function updateTotal() {
+    const price = parseFloat(document.getElementById('totalSpanx1').dataset.price) || 0;
+    document.getElementById('totalSpanx1').textContent = (price * qtySel.value).toLocaleString('vi-VN') + '₫';
+  }
+  qtySel.addEventListener('change', updateTotal);
+  updateTotal();
 
-/* ===== TÍNH TỔNG TIỀN ===== */
-function updateTotal(){
-  document.getElementById('totalSpanx1').textContent = (100000*parseInt(qtySelx1.value,10)).toLocaleString('vi-VN')+'đ';
-}
-const qtySelx1=document.getElementById('qtyx1');
-qtySelx1.addEventListener('change',updateTotal);
-updateTotal();
+  /* 9. Đếm ngược */
+  function countdown(sec) {
+    responseMsg.innerHTML = `
+      <div style="color:#006400;font-size:16px;font-weight:600">
+        Đơn hàng của bạn đã gửi đi, vui lòng đợi chúng tôi xác nhận!<br>
+        Tự động đóng trong <span id="countx1">${sec}</span>s
+      </div>`;
+    modalFooter.style.display = 'flex';
+    const timer = setInterval(() => {
+      sec--;
+      document.getElementById('countx1').textContent = sec;
+      if (sec <= 0) { clearInterval(timer); closePopup(); }
+    }, 1000);
+  }
 
-/* ===== ĐẾM NGƯỢC & ĐÓNG ===== */
-function countdown(sec){
-responseMsgx1.innerHTML = `
-  <div style="color:#006400;font-size:16px;font-weight:600">
-    Đơn hàng của bạn đã gửi đi, vui lòng đợi chúng tôi xác nhận!<br>
-    Tự động đóng trong <span id="countx1">${sec}</span>s
-  </div>`;
-  modalFooterx1.style.display='flex';
-  const timer=setInterval(()=>{
-    sec--;
-    document.getElementById('countx1').textContent=sec;
-    if(sec<=0){clearInterval(timer);closePopup();}
-  },1000);
-}
-
-/* ===== SUBMIT ===== */
-submitBtnx1.addEventListener('click',async()=>{
-  if(document.getElementById('websitex1').value.trim()!==''){responseMsgx1.textContent='Bot detected – order NOT sent!';return;}
-  const qty=qtySelx1.value;
-  const total=100000*qty;
-  const province=cityx1.options[cityx1.selectedIndex]?.text||'';
-  const districtSelx1=document.getElementById('districtx1');
-  const district=districtSelx1.options[districtSelx1.selectedIndex]?.text||'';
-  const wardSelx1=document.getElementById('wardx1');
-  const ward=wardSelx1.options[wardSelx1.selectedIndex]?.text||'';
-  const address=document.getElementById('addressx1').value.trim();
-  const phone=document.getElementById('phonex1').value.trim();
-  const note=document.getElementById('notex1').value.trim();
-  if(!province||!district||!ward||!address||!phone){responseMsgx1.textContent='Vui lòng điền đầy đủ thông tin!';return;}
-  if(!/^\d{10,11}$/.test(phone)){responseMsgx1.textContent='Số điện thoại không hợp lệ!';return;}
-  submitBtnx1.disabled=true;
-  const message=`*Đơn hàng mới*\nSản phẩm: Sản phẩm A\nSố lượng: ${qty}\nTổng tiền: ${total.toLocaleString('vi-VN')}đ\nĐịa chỉ: ${address}, ${ward}, ${district}, ${province}\nSĐT: ${phone}\nGhi chú: ${note||'Không'}`;
-  try{
-    const TELEGRAM_BOT_TOKEN = '7046417265:AAGtJzqnUXBP_iFAosujmMgqesfZeQOdCL8';
-    const CHAT_ID = '-4244295504';
-
-    const res = await fetch(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: CHAT_ID,
-          text: message,
-          parse_mode: 'Markdown'
-        })
-      }
-    );
-    if (res.ok) {
-      /* 1. Ẩn toàn bộ nội dung trong popup */
-      document.querySelectorAll('#popupmhx1 > *:not(#responseMsgx1):not(.modal-footerx1)')
-              .forEach(el => el.style.display = 'none');
-
-      /* 2. Hiện thông báo & nút đóng */
-      responseMsgx1.style.display = 'block';   // chắc chắn hiện
-      modalFooterx1.style.display = 'flex';
-
-      /* 3. Bắt đầu đếm ngược */
-      countdown(5);
+  /* 10. Submit */
+  submitBtn.addEventListener('click', async () => {
+    if (document.getElementById('websitex1').value.trim() !== '') {
+      responseMsg.textContent = 'Bot detected – order NOT sent!';
+      return;
     }
-    else{const err=await res.json();throw new Error(err.description||'Lỗi không xác định');}
-  }catch(e){responseMsgx1.textContent='Lỗi gửi đơn: '+e.message;}
-  finally{submitBtnx1.disabled=false;}
-});
-
-/* ===== HIỆN/ẨN Ô GHI CHÚ ===== */
-document.getElementById('showNotex1').addEventListener('change', function () {
-  document.getElementById('noteBoxx1').style.display = this.checked ? 'block' : 'none';
-});
-</script>
-<script>
-/* ===== AUTO-SAVE / RESTORE / EXPIRE FORM DATA ===== */
-(() => {
-  const STORAGE_KEY = 'popupFormData';
-  const EXPIRE_DAYS = 10;
-  const fields = ['cityx1', 'districtx1', 'wardx1', 'addressx1', 'phonex1', 'notex1'];
-
-  // Lấy data từ localStorage, nếu còn hạn
-  function getStoredData() {
+    const qty = qtySel.value;
+    const priceVal = parseFloat(document.getElementById('totalSpanx1').dataset.price) || 0;
+    const total = priceVal * qty;
+    const province = citySel.options[citySel.selectedIndex]?.text || '';
+    const district = districtSel.options[districtSel.selectedIndex]?.text || '';
+    const ward = wardSel.options[wardSel.selectedIndex]?.text || '';
+    const address = document.getElementById('addressx1').value.trim();
+    const phone = document.getElementById('phonex1').value.trim();
+    const note = document.getElementById('notex1').value.trim();
+    if (!province || !district || !ward || !address || !phone) {
+      responseMsg.textContent = 'Vui lòng điền đầy đủ thông tin!';
+      return;
+    }
+    if (!/^\d{10,11}$/.test(phone)) {
+      responseMsg.textContent = 'Số điện thoại không hợp lệ!';
+      return;
+    }
+    submitBtn.disabled = true;
+    const message =
+      `*Đơn hàng mới*\n` +
+      `Sản phẩm: ${title}\n` +
+      `Số lượng: ${qty}\n` +
+      `Tổng tiền: ${total.toLocaleString('vi-VN')}₫\n` +
+      `Địa chỉ: ${address}, ${ward}, ${district}, ${province}\n` +
+      `SĐT: ${phone}\n` +
+      `Ghi chú: ${note || 'Không'}`;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      const { ts, data } = JSON.parse(raw);
-      const ageMs = Date.now() - ts;
-      if (ageMs > EXPIRE_DAYS * 24 * 60 * 60 * 1000) {
-        localStorage.removeItem(STORAGE_KEY);
-        return null;
-      }
-      return data;
-    } catch { return null; }
-  }
-
-  // Lưu data kèm timestamp
-  function storeData(obj) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ts: Date.now(), data: obj }));
-  }
-
-  // Điền dữ liệu vào form
-  function fillForm(data) {
-    if (!data) return;
-    data.cityx1 && (cityx1.value = data.cityx1);
-    if (data.cityx1) {
-      // Kích hoạt change để load quận/huyện
-      cityx1.dispatchEvent(new Event('change'));
-      setTimeout(() => {
-        data.districtx1 && (districtx1.value = data.districtx1);
-        if (data.districtx1) {
-          districtx1.dispatchEvent(new Event('change'));
-          setTimeout(() => {
-            data.wardx1 && (wardx1.value = data.wardx1);
-          }, 50);
+      const TELEGRAM_BOT_TOKEN = '7046417265:AAGtJzqnUXBP_iFAosujmMgqesfZeQOdCL8';
+      const CHAT_ID = '-4244295504';
+      const res = await fetch(
+        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: CHAT_ID, text: message, parse_mode: 'Markdown' })
         }
-      }, 50);
+      );
+      if (res.ok) {
+        document.querySelectorAll('#popupmhx1 > *:not(#responseMsgx1):not(.modal-footerx1)')
+          .forEach(el => el.style.display = 'none');
+        responseMsg.style.display = 'block';
+        modalFooter.style.display = 'flex';
+        countdown(5);
+      } else {
+        const err = await res.json();
+        throw new Error(err.description || 'Lỗi không xác định');
+      }
+    } catch (e) {
+      responseMsg.textContent = 'Lỗi gửi đơn: ' + e.message;
+    } finally {
+      submitBtn.disabled = false;
     }
-    data.addressx1 && (document.getElementById('addressx1').value = data.addressx1);
-    data.phonex1   && (document.getElementById('phonex1').value   = data.phonex1);
-    data.notex1    && (document.getElementById('notex1').value    = data.notex1);
-    if (data.notex1) {
-      document.getElementById('showNotex1').checked = true;
-      document.getElementById('noteBoxx1').style.display = 'block';
-    }
-  }
-
-  // Lắng nghe thay đổi để lưu
-  fields.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('change', saveCurrentForm);
-    el.addEventListener('input',  saveCurrentForm);   // cho text/textarea
   });
 
-  function saveCurrentForm() {
-    const data = {};
+  /* 11. Ghi chú */
+  document.getElementById('showNotex1').addEventListener('change', function () {
+    document.getElementById('noteBoxx1').style.display = this.checked ? 'block' : 'none';
+  });
+
+  /* 12. Auto-save / restore */
+  (() => {
+    const STORAGE_KEY = 'popupFormData';
+    const EXPIRE_DAYS = 10;
+    const fields = ['cityx1', 'districtx1', 'wardx1', 'addressx1', 'phonex1', 'notex1'];
+    function getStored() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const { ts, data } = JSON.parse(raw);
+        if (Date.now() - ts > EXPIRE_DAYS * 86400000) {
+          localStorage.removeItem(STORAGE_KEY);
+          return null;
+        }
+        return data;
+      } catch { return null; }
+    }
+    function store(obj) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ts: Date.now(), data: obj }));
+    }
+    function fill(data) {
+      if (!data) return;
+      if (data.cityx1) {
+        citySel.value = data.cityx1;
+        citySel.dispatchEvent(new Event('change'));
+        setTimeout(() => {
+          if (data.districtx1) {
+            districtSel.value = data.districtx1;
+            districtSel.dispatchEvent(new Event('change'));
+            setTimeout(() => {
+              if (data.wardx1) wardSel.value = data.wardx1;
+            }, 50);
+          }
+        }, 50);
+      }
+      if (data.addressx1) document.getElementById('addressx1').value = data.addressx1;
+      if (data.phonex1) document.getElementById('phonex1').value = data.phonex1;
+      if (data.notex1) {
+        document.getElementById('notex1').value = data.notex1;
+        document.getElementById('showNotex1').checked = true;
+        document.getElementById('noteBoxx1').style.display = 'block';
+      }
+    }
     fields.forEach(id => {
       const el = document.getElementById(id);
-      if (el) data[id] = el.value;
+      if (!el) return;
+      ['change', 'input'].forEach(evt => el.addEventListener(evt, () => {
+        const obj = {};
+        fields.forEach(fid => { obj[fid] = document.getElementById(fid)?.value || ''; });
+        store(obj);
+      }));
     });
-    storeData(data);
-  }
-
-  // Restore dữ liệu khi mở popup
-  document.getElementById('muahangx1').addEventListener('click', () => {
-    fillForm(getStoredData());
-  });
-})();
-</script>
+    document.getElementById('muahangx1').addEventListener('click', () => fill(getStored()));
+  })();
 })();
