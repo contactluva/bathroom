@@ -145,6 +145,42 @@
     td:has(textarea.product-info) {
       vertical-align: top;
     }
+    
+   /* Thêm vào cuối phần <style> */
+.signature-container {
+  text-align: right;
+  margin-top: -10px;
+  padding-right: 0px;
+  display: none;
+}
+
+.signature-container img {
+  width: auto;
+  height: auto;
+  max-width: 460px;
+}
+
+#signatureBtn {
+  position: fixed;
+  bottom: 20px;
+  left: 120px;
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #FF9800;
+  z-index: 1000;
+}
+
+@media print {
+  .signature-container {
+    display: block !important;
+  }
+  #signatureBtn {
+    display: none !important;
+  }
+}
   </style>
 </head>
 <body>
@@ -241,8 +277,14 @@
       </ul>
     </li>
   </ol>
+  
+ <!-- Chữ ký ở cuối nội dung -->
+  <div class="signature-container" id="signatureContainer">
+    <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký">
+  </div>
 
   <button id="addRowBtn" onclick="addRow()">Thêm hàng</button>
+ <button id="signatureBtn" onclick="toggleSignature()">Chữ ký</button>
   <button id="printBtn" onclick="window.print()">In PDF</button>
 
   <script>
@@ -377,6 +419,16 @@
         textarea.selectionStart = textarea.selectionEnd = 0;
       });
     };
+    
+   function toggleSignature() {
+      const container = document.getElementById('signatureContainer');
+      container.style.display = container.style.display === 'none' || !container.style.display ? 'block' : 'none';
+    }
+
+    // Ẩn chữ ký khi load trang
+    window.addEventListener('load', () => {
+      document.getElementById('signatureContainer').style.display = 'none';
+    });
   </script>
 </body>
 </html>
