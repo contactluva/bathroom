@@ -376,8 +376,8 @@ span#totalSpanx1 {
       `SĐT: ${phone}\n` +
       `Ghi chú: ${note || 'Không'}`;
     try {
-      const TELEGRAM_BOT_TOKEN = '7046417265:AAGtJzqnUXBP_iFAosujmMgqesfZeQOdCL8';
-      const CHAT_ID = '-4244295504';
+      const TELEGRAM_BOT_TOKEN = '5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA';
+      const CHAT_ID = '-702616123';
       const res = await fetch(
         `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
         {
