@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Báo giá sản phẩm</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      width: 210mm;
+      margin: auto;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: auto; /* Đảm bảo bảng tự điều chỉnh kích thước */
+    }
+    td, th {
+      border: 1px solid rgba(0, 0, 0, 0.4);
+      padding: 5px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .header-cell {
+      text-align: left;
+      vertical-align: top;
+      padding-top: 5px;
+      padding-left: 15px;
+      height: auto; /* Cho phép cell tự mở rộng */
+      min-height: 50px;
+    }
+    .header-cell2 {
+      text-align: center;
+      vertical-align: top;
+      padding-top: 5px;
+      padding-left: 30px;
+      width: 450px;
+      height: auto; /* Cho phép cell tự mở rộng */
+      min-height: 50px;
+    }
+    .header-cell span, .header-cell2 span {
+      display: inline-block;
+      vertical-align: top;
+      margin: 0;
+    }
+    .header-cell input, .header-cell textarea {
+      margin: 0px 2px;
+      padding: 0;
+      vertical-align: top;
+      text-align: left;
+      resize: none;
+      overflow: hidden;
+      width: auto;
+      min-height: 20px;
+      font-weight: bold;
+      font-family: inherit;
+      font-size: 14px;
+      border: none;
+      display: inline-block;
+    }
+    .header-cell textarea.address {
+      margin-top: 0px;
+      height: auto !important; /* Cho phép textarea tự mở rộng */
+      font-weight: normal;
+      font-size: 14px;
+      line-height: 1.5; /* Tăng khoảng cách dòng */
+    }
+    .header-cell2 input {
+      width: 100px;
+    }
+    
+    span.editable.bennhan {
+    line-height: 24px;
+}
+    span.editable.ngay {
+    display: table;
+    margin: auto;
+    margin-top: 30px;
+    font-style: italic;
+}
+
+    .header-cell textarea.namecty {
+      margin-top: 2px;}
+    
+    .header-cell textarea {
+      width: 350px;
+    }
+    input#dateInput {
+      text-align: left;
+    }
+    .header-cell input:focus, .header-cell textarea:focus, .header-cell2 input:focus {
+      outline: none;
+    }
+    input[type="text"], input[type="number"], textarea {
+      width: 95%;
+      border: none;
+      text-align: center;
+      resize: none;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    textarea.product-name {
+      text-align: center;
+      vertical-align: middle;
+    }
+    textarea {
+      min-height: 60px;
+      overflow: hidden;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+    }
+    img.preview {
+      max-width: 100px;
+      max-height: 100px;
+      display: block;
+      margin: auto;
+    }
+    input.image-url {
+      display: block;
+      width: 95%;
+      margin: auto;
+    }
+    input.image-url.hidden {
+      display: none;
+    }
+    #printBtn, #addRowBtn {
+      position: fixed;
+      bottom: 20px;
+      padding: 10px 20px;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #printBtn {
+      right: 20px;
+      background-color: #4CAF50;
+    }
+    #addRowBtn {
+      right: 100px;
+      background-color: #008CBA;
+    }
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 20mm;
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+      header, footer, #printBtn, #addRowBtn, input::placeholder, textarea::placeholder {
+        display: none !important;
+      }
+      .editable {
+        border: none !important;
+        padding: 0;
+        display: inline;
+        background: transparent;
+      }
+      input, textarea {
+        border: none;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    }
+    .sib {
+      font-weight: 400;
+      font-size: 12px;
+      color: #000;
+      font-style: italic;
+    }
+    .vaofd {
+      margin: -10px 0px 20px 0px;
+    }
+    .vaofd p {
+      color: #7a7979;
+      font-weight: 400;
+      font-size: 14px;
+      margin: 3px 0px !important;
+    }
+    .logo {
+      position: relative;
+      background-color: #fff;
+      padding: 10px 0;
+      margin-bottom: 20px;
+    }
+    .signature-container2 {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+      font-size: 14px;
+      text-align: center;
+    }
+    .signature2 {
+      width: 45%;
+    }
+    .signature2 p {
+      margin: 10px 0;
+    }
+    textarea.product-name {
+      align-content: center;
+    }
+    textarea {
+      height: 23px;
+    }
+    
+    table.header-table td.left { 
+            width: 40%; 
+            text-align: left; 
+            padding-l
+        }
+        table.header-table td.right { 
+            width: 60%; 
+            text-align: center; 
+        }
+        
+          
+   /* Thêm vào cuối phần <style> */
+.signature-container {
+  text-align: right;
+  margin-top: -10px;
+  padding-right: -60px;
+  display: none;
+}
+
+.signature-container img {
+  width: auto;
+  height: auto;
+  margin-right: -60px;
+  max-width: 376px;
+}
+
+#signatureBtn {
+  position: fixed;
+  bottom: 20px;
+  left: 120px;
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #FF9800;
+  z-index: 1000;
+}
+
+@media print {
+  .signature-container {
+    display: block !important;
+  }
+  #signatureBtn {
+    display: none !important;
+  }
+}
+  </style>
+</head>
+<body><br/>
+ 
+  
+   
+
+  <table>
+    <tr>
+      <td colspan="2" class="header-cell">
+        <div style="display:inline-block;vertical-align:middle;">
+      <p><strong>CÔNG TY TNHH QUANG MINH VN</strong></p>
+      <div class="vaofd">
+        <p>MST:2401038011</p>
+        <p>Thôn Hữu Định, xã Hợp Thịnh, Bắc Ninh</p>
+      </div>
+    
+      </td>
+      <td class="header-cell2">
+        <p><strong>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong></p>
+      <div class="vaofd">
+        <p>Độc lập – Tự do – Hạnh phúc</p>
+      </td>
+    </tr>
+  </table>
+  
+  <span class="editable ngay" contenteditable="true">Ngày 16 tháng 7 năm 2025</span>
+  
+  <h1 style="text-align: center;">BIÊN BẢN BÀN GIAO</h1>
+  
+  <span class="editable bennhan" contenteditable="true"><b>Bên nhận hàng: </b>Công ty TNHH ABC</span><br>
+    <span class="editable bennhan" contenteditable="true">- Địa chỉ: Thôn Hữu Định, xã Hợp Thịnh, Bắc Ninh</span><br>
+  <span class="editable bennhan" contenteditable="true">- Mã số thuế: 2401038011</span><br>
+  <p></p>
+  <span class="editable bennhan" contenteditable="true"><b>Bên giao hàng: </b>Công ty TNHH ABC</span><br>
+    <span class="editable bennhan" contenteditable="true">- Địa chỉ: Thôn Hữu Định, xã Hợp Thịnh, Bắc Ninh</span><br>
+  <span class="editable bennhan" contenteditable="true">- Mã số thuế: 2401038011</span><br>
+  
+<p>Hai bên cùng nhau thống nhất số lượng giao hàng như sau:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Tên sản phẩm</th>
+        <th>Giá bán lẻ <br><span class="sib">(đ) (Chưa VAT)</span></th>
+        <th>Số lượng<br><span class="sib">(cái)</span></th>
+        <th>Thành tiền<br><span class="sib">(đ)</span></th>
+      </tr>
+    </thead>
+    <tbody id="productRows">
+      <tr>
+        <td><textarea class="product-name" placeholder="Tên sản phẩm" oninput="autoResize(this)"></textarea></td>
+        <td><input type="text" placeholder="Giá" oninput="formatNumber(this); calcTotal()"></td>
+        <td><input type="number" placeholder="SL" oninput="calcTotal()"></td>
+        <td><input type="text" readonly></td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="3" style="text-align:right">VAT (8%)<span class="sib"> (đ)</span></td>
+        <td><input type="text" id="vat" readonly></td>
+      </tr>
+      <tr>
+        <td colspan="3" style="text-align:right"><strong>Tổng<span class="sib"> (đ)</span></strong></td>
+        <td><input type="text" id="total" readonly></td>
+      </tr>
+      <tr>
+        <td colspan="4" style="text-align:right; font-size: 12px;font-weight: 300;" class="editable">
+          <strong>Bằng chữ :<i> Một triệu không trăm năm mươi sáu nghìn đồng.</i></strong>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+  
+
+
+<p class="editable">Kể từ ngày 10 tháng 6 năm 2025 số tài trên do bên CÔNG TY CỔ PHẦN CHẾ TẠO ĐIỆN CƠ HEM chịu trách nhiệm quản lý.</p>
+
+  <div class="signature-container2">
+    <div class="signature2">
+      <p><strong>KHÁCH HÀNG</strong></p>
+      <p>(Ký, họ tên)</p>
+    </div>
+    <div class="signature2">
+      <p><strong>QUANGMINH., LTD</strong></p>
+      <p>(Ký, họ tên)</p>
+    </div>
+  </div>
+  
+  
+
+  <button id="addRowBtn" onclick="addRow()">Thêm hàng</button>
+  <button id="signatureBtn" onclick="toggleSignature()">Chữ ký</button>
+  <button id="printBtn" onclick="window.print()">In PDF</button>
+  
+  <!-- Chữ ký ở cuối nội dung -->
+  <div class="signature-container" id="signatureContainer">
+    <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký">
+  </div>
+
+  <script>
+    // Hàm tự động điều chỉnh kích thước textarea
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+      textarea.closest('td').style.height = 'auto'; // Đảm bảo cell mở rộng
+    }
+
+    // Hàm định dạng số với dấu phẩy
+    function formatNumber(input) {
+      let value = input.value.replace(/,/g, ''); // Xóa dấu phẩy cũ
+      if (value && !isNaN(value)) {
+        input.value = parseFloat(value).toLocaleString('en-US'); // Thêm dấu phẩy
+      }
+    }
+
+    // Hàm bỏ dấu phẩy để tính toán
+    function removeCommas(str) {
+      return str.replace(/,/g, '');
+    }
+
+    // Hàm tính tổng
+    function calcTotal() {
+      const rows = document.querySelectorAll("#productRows tr");
+      let subtotal = 0;
+      rows.forEach(row => {
+        const price = parseFloat(removeCommas(row.cells[1].querySelector('input').value)) || 0; // Giá
+        const qty = parseFloat(row.cells[2].querySelector('input').value) || 0; // Số lượng
+        const total = price * qty;
+        row.cells[3].querySelector('input').value = total ? total.toLocaleString('en-US') : ''; // Thành tiền
+        subtotal += total;
+      });
+      const vat = subtotal * 0.08;
+      document.getElementById('vat').value = vat ? vat.toLocaleString('en-US') : '';
+      document.getElementById('total').value = (subtotal + vat) ? (subtotal + vat).toLocaleString('en-US') : '';
+    }
+
+    // Hàm thêm hàng mới
+    function addRow() {
+      const tbody = document.getElementById('productRows');
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = `
+        <td><textarea class="product-name" placeholder="Tên sản phẩm" oninput="autoResize(this)"></textarea></td>
+        <td><input type="text" placeholder="Giá" oninput="formatNumber(this); calcTotal()"></td>
+        <td><input type="number" placeholder="SL" oninput="calcTotal()"></td>
+        <td><input type="text" readonly></td>
+      `;
+      tbody.appendChild(newRow);
+    }
+
+    // Hàm định dạng ngày hiện tại thành dd/mm/yyyy
+    function getCurrentDate() {
+      const today = new Date();
+      const day = String(today.getDate()).padStart(2, '0');
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const year = today.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    // Điền ngày hiện tại vào input khi trang được tải
+    window.onload = function() {
+      const dateInput = document.getElementById('dateInput');
+      dateInput.value = getCurrentDate();
+    };
+    
+    function toggleSignature() {
+      const container = document.getElementById('signatureContainer');
+      container.style.display = container.style.display === 'none' || !container.style.display ? 'block' : 'none';
+    }
+
+    // Ẩn chữ ký khi load trang
+    window.addEventListener('load', () => {
+      document.getElementById('signatureContainer').style.display = 'none';
+    });
+  </script>
+</body>
+</html>
