@@ -362,7 +362,7 @@ span#totalSpanx1 {
       responseMsg.textContent = 'Vui lòng điền đầy đủ thông tin!';
       return;
     }
-    if (!/^\d{10,11}$/.test(phone)) {
+    if (!/^\d{10}$/.test(phone)) {
       responseMsg.textContent = 'Số điện thoại không hợp lệ!';
       return;
     }
