@@ -6,7 +6,7 @@
 /* Ẩn nút mặc định */
 #muahangx1 {
     position: fixed;
-    left: 19px;
+    left: 12px;
     bottom: 16px;
     z-index: 999;
     opacity: 1;
@@ -15,7 +15,7 @@
     color: #fff;
     background: #e82608;
     border-radius: 30px;
-    padding: 8px 25px;
+    padding: 6px 15px;
     box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
 }
 
