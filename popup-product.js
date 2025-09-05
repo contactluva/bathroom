@@ -387,12 +387,21 @@ span#totalSpanx1 {
         }
       );
       if (res.ok) {
-        document.querySelectorAll('#popupmhx1 > *:not(#responseMsgx1):not(.modal-footerx1)')
-          .forEach(el => el.style.display = 'none');
-        responseMsg.style.display = 'block';
-        modalFooter.style.display = 'flex';
-        countdown(5);
-      } else {
+  // Push sự kiện chuyển đổi lên GTM
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'purchase_success',
+    value: total,
+    currency: 'VND',
+    transaction_id: 'order_' + Date.now()
+  });
+
+  document.querySelectorAll('#popupmhx1 > *:not(#responseMsgx1):not(.modal-footerx1)')
+    .forEach(el => el.style.display = 'none');
+  responseMsg.style.display = 'block';
+  modalFooter.style.display = 'flex';
+  countdown(5);
+} else {
         const err = await res.json();
         throw new Error(err.description || 'Lỗi không xác định');
       }
