@@ -19,6 +19,14 @@
     box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
 }
 
+/* Khi màn hình ≥ 600px thì căn giữa */
+@media (min-width: 600px) {
+    #muahangx1 {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
 #overlayx1 {
     position: fixed;
     top: 0;
