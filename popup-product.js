@@ -1,5 +1,25 @@
 /* popup-product.js – toàn bộ CSS + JS dạng IIFE */
 (() => {
+ /* ===== CAPTURE PERSIST ===== */
+const CAPTURE_END_KEY = 'mhCaptureEnd';   // timestamp hết hạn
+const CAPTURE_SENT_KEY = 'mhCaptureSent'; // đã gửi capture cho SĐT này chưa
+let captured = false;                     // flag phiên hiện tại
+/* =========================== */
+function getCaptureEnd() { return +localStorage.getItem(CAPTURE_END_KEY) || 0; }
+function setCaptureEnd(ts) { localStorage.setItem(CAPTURE_END_KEY, ts); }
+function clearCaptureEnd() { localStorage.removeItem(CAPTURE_END_KEY); }
+
+function wasCaptureSent(phone) {               // TTL 24 giờ
+  const map = JSON.parse(localStorage.getItem(CAPTURE_SENT_KEY) || '{}');
+  return map[phone] && (Date.now() - map[phone] < 24*3600*1000);
+}
+function markCaptureSent(phone) {
+  const map = JSON.parse(localStorage.getItem(CAPTURE_SENT_KEY) || '{}');
+  map[phone] = Date.now();
+  localStorage.setItem(CAPTURE_SENT_KEY, JSON.stringify(map));
+}
+
+  
   /* 1. CSS inline */
   const style = document.createElement('style');
   style.textContent = `
@@ -271,7 +291,7 @@ span#totalSpanx1 {
   document.getElementById('totalSpanx1').textContent = priceText;
   document.getElementById('totalSpanx1').dataset.price = priceRaw;
 
-  /* 5. Khai báo các biến dùng chung */
+   /* 5. Khai báo các biến dùng chung */
   const citySel   = document.getElementById('cityx1');
   const districtSel = document.getElementById('districtx1');
   const wardSel   = document.getElementById('wardx1');
@@ -281,6 +301,7 @@ span#totalSpanx1 {
   const submitBtn = document.getElementById('submitOrderx1');
   const responseMsg = document.getElementById('responseMsgx1');
   const modalFooter = document.getElementById('modalFooterx1');
+  let captureTimer; // <-- di chuyển ra đây
 
   /* 6. Load Axios & địa chỉ VN */
   function loadScript(src) {
@@ -323,6 +344,7 @@ span#totalSpanx1 {
   closeBtn.addEventListener('click', closePopup);
   overlay.addEventListener('click', e => { if (e.target === overlay) closePopup(); });
   function closePopup() {
+  
     overlay.style.display = 'none';
     responseMsg.textContent = '';
     modalFooter.style.display = 'none';
@@ -350,7 +372,40 @@ span#totalSpanx1 {
       if (sec <= 0) { clearInterval(timer); closePopup(); }
     }, 1000);
   }
+  
+  function sendCapture() {
+    if (captured) return;
+    const phone = document.getElementById('phonex1').value.trim();
+    if (phone.length < 10) return;
+    if (wasCaptureSent(phone)) return;
+    if (document.getElementById('websitex1').value.trim() !== '') return; // bot
+    captured = true;
+    markCaptureSent(phone);
+    clearCaptureEnd(); // xóa timestamp cũ
 
+    const qty   = qtySel.value;
+    const total = (parseFloat(document.getElementById('totalSpanx1').dataset.price) || 0) * qty;
+    const province = citySel.options[citySel.selectedIndex]?.text || '';
+    const district = districtSel.options[districtSel.selectedIndex]?.text || '';
+    const ward     = wardSel.options[wardSel.selectedIndex]?.text || '';
+    const address  = document.getElementById('addressx1').value.trim();
+    const note     = document.getElementById('notex1').value.trim();
+
+    const msg = `*Khách đang quan tâm*\n` +
+                `Sản phẩm: ${title}\n` +
+                `Số lượng: ${qty}\n` +
+                `Tổng tiền: ${total.toLocaleString('vi-VN')}₫\n` +
+                `Địa chỉ: ${address}, ${ward}, ${district}, ${province}\n` +
+                `SĐT: ${phone}\n` +
+                `Ghi chú: ${note || 'Không'}`;
+
+    fetch(`https://api.telegram.org/bot5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({chat_id:'-702616123', text:msg, parse_mode:'Markdown'})
+    }).catch(()=>{});
+  }
+  
   /* 10. Submit */
   submitBtn.addEventListener('click', async () => {
     if (document.getElementById('websitex1').value.trim() !== '') {
@@ -365,6 +420,17 @@ span#totalSpanx1 {
     const ward = wardSel.options[wardSel.selectedIndex]?.text || '';
     const address = document.getElementById('addressx1').value.trim();
     const phone = document.getElementById('phonex1').value.trim();
+
+document.getElementById('phonex1').addEventListener('input', () => {
+  clearTimeout(captureTimer);
+  const phone = document.getElementById('phonex1').value.trim();
+  if (phone.length >= 10 && !captured && !wasCaptureSent(phone)) {
+    const delay = 10000;                               // 10 s
+    const end   = Date.now() + delay;
+    setCaptureEnd(end);
+    captureTimer = setTimeout(sendCapture, delay);
+  }
+});
     const note = document.getElementById('notex1').value.trim();
     if (!province || !district || !ward || !address || !phone) {
       responseMsg.textContent = 'Vui lòng điền đầy đủ thông tin!';
@@ -408,7 +474,9 @@ span#totalSpanx1 {
     .forEach(el => el.style.display = 'none');
   responseMsg.style.display = 'block';
   modalFooter.style.display = 'flex';
-  countdown(5);
+ markCaptureSent(phone);   // lưu ngay SĐT đã mua
+clearCaptureEnd();        // hủy timer capture còn dư
+countdown(5);             // mới đếm ngược & đóng popup
 } else {
         const err = await res.json();
         throw new Error(err.description || 'Lỗi không xác định');
@@ -426,57 +494,70 @@ span#totalSpanx1 {
   });
 
   /* 12. Auto-save / restore */
-  (() => {
-    const STORAGE_KEY = 'popupFormData';
-    const EXPIRE_DAYS = 10;
-    const fields = ['cityx1', 'districtx1', 'wardx1', 'addressx1', 'phonex1', 'notex1'];
-    function getStored() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return null;
-        const { ts, data } = JSON.parse(raw);
-        if (Date.now() - ts > EXPIRE_DAYS * 86400000) {
-          localStorage.removeItem(STORAGE_KEY);
-          return null;
+(() => {
+  const STORAGE_KEY = 'popupFormData';
+  const EXPIRE_DAYS = 10;
+  const fields = ['cityx1', 'districtx1', 'wardx1', 'addressx1', 'phonex1', 'notex1'];
+
+  function getStored() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const { ts, data } = JSON.parse(raw);
+      if (Date.now() - ts > EXPIRE_DAYS * 86400000) {
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+      return data;
+    } catch { return null; }
+  }
+
+  function store(obj) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ts: Date.now(), data: obj }));
+  }
+
+  function fill(data) {
+    if (!data) return;
+    if (data.cityx1) {
+      citySel.value = data.cityx1;
+      citySel.dispatchEvent(new Event('change'));
+      setTimeout(() => {
+        if (data.districtx1) {
+          districtSel.value = data.districtx1;
+          districtSel.dispatchEvent(new Event('change'));
+          setTimeout(() => {
+            if (data.wardx1) wardSel.value = data.wardx1;
+          }, 50);
         }
-        return data;
-      } catch { return null; }
+      }, 50);
     }
-    function store(obj) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ts: Date.now(), data: obj }));
+    if (data.addressx1) document.getElementById('addressx1').value = data.addressx1;
+    if (data.phonex1) document.getElementById('phonex1').value = data.phonex1;
+    if (data.notex1) {
+      document.getElementById('notex1').value = data.notex1;
+      document.getElementById('showNotex1').checked = true;
+      document.getElementById('noteBoxx1').style.display = 'block';
     }
-    function fill(data) {
-      if (!data) return;
-      if (data.cityx1) {
-        citySel.value = data.cityx1;
-        citySel.dispatchEvent(new Event('change'));
-        setTimeout(() => {
-          if (data.districtx1) {
-            districtSel.value = data.districtx1;
-            districtSel.dispatchEvent(new Event('change'));
-            setTimeout(() => {
-              if (data.wardx1) wardSel.value = data.wardx1;
-            }, 50);
-          }
-        }, 50);
-      }
-      if (data.addressx1) document.getElementById('addressx1').value = data.addressx1;
-      if (data.phonex1) document.getElementById('phonex1').value = data.phonex1;
-      if (data.notex1) {
-        document.getElementById('notex1').value = data.notex1;
-        document.getElementById('showNotex1').checked = true;
-        document.getElementById('noteBoxx1').style.display = 'block';
-      }
+  }
+
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    ['change', 'input'].forEach(evt => el.addEventListener(evt, () => {
+      const obj = {};
+      fields.forEach(fid => { obj[fid] = document.getElementById(fid)?.value || ''; });
+      store(obj);
+    }));
+  });
+
+  document.getElementById('muahangx1').addEventListener('click', () => {
+    fill(getStored());
+    /* tiếp tục đếm ngược nếu còn */
+    const restoredPhone = document.getElementById('phonex1').value.trim();
+    const left = getCaptureEnd() - Date.now();
+    if (left > 0 && restoredPhone.length >= 10 && !wasCaptureSent(restoredPhone)) {
+      setTimeout(sendCapture, left);
     }
-    fields.forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      ['change', 'input'].forEach(evt => el.addEventListener(evt, () => {
-        const obj = {};
-        fields.forEach(fid => { obj[fid] = document.getElementById(fid)?.value || ''; });
-        store(obj);
-      }));
-    });
-    document.getElementById('muahangx1').addEventListener('click', () => fill(getStored()));
-  })();
+  });
+})();
 })();
