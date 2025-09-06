@@ -1,25 +1,5 @@
 /* popup-product.js – toàn bộ CSS + JS dạng IIFE */
 (() => {
- /* ===== CAPTURE PERSIST ===== */
-const CAPTURE_END_KEY = 'mhCaptureEnd';   // timestamp hết hạn
-const CAPTURE_SENT_KEY = 'mhCaptureSent'; // đã gửi capture cho SĐT này chưa
-let captured = false;                     // flag phiên hiện tại
-/* =========================== */
-function getCaptureEnd() { return +localStorage.getItem(CAPTURE_END_KEY) || 0; }
-function setCaptureEnd(ts) { localStorage.setItem(CAPTURE_END_KEY, ts); }
-function clearCaptureEnd() { localStorage.removeItem(CAPTURE_END_KEY); }
-
-function wasCaptureSent(phone) {               // TTL 24 giờ
-  const map = JSON.parse(localStorage.getItem(CAPTURE_SENT_KEY) || '{}');
-  return map[phone] && (Date.now() - map[phone] < 24*3600*1000);
-}
-function markCaptureSent(phone) {
-  const map = JSON.parse(localStorage.getItem(CAPTURE_SENT_KEY) || '{}');
-  map[phone] = Date.now();
-  localStorage.setItem(CAPTURE_SENT_KEY, JSON.stringify(map));
-}
-
-  
   /* 1. CSS inline */
   const style = document.createElement('style');
   style.textContent = `
@@ -223,7 +203,7 @@ span#totalSpanx1 {
   if (!document.getElementById('muahangx1')) {
     const btn = document.createElement('button');
     btn.id = 'muahangx1';
-    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 3.5a2.5 2.5 0 0 0-5 0V4h5zm1 0V4H15v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4h3.5v-.5a3.5 3.5 0 1 1 7 0M14 14V5H2v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1M8 7.993c1.664-1.711 5.825 1.283 0 5.132-5.825-3.85-1.664-6.843 0-5.132"/></svg> Mua ngay`;
+    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg  " width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.5 3.5a2.5 2.5 0 0 0-5 0V4h5zm1 0V4H15v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V4h3.5v-.5a3.5 3.5 0 1 1 7 0M14 14V5H2v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1M8 7.993c1.664-1.711 5.825 1.283 0 5.132-5.825-3.85-1.664-6.843 0-5.132"/></svg> Mua ngay`;
     document.body.appendChild(btn);
   }
 
@@ -291,7 +271,7 @@ span#totalSpanx1 {
   document.getElementById('totalSpanx1').textContent = priceText;
   document.getElementById('totalSpanx1').dataset.price = priceRaw;
 
-   /* 5. Khai báo các biến dùng chung */
+  /* 5. Khai báo các biến dùng chung */
   const citySel   = document.getElementById('cityx1');
   const districtSel = document.getElementById('districtx1');
   const wardSel   = document.getElementById('wardx1');
@@ -301,7 +281,6 @@ span#totalSpanx1 {
   const submitBtn = document.getElementById('submitOrderx1');
   const responseMsg = document.getElementById('responseMsgx1');
   const modalFooter = document.getElementById('modalFooterx1');
-  let captureTimer; // <-- di chuyển ra đây
 
   /* 6. Load Axios & địa chỉ VN */
   function loadScript(src) {
@@ -314,9 +293,9 @@ span#totalSpanx1 {
     });
   }
 
-  loadScript('https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js')
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js  ')
     .then(() => {
-      return axios.get('https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json');
+      return axios.get('https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json  ');
     })
     .then(res => {
       const data = res.data;
@@ -344,7 +323,6 @@ span#totalSpanx1 {
   closeBtn.addEventListener('click', closePopup);
   overlay.addEventListener('click', e => { if (e.target === overlay) closePopup(); });
   function closePopup() {
-  
     overlay.style.display = 'none';
     responseMsg.textContent = '';
     modalFooter.style.display = 'none';
@@ -372,42 +350,64 @@ span#totalSpanx1 {
       if (sec <= 0) { clearInterval(timer); closePopup(); }
     }, 1000);
   }
-  
-  function sendCapture() {
-    if (captured) return;
-    const phone = document.getElementById('phonex1').value.trim();
-    if (phone.length < 10) return;
-    if (wasCaptureSent(phone)) return;
-    if (document.getElementById('websitex1').value.trim() !== '') return; // bot
-    captured = true;
-    markCaptureSent(phone);
-    clearCaptureEnd(); // xóa timestamp cũ
 
-    const qty   = qtySel.value;
-    const total = (parseFloat(document.getElementById('totalSpanx1').dataset.price) || 0) * qty;
-    const province = citySel.options[citySel.selectedIndex]?.text || '';
-    const district = districtSel.options[districtSel.selectedIndex]?.text || '';
-    const ward     = wardSel.options[wardSel.selectedIndex]?.text || '';
-    const address  = document.getElementById('addressx1').value.trim();
-    const note     = document.getElementById('notex1').value.trim();
+   /* 10. Capture form – gửi Telegram nếu nhập SĐT mà chưa submit sau 10s */
+  let captureTimeout = null;
+  let captured = false; // đã capture hay chưa
+  const phoneInput = document.getElementById('phonex1');
 
-    const msg = `*Khách đang quan tâm*\n` +
-                `Sản phẩm: ${title}\n` +
-                `Số lượng: ${qty}\n` +
-                `Tổng tiền: ${total.toLocaleString('vi-VN')}₫\n` +
-                `Địa chỉ: ${address}, ${ward}, ${district}, ${province}\n` +
-                `SĐT: ${phone}\n` +
-                `Ghi chú: ${note || 'Không'}`;
-
-    fetch(`https://api.telegram.org/bot5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA/sendMessage`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({chat_id:'-702616123', text:msg, parse_mode:'Markdown'})
-    }).catch(()=>{});
+  function resetCapture() {
+    clearTimeout(captureTimeout);
+    captureTimeout = null;
   }
-  
-  /* 10. Submit */
+
+  function triggerCapture() {
+    if (captured) return;
+    const phone = phoneInput.value.trim();
+    if (!/^\d{10}$/.test(phone)) return;
+
+    captureTimeout = setTimeout(() => {
+      if (captured) return;
+      const province = citySel.options[citySel.selectedIndex]?.text || '';
+      const district = districtSel.options[districtSel.selectedIndex]?.text || '';
+      const ward = wardSel.options[wardSel.selectedIndex]?.text || '';
+      const address = document.getElementById('addressx1').value.trim();
+      const note = document.getElementById('notex1').value.trim();
+      const qty = qtySel.value;
+      const priceVal = parseFloat(document.getElementById('totalSpanx1').dataset.price) || 0;
+      const total = priceVal * qty;
+
+      const message =
+        `*Khách hàng đang quan tâm*\n` +
+        `Sản phẩm: ${title}\n` +
+        `Số lượng: ${qty}\n` +
+        `Tổng tiền: ${total.toLocaleString('vi-VN')}₫\n` +
+        `Địa chỉ: ${address}, ${ward}, ${district}, ${province}\n` +
+        `SĐT: ${phone}\n` +
+        `Ghi chú: ${note || 'Không'}`;
+
+      const TELEGRAM_BOT_TOKEN = '5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA';
+      const CHAT_ID = '-702616123';
+
+      fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: CHAT_ID, text: message, parse_mode: 'Markdown' })
+      });
+
+      captured = true;
+    }, 10000);
+  }
+
+  phoneInput.addEventListener('input', () => {
+    resetCapture();
+    captured = false;
+    triggerCapture();
+  });
+
+  /* 11. Submit */
   submitBtn.addEventListener('click', async () => {
+    resetCapture(); // hủy capture nếu đang chạy
     if (document.getElementById('websitex1').value.trim() !== '') {
       responseMsg.textContent = 'Bot detected – order NOT sent!';
       return;
@@ -420,17 +420,6 @@ span#totalSpanx1 {
     const ward = wardSel.options[wardSel.selectedIndex]?.text || '';
     const address = document.getElementById('addressx1').value.trim();
     const phone = document.getElementById('phonex1').value.trim();
-
-document.getElementById('phonex1').addEventListener('input', () => {
-  clearTimeout(captureTimer);
-  const phone = document.getElementById('phonex1').value.trim();
-  if (phone.length >= 10 && !captured && !wasCaptureSent(phone)) {
-    const delay = 10000;                               // 10 s
-    const end   = Date.now() + delay;
-    setCaptureEnd(end);
-    captureTimer = setTimeout(sendCapture, delay);
-  }
-});
     const note = document.getElementById('notex1').value.trim();
     if (!province || !district || !ward || !address || !phone) {
       responseMsg.textContent = 'Vui lòng điền đầy đủ thông tin!';
@@ -461,23 +450,20 @@ document.getElementById('phonex1').addEventListener('input', () => {
         }
       );
       if (res.ok) {
-  // Push sự kiện chuyển đổi lên GTM
-  window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push({
-    event: 'purchase_success',
-    value: total,
-    currency: 'VND',
-    transaction_id: 'order_' + Date.now()
-  });
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: 'purchase_success',
+          value: total,
+          currency: 'VND',
+          transaction_id: 'order_' + Date.now()
+        });
 
-  document.querySelectorAll('#popupmhx1 > *:not(#responseMsgx1):not(.modal-footerx1)')
-    .forEach(el => el.style.display = 'none');
-  responseMsg.style.display = 'block';
-  modalFooter.style.display = 'flex';
- markCaptureSent(phone);   // lưu ngay SĐT đã mua
-clearCaptureEnd();        // hủy timer capture còn dư
-countdown(5);             // mới đếm ngược & đóng popup
-} else {
+        document.querySelectorAll('#popupmhx1 > *:not(#responseMsgx1):not(.modal-footerx1)')
+          .forEach(el => el.style.display = 'none');
+        responseMsg.style.display = 'block';
+        modalFooter.style.display = 'flex';
+        countdown(5);
+      } else {
         const err = await res.json();
         throw new Error(err.description || 'Lỗi không xác định');
       }
@@ -488,76 +474,63 @@ countdown(5);             // mới đếm ngược & đóng popup
     }
   });
 
-  /* 11. Ghi chú */
+  /* 12. Ghi chú */
   document.getElementById('showNotex1').addEventListener('change', function () {
     document.getElementById('noteBoxx1').style.display = this.checked ? 'block' : 'none';
   });
 
-  /* 12. Auto-save / restore */
-(() => {
-  const STORAGE_KEY = 'popupFormData';
-  const EXPIRE_DAYS = 10;
-  const fields = ['cityx1', 'districtx1', 'wardx1', 'addressx1', 'phonex1', 'notex1'];
-
-  function getStored() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      const { ts, data } = JSON.parse(raw);
-      if (Date.now() - ts > EXPIRE_DAYS * 86400000) {
-        localStorage.removeItem(STORAGE_KEY);
-        return null;
-      }
-      return data;
-    } catch { return null; }
-  }
-
-  function store(obj) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ts: Date.now(), data: obj }));
-  }
-
-  function fill(data) {
-    if (!data) return;
-    if (data.cityx1) {
-      citySel.value = data.cityx1;
-      citySel.dispatchEvent(new Event('change'));
-      setTimeout(() => {
-        if (data.districtx1) {
-          districtSel.value = data.districtx1;
-          districtSel.dispatchEvent(new Event('change'));
-          setTimeout(() => {
-            if (data.wardx1) wardSel.value = data.wardx1;
-          }, 50);
+  /* 13. Auto-save / restore */
+  (() => {
+    const STORAGE_KEY = 'popupFormData';
+    const EXPIRE_DAYS = 10;
+    const fields = ['cityx1', 'districtx1', 'wardx1', 'addressx1', 'phonex1', 'notex1'];
+    function getStored() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const { ts, data } = JSON.parse(raw);
+        if (Date.now() - ts > EXPIRE_DAYS * 86400000) {
+          localStorage.removeItem(STORAGE_KEY);
+          return null;
         }
-      }, 50);
+        return data;
+      } catch { return null; }
     }
-    if (data.addressx1) document.getElementById('addressx1').value = data.addressx1;
-    if (data.phonex1) document.getElementById('phonex1').value = data.phonex1;
-    if (data.notex1) {
-      document.getElementById('notex1').value = data.notex1;
-      document.getElementById('showNotex1').checked = true;
-      document.getElementById('noteBoxx1').style.display = 'block';
+    function store(obj) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ts: Date.now(), data: obj }));
     }
-  }
-
-  fields.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    ['change', 'input'].forEach(evt => el.addEventListener(evt, () => {
-      const obj = {};
-      fields.forEach(fid => { obj[fid] = document.getElementById(fid)?.value || ''; });
-      store(obj);
-    }));
-  });
-
-  document.getElementById('muahangx1').addEventListener('click', () => {
-    fill(getStored());
-    /* tiếp tục đếm ngược nếu còn */
-    const restoredPhone = document.getElementById('phonex1').value.trim();
-    const left = getCaptureEnd() - Date.now();
-    if (left > 0 && restoredPhone.length >= 10 && !wasCaptureSent(restoredPhone)) {
-      setTimeout(sendCapture, left);
+    function fill(data) {
+      if (!data) return;
+      if (data.cityx1) {
+        citySel.value = data.cityx1;
+        citySel.dispatchEvent(new Event('change'));
+        setTimeout(() => {
+          if (data.districtx1) {
+            districtSel.value = data.districtx1;
+            districtSel.dispatchEvent(new Event('change'));
+            setTimeout(() => {
+              if (data.wardx1) wardSel.value = data.wardx1;
+            }, 50);
+          }
+        }, 50);
+      }
+      if (data.addressx1) document.getElementById('addressx1').value = data.addressx1;
+      if (data.phonex1) document.getElementById('phonex1').value = data.phonex1;
+      if (data.notex1) {
+        document.getElementById('notex1').value = data.notex1;
+        document.getElementById('showNotex1').checked = true;
+        document.getElementById('noteBoxx1').style.display = 'block';
+      }
     }
-  });
-})();
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      ['change', 'input'].forEach(evt => el.addEventListener(evt, () => {
+        const obj = {};
+        fields.forEach(fid => { obj[fid] = document.getElementById(fid)?.value || ''; });
+        store(obj);
+      }));
+    });
+    document.getElementById('muahangx1').addEventListener('click', () => fill(getStored()));
+  })();
 })();
