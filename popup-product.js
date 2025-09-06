@@ -355,7 +355,7 @@ span#totalSpanx1 {
   let captureTimeout = null;
   let captured = false; // đã capture hay chưa
   const phoneInput = document.getElementById('phonex1');
-
+phoneInput.setAttribute('autocomplete', 'tel');
   function resetCapture() {
     clearTimeout(captureTimeout);
     captureTimeout = null;
