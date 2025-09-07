@@ -396,7 +396,7 @@ phoneInput.setAttribute('autocomplete', 'tel');
       });
 
       captured = true;
-    }, 10000);
+    }, 50000);
   }
 
   phoneInput.addEventListener('input', () => {
