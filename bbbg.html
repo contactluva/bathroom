@@ -244,12 +244,18 @@
   z-index: 1000;
 }
 
+.signature-container {
+  display: none;
+}
+.signature-container.active {
+  display: block;
+}
 @media print {
   .signature-container {
-    display: block !important;
-  }
-  #signatureBtn {
     display: none !important;
+  }
+  .signature-container.active {
+    display: block !important;
   }
 }
   </style>
@@ -417,15 +423,15 @@
       dateInput.value = getCurrentDate();
     };
     
-    function toggleSignature() {
-      const container = document.getElementById('signatureContainer');
-      container.style.display = container.style.display === 'none' || !container.style.display ? 'block' : 'none';
-    }
+     function toggleSignature() {
+  const container = document.getElementById('signatureContainer');
+  container.classList.toggle('active');
+}
 
-    // Ẩn chữ ký khi load trang
-    window.addEventListener('load', () => {
-      document.getElementById('signatureContainer').style.display = 'none';
-    });
+// Ẩn chữ ký khi load trang
+window.addEventListener('load', () => {
+  document.getElementById('signatureContainer').classList.remove('active');
+});
   </script>
 </body>
 </html>
