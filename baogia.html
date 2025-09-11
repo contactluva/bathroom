@@ -173,14 +173,21 @@
   z-index: 1000;
 }
 
+.signature-container {
+  display: none;
+}
+.signature-container.active {
+  display: block;
+}
 @media print {
   .signature-container {
-    display: block !important;
-  }
-  #signatureBtn {
     display: none !important;
   }
+  .signature-container.active {
+    display: block !important;
+  }
 }
+
   </style>
 </head>
 <body>
@@ -256,7 +263,7 @@
     </tfoot>
   </table>
 
-  <p><strong>Miễn phí giao hàng đến địa chỉ khách hàng</strong></p>
+  <p><strong>Miễn phí giao hàng</strong></p>
   <p><em>Áp dụng từ: 01/01/2025</em></p>
   <p><strong>Bảo hành:</strong> Sản phẩm bảo hành 1 năm tại công ty, theo tem và phiếu mua hàng.</p>
 <p><strong>Tài khoản:</strong> CÔNG TY TNHH QUANG MINH VN | Số TK: 865789 | Ngân hàng TMCP Kỹ Thương Việt Nam - Techcombank | Chi nhánh Trần Phú</p>
@@ -421,14 +428,15 @@
     };
     
    function toggleSignature() {
-      const container = document.getElementById('signatureContainer');
-      container.style.display = container.style.display === 'none' || !container.style.display ? 'block' : 'none';
-    }
+  const container = document.getElementById('signatureContainer');
+  container.classList.toggle('active');
+}
 
-    // Ẩn chữ ký khi load trang
-    window.addEventListener('load', () => {
-      document.getElementById('signatureContainer').style.display = 'none';
-    });
+// Ẩn chữ ký khi load trang
+window.addEventListener('load', () => {
+  document.getElementById('signatureContainer').classList.remove('active');
+});
+
   </script>
 </body>
 </html>
