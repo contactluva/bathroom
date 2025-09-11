@@ -197,14 +197,15 @@
 
       
    /* Thêm vào cuối phần <style> */
-.signature-container {
+.signature-container2 {
   text-align: right;
   margin-top: -10px;
   padding-right: 0px;
   display: none;
+  margin-right: -40px;
 }
 
-.signature-container img {
+.signature-container2 img {
   width: auto;
   height: auto;
   max-width: 376px;
@@ -223,17 +224,17 @@
   z-index: 1000;
 }
 
-.signature-container {
+.signature-container2 {
   display: none;
 }
-.signature-container.active {
+.signature-container2.active {
   display: block;
 }
 @media print {
-  .signature-container {
+  .signature-container2 {
     display: none !important;
   }
-  .signature-container.active {
+  .signature-container2.active {
     display: block !important;
   }
 }
@@ -313,9 +314,11 @@
       <p>(Ký, họ tên)</p>
     </div>
   </div>
+  
+  <br>
 
   <!-- Chữ ký ở cuối nội dung -->
-  <div class="signature-container" id="signatureContainer">
+  <div class="signature-container2" id="signatureContainer2">
     <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký">
   </div>
 
@@ -389,13 +392,13 @@
     };
 
       function toggleSignature() {
-  const container = document.getElementById('signatureContainer');
+  const container = document.getElementById('signatureContainer2');
   container.classList.toggle('active');
 }
 
 // Ẩn chữ ký khi load trang
 window.addEventListener('load', () => {
-  document.getElementById('signatureContainer').classList.remove('active');
+  document.getElementById('signatureContainer2').classList.remove('active');
 });
   </script>
 </body>
