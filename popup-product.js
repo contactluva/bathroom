@@ -340,8 +340,8 @@ span#totalSpanx1 {
   function countdown(sec) {
     responseMsg.innerHTML = `
       <div style="color:#006400;font-size:16px;font-weight:600">
-        Đơn hàng của bạn đã gửi đi, vui lòng đợi chúng tôi xác nhận!<br>
-        Tự động đóng trong <span id="countx1">${sec}</span>s
+        Đơn hàng của bạn đã gửi đi, vui lòng đợi chúng tôi xác nhận! </div>
+        <div style="color:#878787;font-size:16px;font-weight:300">Tự động đóng trong <span id="countx1">${sec}</span>s
       </div>`;
     modalFooter.style.display = 'flex';
     const timer = setInterval(() => {
