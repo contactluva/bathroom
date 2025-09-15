@@ -78,6 +78,50 @@
                 padding: 0;
             }
         }
+
+
+         /* Thêm vào cuối phần <style> */
+.signature-container {
+  text-align: right;
+  margin-top: -10px;
+  margin-right: -0px;
+  display: none;
+}
+
+.signature-container img {
+  width: auto;
+  height: auto;
+  max-width: 376px;
+}
+
+#signatureBtn {
+  position: fixed;
+  bottom: 20px;
+  left: 120px;
+  padding: 10px 20px;
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #FF9800;
+  z-index: 1000;
+}
+
+.signature-container {
+  display: none;
+}
+.signature-container.active {
+  display: block;
+}
+@media print {
+  .signature-container {
+    display: none !important;
+  }
+  .signature-container.active {
+    display: block !important;
+  }
+}
+
     </style>
 </head>
 <body lang="en-US" link="#0000ff" vlink="#800000" dir="ltr">
@@ -130,8 +174,26 @@
         <font face="Times New Roman"><font size="3" style="font-size: 12pt">Chúng tôi xin trân trọng cảm ơn!</font></font>
     </p1>
     <p align="justify" style="line-height: 100%; margin-top: 0.19in; margin-bottom: 0.19in">
-        <font face="Times New Roman"><font size="3" style="font-size: 12pt"><b>Người đề nghị</b> <span style="margin-left: 3.5in;"><b>Trưởng đơn vị</b></span></font></font>
+        <font face="Times New Roman"><font size="3" style="font-size: 12pt"><b>Người đề nghị</b> <span style="margin-left: 2.9in;"><b>Trưởng đơn vị</b></span></font></font>
     </p>
+     <!-- Chữ ký ở cuối nội dung -->
+  <div class="signature-container" id="signatureContainer">
+    <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký">
+  </div>
     <button class="print-button" onclick="window.print()">Print PDF</button>
+     <button id="signatureBtn" onclick="toggleSignature()">Chữ ký</button>
+  <script>
+     function toggleSignature() {
+  const container = document.getElementById('signatureContainer');
+  container.classList.toggle('active');
+}
+
+// Ẩn chữ ký khi load trang
+window.addEventListener('load', () => {
+  document.getElementById('signatureContainer').classList.remove('active');
+});
+
+  </script>
+
 </body>
 </html>
