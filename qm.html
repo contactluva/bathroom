@@ -158,6 +158,76 @@
   </style>
 </head>
 <body>
+  <!-- LOCKSCREEN T9 – iOS STYLE -->
+<div id="lockScr"
+     style="position:fixed;inset:0;z-index:999999;
+            background:#283a49dd;display:flex;align-items:center;justify-content:center;
+            font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+  <div style="background:#97979db8;border-radius:24px;padding:30px 24px 24px;width:280px;color:#fff;text-align:center">
+    <div style="font-size:22px;margin-bottom:20px">Nhập mật khẩu</div>
+    <div id="dots" style="display:flex;justify-content:center;gap:12px;margin-bottom:24px">
+      <!-- 4 chấm -->
+      <span class="dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #fff"></span>
+      <span class="dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #fff"></span>
+      <span class="dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #fff"></span>
+      <span class="dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #fff"></span>
+    </div>
+
+    <!-- Bàn phím T9 -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:29px;font-weight:500">
+      <button data-n="1" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">1</button>
+      <button data-n="2" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">2</button>
+      <button data-n="3" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">3</button>
+      <button data-n="4" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">4</button>
+      <button data-n="5" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">5</button>
+      <button data-n="6" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">6</button>
+      <button data-n="7" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">7</button>
+      <button data-n="8" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">8</button>
+      <button data-n="9" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">9</button>
+      <div></div>
+      <button data-n="0" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">0</button>
+      <button id="del" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">⌫</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{
+  const pwd     = '1994';
+  let input     = '';
+  const dots    = [...document.querySelectorAll('#lockScr .dot')];
+  const lock    = document.getElementById('lockScr');
+  const body    = document.body;
+
+  body.style.overflow = 'hidden';            // chặn cuộn khi khóa
+
+  function render(){
+    dots.forEach((d,i)=>d.style.background = i<input.length?'#fff':'transparent');
+  }
+  function shake(){
+    lock.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(-8px)'},{transform:'translateX(0)'}],{duration:300});
+  }
+  function unlock(){
+    lock.style.opacity = 0;
+    setTimeout(()=>lock.remove(),300);
+    body.style.overflow = '';
+  }
+
+  document.querySelectorAll('#lockScr button[data-n]').forEach(btn=>{
+    btn.onclick = ()=>{
+      if(input.length<4){ input += btn.dataset.n; render(); }
+      if(input.length===4){
+        if(input===pwd){ unlock(); }
+        else{ input=''; render(); shake(); }
+      }
+    };
+  });
+  document.getElementById('del').onclick = ()=>{
+    input = input.slice(0,-1); render();
+  };
+})();
+</script>
+<!-- /LOCKSCREEN -->
   <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/logo%20QM%202.jpg" alt="Logo" class="logo">
   <h1><span class="goldBG goldText">QUANG MINH LTD</span></h1>
 <br/>
