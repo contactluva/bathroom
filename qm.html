@@ -158,86 +158,77 @@
   </style>
 </head>
 <body>
-  <!-- LOCKSCREEN T9 – iOS STYLE -->
-<div id="lockScr"
-     style="position:fixed;inset:0;z-index:999999;
-            background:#283a49dd;display:flex;align-items:center;justify-content:center;
-            font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
-  <div style="background:#97979db8;border-radius:24px;padding:30px 24px 24px;width:280px;color:#fff;text-align:center">
-    <div style="font-size:22px;margin-bottom:20px">Nhập mật khẩu</div>
-    <div id="dots" style="display:flex;justify-content:center;gap:12px;margin-bottom:24px">
-      <!-- 4 chấm -->
-      <span class="dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #fff"></span>
-      <span class="dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #fff"></span>
-      <span class="dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #fff"></span>
-      <span class="dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #fff"></span>
+ <!-- LOCKSCREEN T9 – iOS STYLE -->
+<div id="lockScr" style="display:none">
+  <style>
+    #lockScr{position:fixed;inset:0;z-index:999999;background:#283a49dd;
+      display:flex;align-items:center;justify-content:center;
+      font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    .lock-box{background:#97979db8;border-radius:24px;padding:30px 24px 24px;width:280px;color:#fff;text-align:center}
+    .lock-box h3{margin-bottom:20px;font-size:22px}
+    #dots{display:flex;justify-content:center;gap:12px;margin-bottom:24px}
+    #dots span{width:14px;height:14px;border-radius:50%;border:2px solid #fff;background:transparent}
+    #dots span.on{background:#fff}
+    .t9-key{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:29px;font-weight:500}
+    .t9-key button{aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer}
+  </style>
+  <div class="lock-box">
+    <h3>Nhập mật khẩu</h3>
+    <div id="dots">
+      <span></span><span></span><span></span><span></span>
     </div>
-
-    <!-- Bàn phím T9 -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:29px;font-weight:500">
-      <button data-n="1" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">1</button>
-      <button data-n="2" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">2</button>
-      <button data-n="3" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">3</button>
-      <button data-n="4" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">4</button>
-      <button data-n="5" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">5</button>
-      <button data-n="6" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">6</button>
-      <button data-n="7" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">7</button>
-      <button data-n="8" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">8</button>
-      <button data-n="9" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">9</button>
-      <div></div>
-      <button data-n="0" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">0</button>
-      <button id="del" style="aspect-ratio:1/1;border:none;border-radius:50%;background:#333;color:#fff;cursor:pointer">⌫</button>
+    <div class="t9-key">
+      <button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button>
+      <button data-n="4">4</button><button data-n="5">5</button><button data-n="6">6</button>
+      <button data-n="7">7</button><button data-n="8">8</button><button data-n="9">9</button>
+      <div></div><button data-n="0">0</button><button id="del">⌫</button>
     </div>
   </div>
 </div>
 
 <script>
-(() => {
+(()=>{
   const PWD        = '1994';
-  const STORAGE_KEY = 'qmLockUntil';
+  const STORAGE_KEY= 'qmLockUntil';
   const now        = Date.now();
+  const unlockUntil= localStorage.getItem(STORAGE_KEY);
 
-  // --- kiểm tra xem đã pass trong 30 ngày chưa ---
-  const unlockUntil = localStorage.getItem(STORAGE_KEY);
-  if (unlockUntil && now < parseInt(unlockUntil, 10)) {
-    // còn hạn → không khóa nữa
-    return;
+  // còn hạn 30 ngày → không làm gì cả
+  if(unlockUntil && now < parseInt(unlockUntil,10)) return;
+
+  const lock  = document.getElementById('lockScr');
+  const body  = document.body;
+  let input   = '';
+  const dots  = [...lock.querySelectorAll('#dots span')];
+
+  // inject lock vào body và hiện nó
+  body.appendChild(lock);
+  lock.style.display = 'flex';
+  body.style.overflow= 'hidden';
+
+  function render(){
+    dots.forEach((d,i)=>d.classList.toggle('on', i<input.length));
   }
-
-  const lock   = document.getElementById('lockScr');
-  const body   = document.body;
-  let input    = '';
-  const dots   = [...document.querySelectorAll('#lockScr .dot')];
-
-  body.style.overflow = 'hidden';
-
-  function render() {
-    dots.forEach((d, i) => d.style.background = i < input.length ? '#fff' : 'transparent');
+  function shake(){
+    lock.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(-8px)'},{transform:'translateX(0)'}],{duration:300});
   }
-  function shake() {
-    lock.animate([{ transform: 'translateX(0)' },
-                  { transform: 'translateX(-8px)' },
-                  { transform: 'translateX(8px)' },
-                  { transform: 'translateX(-8px)' },
-                  { transform: 'translateX(0)' }], { duration: 300 });
-  }
-  function unlock() {
-    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
-    localStorage.setItem(STORAGE_KEY, (now + thirtyDays).toString());
+  function unlock(){
+    const thirtyDays = 30*24*60*60*1000;
+    localStorage.setItem(STORAGE_KEY, (now+thirtyDays).toString());
     lock.style.opacity = 0;
-    setTimeout(() => lock.remove(), 300);
+    setTimeout(()=>lock.remove(), 300);
     body.style.overflow = '';
   }
 
-  document.querySelectorAll('#lockScr button[data-n]').forEach(btn => {
-    btn.onclick = () => {
-      if (input.length < 4) { input += btn.dataset.n; render(); }
-      if (input.length === 4) {
-        input === PWD ? unlock() : (input = '', render(), shake());
+  lock.querySelectorAll('button[data-n]').forEach(b=>{
+    b.onclick = ()=>{
+      if(input.length<4){ input += b.dataset.n; render(); }
+      if(input.length===4){
+        input===PWD ? unlock() : (input='', render(), shake());
       }
     };
   });
-  document.getElementById('del').onclick = () => { input = input.slice(0, -1); render(); };
+  lock.querySelector('#del').onclick = ()=>{ input=input.slice(0,-1); render(); };
 })();
 </script>
 <!-- /LOCKSCREEN -->
