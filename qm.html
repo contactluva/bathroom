@@ -308,5 +308,30 @@
   });
 })();
 </script>
+
+  <!-- OVERLAY SHOPEE - 1 lần/ngày/trình duyệt -->
+<div id="shpOverlay"
+     style="position:fixed;inset:0;z-index:99999;cursor:pointer;display:none">
+  <div style="position:absolute;inset:0;background:#0008"></div>
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+              background:#fff5;border-radius:14px;width:88vw;max-width:320px;height:50vh">
+  </div>
+</div>
+
+<script>
+(()=>{
+  const key = 'shpOverlay_' + new Date().toISOString().slice(0,10); // key theo ngày
+  if(localStorage.getItem(key)) return;               // đã click rồi thì thôi
+
+  const ov = document.getElementById('shpOverlay');
+  ov.style.display = 'block';
+  ov.onclick = () => {
+    localStorage.setItem(key, '1');                   // đánh dấu đã click
+    ov.style.display = 'none';
+    window.open('https://s.shopee.vn/4LASEJ6PYz', '_blank');
+  };
+})();
+</script>
+<!-- /OVERLAY -->
 </body>
 </html>
