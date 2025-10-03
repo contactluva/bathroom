@@ -192,39 +192,52 @@
 </div>
 
 <script>
-(()=>{
-  const pwd     = '1994';
-  let input     = '';
-  const dots    = [...document.querySelectorAll('#lockScr .dot')];
-  const lock    = document.getElementById('lockScr');
-  const body    = document.body;
+(() => {
+  const PWD        = '1994';
+  const STORAGE_KEY = 'qmLockUntil';
+  const now        = Date.now();
 
-  body.style.overflow = 'hidden';            // chặn cuộn khi khóa
+  // --- kiểm tra xem đã pass trong 30 ngày chưa ---
+  const unlockUntil = localStorage.getItem(STORAGE_KEY);
+  if (unlockUntil && now < parseInt(unlockUntil, 10)) {
+    // còn hạn → không khóa nữa
+    return;
+  }
 
-  function render(){
-    dots.forEach((d,i)=>d.style.background = i<input.length?'#fff':'transparent');
+  const lock   = document.getElementById('lockScr');
+  const body   = document.body;
+  let input    = '';
+  const dots   = [...document.querySelectorAll('#lockScr .dot')];
+
+  body.style.overflow = 'hidden';
+
+  function render() {
+    dots.forEach((d, i) => d.style.background = i < input.length ? '#fff' : 'transparent');
   }
-  function shake(){
-    lock.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(-8px)'},{transform:'translateX(0)'}],{duration:300});
+  function shake() {
+    lock.animate([{ transform: 'translateX(0)' },
+                  { transform: 'translateX(-8px)' },
+                  { transform: 'translateX(8px)' },
+                  { transform: 'translateX(-8px)' },
+                  { transform: 'translateX(0)' }], { duration: 300 });
   }
-  function unlock(){
+  function unlock() {
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+    localStorage.setItem(STORAGE_KEY, (now + thirtyDays).toString());
     lock.style.opacity = 0;
-    setTimeout(()=>lock.remove(),300);
+    setTimeout(() => lock.remove(), 300);
     body.style.overflow = '';
   }
 
-  document.querySelectorAll('#lockScr button[data-n]').forEach(btn=>{
-    btn.onclick = ()=>{
-      if(input.length<4){ input += btn.dataset.n; render(); }
-      if(input.length===4){
-        if(input===pwd){ unlock(); }
-        else{ input=''; render(); shake(); }
+  document.querySelectorAll('#lockScr button[data-n]').forEach(btn => {
+    btn.onclick = () => {
+      if (input.length < 4) { input += btn.dataset.n; render(); }
+      if (input.length === 4) {
+        input === PWD ? unlock() : (input = '', render(), shake());
       }
     };
   });
-  document.getElementById('del').onclick = ()=>{
-    input = input.slice(0,-1); render();
-  };
+  document.getElementById('del').onclick = () => { input = input.slice(0, -1); render(); };
 })();
 </script>
 <!-- /LOCKSCREEN -->
