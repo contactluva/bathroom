@@ -237,7 +237,9 @@
   .signature-container2.active {
     display: block !important;
   }
-
+.anin {
+    display: none !important;
+  }
   button#signatureBtn {
     display: none !important;
 }
@@ -325,11 +327,11 @@
   <div class="signature-container2" id="signatureContainer2">
     <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký">
   </div>
-
+<div class="anin">
   <button id="addRowBtn" onclick="addRow()">Thêm hàng</button>
    <button id="signatureBtn" onclick="toggleSignature()">Chữ ký</button>
   <button id="printBtn" onclick="window.print()">In PDF</button>
-
+</div>
   <script>
     // Hàm tự động điều chỉnh kích thước textarea
     function autoResize(textarea) {
