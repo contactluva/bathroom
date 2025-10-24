@@ -257,6 +257,9 @@
   .signature-container.active {
     display: block !important;
   }
+  .anin {
+    display: none !important;
+  }
 }
   </style>
 </head>
@@ -284,7 +287,7 @@
     </tr>
   </table>
   
-  <span class="editable ngay" contenteditable="true">Ngày 16 tháng 7 năm 2025</span>
+  <span class="editable ngay" contenteditable="true">Ngày </span>
   
   <h1 style="text-align: center;">BIÊN BẢN BÀN GIAO</h1>
   
@@ -326,7 +329,7 @@
       <tr>
         <td colspan="4" style="text-align:right; font-size: 12px;font-weight: 300;" >
          
-          <span class="editable bennhan" contenteditable="true">Bằng chữ :<i> Một triệu không trăm năm mươi sáu nghìn đồng.</i></span>
+          <span class="editable bennhan" contenteditable="true">Bằng chữ :<i> .</i></span>
         </td>
       </tr>
     </tfoot>
@@ -334,7 +337,7 @@
   
 
 <br>
-<p class="editable" contenteditable="true">Kể từ ngày 10 tháng 6 năm 2025 số tài trên do bên CÔNG TY CỔ PHẦN CHẾ TẠO ĐIỆN CƠ HEM chịu trách nhiệm quản lý.</p>
+<p class="editable" contenteditable="true">Kể từ ngày .... số tài trên do bên CÔNG TY ..... chịu trách nhiệm quản lý.</p>
 
   <div class="signature-container2">
     <div class="signature2">
@@ -348,11 +351,11 @@
   </div>
   
   
-
+ <div class="anin">
   <button id="addRowBtn" onclick="addRow()">Thêm hàng</button>
   <button id="signatureBtn" onclick="toggleSignature()">Chữ ký</button>
   <button id="printBtn" onclick="window.print()">In PDF</button>
-  
+ </div>
   <!-- Chữ ký ở cuối nội dung -->
   <div class="signature-container" id="signatureContainer">
     <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký">
