@@ -182,8 +182,16 @@
   </div>
 
   <script>
-  const BASE =
-  'https://docs.google.com/forms/d/e/1FAIpQLSeC_Q7HbU3-PrDFXL-pXDpICYLM2nAmdjqD2tYiuv4Yx70AdQ/viewform?usp=pp_url&entry.502829689=2025-08-23&entry.668594151=Nh%E1%BA%ADp+kho&entry.1023052439=';
+  function getFormUrl(companyName) {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const formattedDate = `${yyyy}-${mm}-${dd}`;
+
+    const base = 'https://docs.google.com/forms/d/e/1FAIpQLSeC_Q7HbU3-PrDFXL-pXDpICYLM2nAmdjqD2tYiuv4Yx70AdQ/viewform?usp=pp_url';
+    return `${base}&entry.502829689=${formattedDate}&entry.668594151=Nh%E1%BA%ADp+kho&entry.1023052439=${encodeURIComponent(companyName)}`;
+  }
 
   const box     = document.getElementById('formBox');
   const iframe  = document.getElementById('gForm');
@@ -193,7 +201,11 @@
 
   okBtn.addEventListener('click', () => {
     const companyName = company.value.trim();
-    iframe.src = BASE + encodeURIComponent(companyName);
+    if (!companyName) {
+      alert('Vui lòng nhập thông tin!');
+      return;
+    }
+    iframe.src = getFormUrl(companyName);
     box.classList.add('show');
   });
 
@@ -229,4 +241,3 @@ toggleClear(); // run once on load
 </script>
 </body>
 </html>
-
