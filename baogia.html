@@ -186,6 +186,9 @@
   .signature-container.active {
     display: block !important;
   }
+  .anin {
+    display: none !important;
+  }
 }
 
   </style>
@@ -289,11 +292,11 @@
   <div class="signature-container" id="signatureContainer">
     <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký">
   </div>
-
+<div class="anin">
   <button id="addRowBtn" onclick="addRow()">Thêm hàng</button>
  <button id="signatureBtn" onclick="toggleSignature()">Chữ ký</button>
   <button id="printBtn" onclick="window.print()">In PDF</button>
-
+</div>
   <script>
     let fileInputCounter = 0; // Counter for unique file input IDs
 
