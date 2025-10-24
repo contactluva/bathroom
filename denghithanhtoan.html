@@ -120,6 +120,9 @@
   .signature-container.active {
     display: block !important;
   }
+    .antin {
+    display: none !important;
+  }
 }
 
     </style>
@@ -180,8 +183,10 @@
   <div class="signature-container" id="signatureContainer">
     <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký">
   </div>
+    <div class="anin">
     <button class="print-button" onclick="window.print()">Print PDF</button>
      <button id="signatureBtn" onclick="toggleSignature()">Chữ ký</button>
+    </div>
   <script>
      function toggleSignature() {
   const container = document.getElementById('signatureContainer');
