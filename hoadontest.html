@@ -2,123 +2,100 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tạo hóa đơn nháp</title>
     <style>
-        body{font-family:Arial,Helvetica,sans-serif;margin:20px;background:#f7f7f7}
-        h2{color:#333}
-        label{display:block;margin:8px 0 4px;font-weight:bold}
-        input[type=text],input[type=text].don-gia-input{width:100%;padding:8px;box-sizing:border-box}
-        input[type=number]{width:100%;padding:8px;box-sizing:border-box}
-        table{width:100%;border-collapse:collapse;margin-top:10px;background:#fff}
-        th,td{border:1px solid #ccc;padding:8px;text-align:center}
+        *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+        body{margin:0;padding:12px;background:#f5f5f5;font-size:14px}
+        h2{margin:0 0 12px;font-size:18px;color:#333}
+        .row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+        .row>div{flex:1 1 260px;display:flex;flex-direction:column}
+        label{font-weight:bold;margin-bottom:4px}
+        textarea,input[type=number],input[type=text]{width:100%;padding:8px;border:1px solid #bbb;border-radius:4px;resize:vertical;font-size:14px}
+        textarea{min-height:40px;font-family:inherit}
+        table{width:100%;border-collapse:collapse;background:#fff;margin-top:8px;font-size:14px}
+        th,td{border:1px solid #ddd;padding:6px 4px;text-align:center;word-break:break-word}
         th{background:#eee}
-        .btn-add{background:#28a745;color:#fff;border:none;padding:8px 12px;cursor:pointer;border-radius:4px}
-        .btn-send{background:#007bff;color:#fff;border:none;padding:10px 20px;cursor:pointer;border-radius:4px;margin-top:10px}
-        .btn-del{background:#dc3545;color:#fff;border:none;padding:4px 8px;cursor:pointer;border-radius:4px}
+        .btn-add{background:#28a745;color:#fff;border:none;padding:6px 10px;border-radius:4px;font-size:14px}
+        .btn-send{background:#007bff;color:#fff;border:none;padding:8px 16px;border-radius:4px;font-size:14px;margin-top:8px;width:100%}
+        .btn-del{background:#dc3545;color:#fff;border:none;padding:4px 6px;border-radius:4px;font-size:12px}
+        @media(max-width:500px){table{font-size:12px}th,td{padding:4px 2px}}
     </style>
 </head>
 <body>
 
 <h2>YÊU CẦU TẠO HÓA ĐƠN NHÁP</h2>
 
-<label>Tên công ty</label>
-<input type="text" id="tencty" placeholder="Nhập tên công ty">
-
-<label>MST</label>
-<input type="text" id="mst" placeholder="Nhập mã số thuế">
+<!-- Tên công ty & MST cùng dòng, textarea đa dòng -->
+<div class="row">
+    <div>
+        <label>Tên công ty + MST</label>
+        <textarea id="cty_mst" rows="2" placeholder="Tên công ty&#10;MST: 0123456789"></textarea>
+    </div>
+</div>
 
 <table id="hangTable">
     <thead>
         <tr>
-            <th>Tên sản phẩm</th>
-            <th>Số lượng</th>
-            <th>Đơn giá (VNĐ)</th>
-            <th></th>
+            <th style="width:45%">Tên sản phẩm</th>
+            <th style="width:20%">Số lượng</th>
+            <th style="width:25%">Đơn giá (VNĐ)</th>
+            <th style="width:10%"></th>
         </tr>
     </thead>
     <tbody></tbody>
 </table>
 <button class="btn-add" onclick="themHang()">+ Thêm hàng</button>
-<br>
+
 <button class="btn-send" onclick="guiTelegram()">Gửi đi</button>
 
 <script>
     const TOKEN = "5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA";
     const CHAT_ID = "-4686229366";
 
-    let rowIndex = 0;
-
-    // Định dạng số thành dạng có dấu phẩy
-    function formatNumber(num) {
-        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
-
-    // Lấy giá trị số từ chuỗi đã định dạng
-    function parseNumber(str) {
-        return parseInt(str.replace(/,/g, "")) || 0;
-    }
+    function formatNumber(num){return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",")}
+    function parseNumber(str){return parseInt(str.replace(/,/g,""))||0}
 
     function themHang(){
-        const tbody = document.querySelector('#hangTable tbody');
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><input type="text" placeholder="Tên SP"></td>
+        const tbody=document.querySelector('#hangTable tbody');
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+            <td><textarea rows="2" placeholder="Tên SP"></textarea></td>
             <td><input type="number" min="1" value="1"></td>
-            <td><input type="text" class="don-gia-input" placeholder="0" oninput="formatInput(this)"></td>
+            <td><input type="text" placeholder="0" oninput="formatInput(this)"></td>
             <td><button class="btn-del" onclick="this.closest('tr').remove()">Xóa</button></td>
         `;
         tbody.appendChild(tr);
     }
-
-    function formatInput(el) {
-        let value = el.value.replace(/,/g, '');
-        if (!isNaN(value) && value !== '') {
-            el.value = formatNumber(value);
-        }
+    function formatInput(el){
+        let v=el.value.replace(/,/g,'');
+        if(!isNaN(v)&&v!=='')el.value=formatNumber(v);
     }
-
-    // Thêm dòng đầu tiên
     themHang();
 
     async function guiTelegram(){
-        const tencty = document.getElementById('tencty').value.trim();
-        const mst = document.getElementById('mst').value.trim();
-        if(!tencty || !mst){
-            alert("Vui lòng nhập đầy đủ tên công ty và MST!");
-            return;
-        }
-        let msg = `📄 YÊU CẦU HÓA ĐƠN NHÁP\n`;
-        msg += `Công ty: ${tencty}\nMST: ${mst}\n\n`;
-        msg += `Chi tiết:\n`;
+        const cty_mst=document.getElementById('cty_mst').value.trim();
+        if(!cty_mst){alert("Vui lòng nhập Tên công ty & MST!");return;}
+        let msg=`📄 YÊU CẦU HÓA ĐƠN NHÁP\n${cty_mst}\n\nChi tiết:\n`;
 
-        const rows = document.querySelectorAll('#hangTable tbody tr');
-        let ok = false;
+        const rows=document.querySelectorAll('#hangTable tbody tr');
+        let ok=false;
         rows.forEach(r=>{
-            const ten = r.cells[0].querySelector('input').value.trim();
-            const sl = r.cells[1].querySelector('input').value;
-            const dgInput = r.cells[2].querySelector('input').value;
-            const dg = parseNumber(dgInput);
-            if(ten){
-                msg += `- ${ten} | SL: ${sl} | ĐG: ${dg}đ\n`;
-                ok = true;
-            }
+            const ten=r.cells[0].querySelector('textarea').value.trim();
+            const sl=r.cells[1].querySelector('input').value;
+            const dg=parseNumber(r.cells[2].querySelector('input').value);
+            if(ten){msg+=`- ${ten} | SL:${sl} | ĐG:${dg}đ\n`;ok=true;}
         });
-        if(!ok){
-            alert("Vui lòng nhập ít nhất 1 sản phẩm!");
-            return;
-        }
+        if(!ok){alert("Vui lòng nhập ít nhất 1 sản phẩm!");return;}
 
-        const url = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
         try{
-            await fetch(url,{
+            await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{
                 method:"POST",
                 headers:{"Content-Type":"application/json"},
-                body:JSON.stringify({chat_id:CHAT_ID, text:msg})
+                body:JSON.stringify({chat_id:CHAT_ID,text:msg})
             });
             alert("Gửi thành công!");
-        }catch(e){
-            alert("Lỗi gửi Telegram: "+e);
-        }
+        }catch(e){alert("Lỗi gửi Telegram: "+e);}
     }
 </script>
 
