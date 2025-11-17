@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tạo hóa đơn nháp</title>
+    <style>
+        body{font-family:Arial,Helvetica,sans-serif;margin:20px;background:#f7f7f7}
+        h2{color:#333}
+        label{display:block;margin:8px 0 4px;font-weight:bold}
+        input[type=text],input[type=text].don-gia-input{width:100%;padding:8px;box-sizing:border-box}
+        input[type=number]{width:100%;padding:8px;box-sizing:border-box}
+        table{width:100%;border-collapse:collapse;margin-top:10px;background:#fff}
+        th,td{border:1px solid #ccc;padding:8px;text-align:center}
+        th{background:#eee}
+        .btn-add{background:#28a745;color:#fff;border:none;padding:8px 12px;cursor:pointer;border-radius:4px}
+        .btn-send{background:#007bff;color:#fff;border:none;padding:10px 20px;cursor:pointer;border-radius:4px;margin-top:10px}
+        .btn-del{background:#dc3545;color:#fff;border:none;padding:4px 8px;cursor:pointer;border-radius:4px}
+    </style>
+</head>
+<body>
+
+<h2>YÊU CẦU TẠO HÓA ĐƠN NHÁP</h2>
+
+<label>Tên công ty</label>
+<input type="text" id="tencty" placeholder="Nhập tên công ty">
+
+<label>MST</label>
+<input type="text" id="mst" placeholder="Nhập mã số thuế">
+
+<table id="hangTable">
+    <thead>
+        <tr>
+            <th>Tên sản phẩm</th>
+            <th>Số lượng</th>
+            <th>Đơn giá (VNĐ)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+<button class="btn-add" onclick="themHang()">+ Thêm hàng</button>
+<br>
+<button class="btn-send" onclick="guiTelegram()">Gửi đi</button>
+
+<script>
+    const TOKEN = "5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA";
+    const CHAT_ID = "-4686229366";
+
+    let rowIndex = 0;
+
+    // Định dạng số thành dạng có dấu phẩy
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // Lấy giá trị số từ chuỗi đã định dạng
+    function parseNumber(str) {
+        return parseInt(str.replace(/,/g, "")) || 0;
+    }
+
+    function themHang(){
+        const tbody = document.querySelector('#hangTable tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" placeholder="Tên SP"></td>
+            <td><input type="number" min="1" value="1"></td>
+            <td><input type="text" class="don-gia-input" placeholder="0" oninput="formatInput(this)"></td>
+            <td><button class="btn-del" onclick="this.closest('tr').remove()">Xóa</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function formatInput(el) {
+        let value = el.value.replace(/,/g, '');
+        if (!isNaN(value) && value !== '') {
+            el.value = formatNumber(value);
+        }
+    }
+
+    // Thêm dòng đầu tiên
+    themHang();
+
+    async function guiTelegram(){
+        const tencty = document.getElementById('tencty').value.trim();
+        const mst = document.getElementById('mst').value.trim();
+        if(!tencty || !mst){
+            alert("Vui lòng nhập đầy đủ tên công ty và MST!");
+            return;
+        }
+        let msg = `📄 YÊU CẦU HÓA ĐƠN NHÁP\n`;
+        msg += `Công ty: ${tencty}\nMST: ${mst}\n\n`;
+        msg += `Chi tiết:\n`;
+
+        const rows = document.querySelectorAll('#hangTable tbody tr');
+        let ok = false;
+        rows.forEach(r=>{
+            const ten = r.cells[0].querySelector('input').value.trim();
+            const sl = r.cells[1].querySelector('input').value;
+            const dgInput = r.cells[2].querySelector('input').value;
+            const dg = parseNumber(dgInput);
+            if(ten){
+                msg += `- ${ten} | SL: ${sl} | ĐG: ${dg}đ\n`;
+                ok = true;
+            }
+        });
+        if(!ok){
+            alert("Vui lòng nhập ít nhất 1 sản phẩm!");
+            return;
+        }
+
+        const url = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
+        try{
+            await fetch(url,{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({chat_id:CHAT_ID, text:msg})
+            });
+            alert("Gửi thành công!");
+        }catch(e){
+            alert("Lỗi gửi Telegram: "+e);
+        }
+    }
+</script>
+
+</body>
+</html>
