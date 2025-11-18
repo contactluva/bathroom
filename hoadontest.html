@@ -1,102 +1,151 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tạo hóa đơn nháp</title>
-    <style>
-        *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
-        body{margin:0;padding:12px;background:#f5f5f5;font-size:14px}
-        h2{margin:0 0 12px;font-size:18px;color:#333}
-        .row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
-        .row>div{flex:1 1 260px;display:flex;flex-direction:column}
-        label{font-weight:bold;margin-bottom:4px}
-        textarea,input[type=number],input[type=text]{width:100%;padding:8px;border:1px solid #bbb;border-radius:4px;resize:vertical;font-size:14px}
-        textarea{min-height:40px;font-family:inherit}
-        table{width:100%;border-collapse:collapse;background:#fff;margin-top:8px;font-size:14px}
-        th,td{border:1px solid #ddd;padding:6px 4px;text-align:center;word-break:break-word}
-        th{background:#eee}
-        .btn-add{background:#28a745;color:#fff;border:none;padding:6px 10px;border-radius:4px;font-size:14px}
-        .btn-send{background:#007bff;color:#fff;border:none;padding:8px 16px;border-radius:4px;font-size:14px;margin-top:8px;width:100%}
-        .btn-del{background:#dc3545;color:#fff;border:none;padding:4px 6px;border-radius:4px;font-size:12px}
-        @media(max-width:500px){table{font-size:12px}th,td{padding:4px 2px}}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tạo hóa đơn nháp</title>
+<style>
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+body{margin:0;padding:12px;background:#f5f5f5;font-size:14px}
+h2{margin:0 0 12px;font-size:18px;color:#333}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.row>div{flex:1 1 260px;display:flex;flex-direction:column}
+label{font-weight:bold;margin-bottom:4px}
+textarea,input[type=number],input[type=text]{width:100%;padding:8px;border:1px solid #bbb;border-radius:4px;resize:vertical;font-size:14px}
+textarea{min-height:40px;font-family:inherit}
+table{width:100%;border-collapse:collapse;background:#fff;margin-top:8px;font-size:14px}
+th,td{border:1px solid #ddd;padding:6px 4px;text-align:center;word-break:break-word}
+th{background:#eee}
+.btn-add{background:#28a745;color:#fff;border:none;padding:6px 10px;border-radius:4px;font-size:14px}
+.btn-send{background:#007bff;color:#fff;border:none;padding:8px 16px;border-radius:4px;font-size:14px;margin-top:8px;width:100%}
+.btn-del{background:#dc3545;color:#fff;border:none;padding:4px 6px;border-radius:4px;font-size:12px}
+@media(max-width:500px){table{font-size:12px}th,td{padding:4px 2px}}
+
+/* thêm css cho ô chọn */
+.ten-sp-wrapper{position:relative}
+.ten-sp-wrapper select{
+  position:absolute;
+  top:0;right:0;bottom:0;width:26px;
+  opacity:0;           /* ẩn select thật */
+  cursor:pointer
+}
+.ten-sp-wrapper::after{      /* mũi tên ▿ */
+  content:"▾";
+  position:absolute;
+  right:6px;top:50%;transform:translateY(-50%);
+  pointer-events:none;color:#555
+}
+</style>
 </head>
 <body>
 
 <h2>YÊU CẦU TẠO HÓA ĐƠN NHÁP</h2>
 
-<!-- Tên công ty & MST cùng dòng, textarea đa dòng -->
 <div class="row">
-    <div>
-        <label>Tên công ty + MST</label>
-        <textarea id="cty_mst" rows="2" placeholder="Tên công ty&#10;MST: 0123456789"></textarea>
-    </div>
+  <div>
+    <label>Tên công ty + MST</label>
+    <textarea id="cty_mst" rows="2" placeholder="Tên công ty&#10;MST: 0123456789"></textarea>
+  </div>
 </div>
 
 <table id="hangTable">
-    <thead>
-        <tr>
-            <th style="width:45%">Tên sản phẩm</th>
-            <th style="width:20%">Số lượng</th>
-            <th style="width:25%">Đơn giá (VNĐ)</th>
-            <th style="width:10%"></th>
-        </tr>
-    </thead>
-    <tbody></tbody>
+  <thead>
+    <tr>
+      <th style="width:45%">Tên sản phẩm</th>
+      <th style="width:20%">Số lượng</th>
+      <th style="width:25%">Đơn giá (VNĐ)</th>
+      <th style="width:10%"></th>
+    </tr>
+  </thead>
+  <tbody></tbody>
 </table>
 <button class="btn-add" onclick="themHang()">+ Thêm hàng</button>
-
 <button class="btn-send" onclick="guiTelegram()">Gửi đi</button>
 
 <script>
-    const TOKEN = "5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA";
-    const CHAT_ID = "-4686229366";
+const TOKEN  = "5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA";
+const CHAT_ID = "-4686229366";
 
-    function formatNumber(num){return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",")}
-    function parseNumber(str){return parseInt(str.replace(/,/g,""))||0}
+const MAU_TEN = [
+"Cân điện tử, dùng để cân hàng hóa, loại 832\t9",
+"Cân điện tử,có khả năng cân tối đa 40 kg, dùng để cân hàng hoá, gồm có cân và máy tính, Loại: K019\t28",
+"Cân điện tử dùng để cân hàng hoá, loại RJ-IND- 8006-5. Hàng mới 100%\t41",
+"Cân điện tử FEM-200g",
+"Cân điện tử K-3000BH-3kg",
+"Cân điện tử KDTBED1200",
+"Cân điện tử KD 160, cân tối đa 2kg",
+"Cân điện tử KD321, cân tối đa 3kg",
+"Cân điện tử BDC-DS 6kg/0.5g",
+"Cân điện tử GS-622N",
+"Cân điện tử LS-DS",
+"Cân điện tử MT-5002",
+"Cân điện tử FEH-1 kg",
+"Đầu Cân Điện Tử",
+"Pin axit-chì, dùng cho cân điện tử, loại: SP-XDC4V5AH, điện áp:4V/5AH, (chiều cao < 13cm), NSX:Yongkang Yihong Trading Co.,Ltd",
+"Sạc adapter, dùng cho cân điện tử, điện áp 6.5V, NSX:YONGKANG HUAYING WEIGHING APPARATUS CO.,LTD. Hàng mới 100%",
+"Cảm biến tải trọng dùng cho cân điện tử, model: NA4, chất liệu: hợp kim nhôm, kích thước: 17.4 * 6 * 6.4 cm",
+"Cảm biến tải trọng dùng cho cân điện tử, chất liệu: hợp kim nhôm, kích thước: 14.6*4*2.3 cm",
+"Cân điện tử, mã:K369+",
+"Cân điện tử KDTBED3000",
+"Cân điện tử ALC-30C+",
+"Cân điện tử, dùng để cân hàng hoá, loại HMV8201,",
+"Cân điện tử GS-3202NF"
+];
 
-    function themHang(){
-        const tbody=document.querySelector('#hangTable tbody');
-        const tr=document.createElement('tr');
-        tr.innerHTML=`
-            <td><textarea rows="2" placeholder="Tên SP"></textarea></td>
-            <td><input type="number" min="1" value="1"></td>
-            <td><input type="text" placeholder="0" oninput="formatInput(this)"></td>
-            <td><button class="btn-del" onclick="this.closest('tr').remove()">Xóa</button></td>
-        `;
-        tbody.appendChild(tr);
-    }
-    function formatInput(el){
-        let v=el.value.replace(/,/g,'');
-        if(!isNaN(v)&&v!=='')el.value=formatNumber(v);
-    }
-    themHang();
+function formatNumber(num){return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",")}
+function parseNumber(str){return parseInt(str.replace(/,/g,""))||0}
 
-    async function guiTelegram(){
-        const cty_mst=document.getElementById('cty_mst').value.trim();
-        if(!cty_mst){alert("Vui lòng nhập Tên công ty & MST!");return;}
-        let msg=`📄 YÊU CẦU HÓA ĐƠN NHÁP\n${cty_mst}\n\nChi tiết:\n`;
+function themHang(){
+  const tbody=document.querySelector('#hangTable tbody');
+  const tr=document.createElement('tr');
 
-        const rows=document.querySelectorAll('#hangTable tbody tr');
-        let ok=false;
-        rows.forEach(r=>{
-            const ten=r.cells[0].querySelector('textarea').value.trim();
-            const sl=r.cells[1].querySelector('input').value;
-            const dg=parseNumber(r.cells[2].querySelector('input').value);
-            if(ten){msg+=`- ${ten} | SL:${sl} | ĐG:${dg}\n`;ok=true;}
-        });
-        if(!ok){alert("Vui lòng nhập ít nhất 1 sản phẩm!");return;}
+  /* tạo select + textarea trong cùng 1 ô */
+  let opts = '<option value=""></option>';
+  MAU_TEN.forEach(t=> opts+=`<option value="${t.replace(/"/g,'&quot;')}">${t}</option>`);
 
-        try{
-            await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{
-                method:"POST",
-                headers:{"Content-Type":"application/json"},
-                body:JSON.stringify({chat_id:CHAT_ID,text:msg})
-            });
-            alert("Gửi thành công!");
-        }catch(e){alert("Lỗi gửi Telegram: "+e);}
-    }
+  tr.innerHTML=`
+    <td>
+      <div class="ten-sp-wrapper">
+        <textarea rows="2" placeholder="Tên SP"></textarea>
+        <select onchange="this.previousElementSibling.value=this.value">${opts}</select>
+      </div>
+    </td>
+    <td><input type="number" min="1" value="1"></td>
+    <td><input type="text" placeholder="0" oninput="formatInput(this)"></td>
+    <td><button class="btn-del" onclick="this.closest('tr').remove()">Xóa</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+function formatInput(el){
+  let v=el.value.replace(/,/g,'');
+  if(!isNaN(v)&&v!=='') el.value=formatNumber(v);
+}
+themHang(); // dòng đầu tiên
+
+async function guiTelegram(){
+  const cty_mst=document.getElementById('cty_mst').value.trim();
+  if(!cty_mst){alert("Vui lòng nhập Tên công ty & MST!");return;}
+  let msg=`📄 YÊU CẦU HÓA ĐƠN NHÁP\n${cty_mst}\n\nChi tiết:\n`;
+
+  const rows=document.querySelectorAll('#hangTable tbody tr');
+  let ok=false;
+  rows.forEach(r=>{
+    const ten=r.cells[0].querySelector('textarea').value.trim();
+    const sl=r.cells[1].querySelector('input').value;
+    const dg=parseNumber(r.cells[2].querySelector('input').value);
+    if(ten){msg+=`- ${ten} | SL:${sl} | ĐG:${dg}\n`;ok=true;}
+  });
+  if(!ok){alert("Vui lòng nhập ít nhất 1 sản phẩm!");return;}
+
+  try{
+    await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({chat_id:CHAT_ID,text:msg})
+    });
+    alert("Gửi thành công!");
+  }catch(e){alert("Lỗi gửi Telegram: "+e);}
+}
 </script>
 
 </body>
