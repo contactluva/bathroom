@@ -84,7 +84,7 @@
             const ten=r.cells[0].querySelector('textarea').value.trim();
             const sl=r.cells[1].querySelector('input').value;
             const dg=parseNumber(r.cells[2].querySelector('input').value);
-            if(ten){msg+=`- ${ten} | SL:${sl} | ĐG:${dg}đ\n`;ok=true;}
+            if(ten){msg+=`- ${ten} | SL:${sl} | ĐG:${dg}\n`;ok=true;}
         });
         if(!ok){alert("Vui lòng nhập ít nhất 1 sản phẩm!");return;}
 
