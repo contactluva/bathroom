@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Máy tính</title>
+<style>
+:root {
+    --bg-color: #000;
+    --btn-gray: #a5a5a5;
+    --btn-dark-gray: #333333;
+    --btn-orange: #ff9f0a;
+    --text-white: #fff;
+    --text-black: #000;
+}
+
+body {
+    background-color: #1c1c1c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.calculator {
+    background-color: var(--bg-color);
+    width: 100%;
+    max-width: 380px;
+    border-radius: 40px;
+    padding: 20px;
+    box-shadow: 0px 10px 30px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    /* Cho phép máy tính giãn chiều cao tự do */
+    height: auto; 
+}
+
+/* Phần màn hình hiển thị */
+.display-container {
+    width: 100%;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    /* Chiều cao tối thiểu mặc định (1 dòng) */
+    min-height: 90px; 
+}
+
+.display {
+    color: var(--text-white);
+    font-size: 3.5rem;
+    font-weight: 300;
+    text-align: right;
+    word-break: break-all; /* Tự động xuống dòng nếu chuỗi quá dài */
+    line-height: 1.1;
+    
+    /* Logic giới hạn dòng */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    /* Giới hạn tối đa hiển thị 4 dòng, quá 4 dòng sẽ ẩn (hoặc bạn có thể bỏ dòng này để nó dài vô tận) */
+    -webkit-line-clamp: 4; 
+    overflow: hidden;
+    
+    /* Hiệu ứng mượt khi giãn */
+    transition: all 0.2s ease;
+}
+
+/* Khi màn hình hiển thị nhiều dòng, giảm font size một chút cho đẹp */
+.display.multiline {
+    font-size: 2.5rem;
+}
+
+/* Bàn phím */
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.btn {
+    width: 100%;
+    aspect-ratio: 1; /* Giữ nút hình tròn */
+    border-radius: 50%;
+    border: none;
+    font-size: 1.7rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn:active {
+    opacity: 0.7;
+}
+
+/* Màu sắc nút theo chuẩn iOS */
+.btn.number {
+    background-color: var(--btn-dark-gray);
+    color: var(--text-white);
+}
+
+.btn.fn {
+    background-color: var(--btn-gray);
+    color: var(--text-black);
+}
+
+.btn.operator {
+    background-color: var(--btn-orange);
+    color: var(--text-white);
+    font-size: 2rem;
+}
+
+/* Nút số 0 to gấp đôi */
+.btn.zero {
+    grid-column: span 2;
+    aspect-ratio: auto; /* Tắt tỷ lệ 1:1 */
+    border-radius: 40px;
+    text-align: left;
+    padding-left: 30px;
+}
+</style>
+
+
+</head>
+<body>
+    <div class="calculator">
+        <div class="display-container">
+            <div id="display" class="display">0</div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn fn" onclick="clearDisplay()">AC</button>
+            <button class="btn fn" onclick="deleteLast()">⌫</button>
+            <button class="btn fn" onclick="appendOperator('%')">%</button>
+            <button class="btn operator" onclick="appendOperator('/')">÷</button>
+
+            <button class="btn number" onclick="appendNumber('7')">7</button>
+            <button class="btn number" onclick="appendNumber('8')">8</button>
+            <button class="btn number" onclick="appendNumber('9')">9</button>
+            <button class="btn operator" onclick="appendOperator('*')">×</button>
+
+            <button class="btn number" onclick="appendNumber('4')">4</button>
+            <button class="btn number" onclick="appendNumber('5')">5</button>
+            <button class="btn number" onclick="appendNumber('6')">6</button>
+            <button class="btn operator" onclick="appendOperator('-')">−</button>
+
+            <button class="btn number" onclick="appendNumber('1')">1</button>
+            <button class="btn number" onclick="appendNumber('2')">2</button>
+            <button class="btn number" onclick="appendNumber('3')">3</button>
+            <button class="btn operator" onclick="appendOperator('+')">+</button>
+
+            <button class="btn number zero" onclick="appendNumber('0')">0</button>
+            <button class="btn number" onclick="appendNumber('.')">,</button>
+            <button class="btn operator" onclick="calculate()">=</button>
+        </div>
+    </div>
+    <script>let currentInput = '0';
+const displayElement = document.getElementById('display');
+
+// Hàm cập nhật màn hình
+function updateDisplay() {
+    // Thay thế các dấu * và / hiển thị cho đẹp
+    let formattedDisplay = currentInput
+        .replace(/\*/g, '×')
+        .replace(/\//g, '÷');
+    
+    displayElement.innerText = formattedDisplay;
+
+    // Logic kiểm tra số dòng để chỉnh size chữ hoặc chiều cao
+    checkLineHeight();
+}
+
+function checkLineHeight() {
+    // Lấy chiều cao hiện tại của nội dung
+    const height = displayElement.offsetHeight;
+    
+    // Giả sử 1 dòng cao khoảng 60-70px (tùy font). 
+    // Nếu cao hơn 80px nghĩa là đã xuống dòng.
+    if (height > 80) {
+        displayElement.classList.add('multiline');
+    } else {
+        displayElement.classList.remove('multiline');
+    }
+}
+
+function appendNumber(number) {
+    if (currentInput === '0' && number !== '.') {
+        currentInput = number;
+    } else {
+        // Ngăn nhập nhiều dấu chấm
+        if (number === '.' && currentInput.slice(-1) === '.') return;
+        currentInput += number;
+    }
+    updateDisplay();
+}
+
+function appendOperator(operator) {
+    const lastChar = currentInput.slice(-1);
+    // Ngăn nhập 2 phép tính liên tiếp
+    if (['+', '-', '*', '/', '%'].includes(lastChar)) {
+        currentInput = currentInput.slice(0, -1) + operator;
+    } else {
+        currentInput += operator;
+    }
+    updateDisplay();
+}
+
+function clearDisplay() {
+    currentInput = '0';
+    updateDisplay();
+}
+
+function deleteLast() {
+    if (currentInput.length > 1) {
+        currentInput = currentInput.slice(0, -1);
+    } else {
+        currentInput = '0';
+    }
+    updateDisplay();
+}
+
+function calculate() {
+    try {
+        // Thay thế x và ÷ về dạng chuẩn để tính toán
+        // Sử dụng eval an toàn cơ bản
+        let expression = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
+        
+        // Tính toán
+        let result = eval(expression);
+
+        // Làm tròn số nếu quá dài
+        if (!Number.isInteger(result)) {
+            result = parseFloat(result.toFixed(4)); 
+        }
+
+        currentInput = result.toString();
+        updateDisplay();
+    } catch (error) {
+        currentInput = "Error";
+        updateDisplay();
+        // Reset sau 1s
+        setTimeout(() => {
+            currentInput = '0';
+            updateDisplay();
+        }, 1500);
+    }
+}</script>
+</body>
+</html>
