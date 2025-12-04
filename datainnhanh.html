@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nhập liệu – Quang Minh</title>
+<style>
+body{margin:0;font-family:Arial;font-size:14px;background:#f7f7f7}
+.container{max-width:600px;margin:auto;padding:10px}
+h3{margin:10px 0}
+.row{display:flex;flex-wrap:wrap;margin-bottom:8px}
+.row label{flex:0 0 120px}
+.row input,.row textarea{flex:1 1 200px;padding:6px}
+.proItem{background:#fff;border:1px dashed #ccc;padding:8px;margin-bottom:8px;border-radius:4px}
+.upload-btn{display:inline-block;max-width:30px !important;height:30px;line-height:30px;text-align:center;background:#008CBA;color:#fff;border-radius:50%;cursor:pointer;margin-left:5px}
+input[type=file]{display:none}
+button{padding:8px 16px;margin:5px 5px 5px 0;border:none;border-radius:4px;cursor:pointer}
+#okBtn{background:#4CAF50;color:#fff}
+#addBtn{background:#2196F3;color:#fff}
+</style>
+</head>
+<body>
+<div class="container">
+  <h3>Nhập thông tin</h3>
+
+  <div class="row"><input id="fCompany" placeholder="Tên công ty"></div>
+  <div class="row"><input id="fAddress" placeholder="Địa chỉ"></div>
+  <div class="row"><input id="fTax" placeholder="Mã số thuế"></div>
+
+  <div id="proList">
+    <div class="proItem">
+      <div class="row"><input class="pName" placeholder="Tên sản phẩm"></div>
+      <div class="row"><textarea class="pInfo" rows="3">• Giới hạn cân:
+• Bước nhảy: d=
+• Bảo hành 1 năm</textarea></div>
+      <div class="row">
+        <div style="display:flex;align-items:center">
+          <input type="text" class="pImg" placeholder="Link ảnh" style="flex:1">
+          <label class="upload-btn" onclick="this.nextElementSibling.click()">+</label>
+          <input type="file" accept="image/*" onchange="uploadImg(this)">
+        </div>
+      </div>
+      <div class="row"><label>Số lượng</label><input type="number" class="pQty" value="1"></div>
+      <div class="row"><label>Đơn giá</label><input type="text" class="pPrice" placeholder="đ" oninput="formatPriceModal(this)" placeholder="Đơn giá"></div>
+    </div>
+  </div>
+
+  <button id="addBtn" onclick="addPro()">+ Thêm SP</button>
+  <div style="text-align:right;margin-top:10px">
+    <button id="okBtn" onclick="saveAndGo()">Sang trang in</button>
+  </div>
+</div>
+
+<script>
+function addPro(){
+  const d=document.createElement('div');d.className='proItem';
+  d.innerHTML=`<hr>
+    <div class="row"><label>Tên SP</label><input class="pName"></div>
+    <div class="row"><label>Thông tin SP</label><textarea class="pInfo" rows="3">• Giới hạn cân:
+• Bước nhảy: d=
+• Bảo hành 1 năm</textarea></div>
+    <div class="row"><label>Hình ảnh</label>
+      <div style="display:flex;align-items:center">
+        <input type="text" class="pImg" placeholder="Link ảnh" style="flex:1">
+        <label class="upload-btn" onclick="this.nextElementSibling.click()">+</label>
+        <input type="file" accept="image/*" onchange="uploadImg(this)">
+      </div>
+    </div>
+    <div class="row"><label>Số lượng</label><input type="number" class="pQty" value="1"></div>
+    <div class="row"><label>Đơn giá</label><input type="text" class="pPrice" placeholder="đ" oninput="formatPriceModal(this)"></div>`;
+  document.getElementById('proList').appendChild(d);
+}
+function formatPriceModal(inp){
+  let v=inp.value.replace(/\D/g,'');
+  inp.value=v?parseFloat(v).toLocaleString('vi-VN'):'';
+}
+function uploadImg(input){
+  if(input.files&&input.files[0]){
+    const reader=new FileReader();
+    reader.onload=e=>input.parentElement.querySelector('.pImg').value=e.target.result;
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+function saveAndGo(){
+  const data={
+    company:document.getElementById('fCompany').value.trim(),
+    address:document.getElementById('fAddress').value.trim(),
+    tax:document.getElementById('fTax').value.trim(),
+    products:[...document.querySelectorAll('.proItem')].map(p=>({
+      name:p.querySelector('.pName').value.trim(),
+      info:p.querySelector('.pInfo').value.trim(),
+      img:p.querySelector('.pImg').value.trim(),
+      qty:parseFloat(p.querySelector('.pQty').value)||0,
+      price:parseFloat(p.querySelector('.pPrice').value.replace(/\./g,''))||0
+    })).filter(x=>x.name)
+  };
+  localStorage.setItem('qmData',JSON.stringify(data));
+  location.href='/innhanh.html';
+}
+</script>
+</body>
+</html>
