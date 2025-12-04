@@ -278,6 +278,62 @@ textarea.product-info {
   </div>
 </div>
 
+
+
+  <!-- Trang 4: Đề nghị thanh toán -->
+  <div class="page">
+    <table class="header-table">
+      <tr>
+        <td class="left">
+          <b>QUANG MINH CO., LTD</b><br>
+          MST:2401038011<br>
+          Thôn Hữu Định, xã Hợp Thịnh, Bắc Ninh
+        </td>
+        <td class="right">
+          <strong>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br>
+          <strong>Độc lập – Tự do – Hạnh phúc</strong>
+        </td>
+      </tr>
+    </table>
+
+    <p style="text-align:right; margin:20px 0">
+      <em>Ngày <span class="fill-date"></span></em>
+    </p>
+
+    <h2 style="text-align:center; margin:10px 0">ĐỀ NGHỊ THANH TOÁN</h2>
+
+    <p><strong>Kính gửi:</strong> <span class="fill-company" style="max-width:400px; display:inline-block; word-break:break-word;"></span></p>
+    <p><strong>Địa chỉ:</strong> <span class="fill-address"></span></p>
+    <p style="text-align:justify">
+      Căn cứ vào Báo giá và Biên bản bàn giao hàng hóa ngày <span class="fill-date"></span> giữa
+      Công ty TNHH Quang Minh VN và <span class="fill-caps"></span> về việc mua bán hàng hóa,
+      chúng tôi đã bàn giao đầy đủ hàng hoá và giấy tờ theo quy định.
+    </p>
+
+    <p>
+      Chúng tôi kính đề nghị Quý cơ quan thanh toán 50 % giá trị đơn hàng còn lại, tương ứng số tiền:
+      <strong id="conlai">…</strong> (<em id="conlai-chu">…</em>)
+    </p>
+
+    <p>Tên tài khoản: Công ty TNHH Quang Minh VN</p>
+    <p>STK: <b>865789</b> – Ngân hàng TMCP Kỹ Thương Việt Nam – CN Trần Phú</p>
+
+    <p>Rất mong nhận được sự hợp tác từ Quý cơ quan.</p>
+    <p>Chúng tôi xin trân trọng cảm ơn!</p>
+
+    <div style="display:flex; justify-content:space-between; margin-top:40px; text-align:center">
+      <div><strong>Người đề nghị</strong><br><small>(Ký, họ tên)</small></div>
+      <div><strong>Trưởng đơn vị</strong><br><small>(Ký, họ tên)</small></div>
+    </div>
+
+    <!-- Chữ ký (tùy hiện) -->
+    <div class="signature-container" id="sig4">
+      <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký">
+    </div>
+  </div>
+  <!-- ============ HẾT TRANG 4 ============ -->
+</div>
+
 <!-- ============ NÚT ĐIỀU KHIỂN ============ -->
 <button id="inputBtn" class="btn">Nhập liệu</button>
 <button id="signatureBtn" class="btn">Chữ ký</button>
@@ -533,6 +589,17 @@ document.getElementById('signatureBtn').onclick=()=>{
 
 /* ---------- Khởi tạo ---------- */
 window.onload=()=>{document.querySelectorAll('.fill-date').forEach(el=>el.textContent=today());};
+/* ---------- Tính 50 % còn lại cho trang 4 ---------- */
+function updateDNTP(){
+  const tong = parseFloat(document.getElementById('bg-total').textContent.replace(/\D/g,'')) || 0;
+  const conlai = Math.round(tong / 2);
+  document.getElementById('conlai').textContent = formatNum(conlai) + ' đồng';
+  document.getElementById('conlai-chu').textContent =
+        numberToVietnameseWords(conlai, {currencyUnit:'đồng', capitalize:true});
+}
+/* Gọi sau khi nhấn OK modal */
+const oldApply = applyData;                 // lưu hàm applyData cũ
+applyData = function(){ oldApply(); updateDNTP(); };
 </script>
 </body>
 </html>
