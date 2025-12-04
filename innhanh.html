@@ -147,7 +147,35 @@ strong:has(+ .fill-company) {
 </style>
 </head>
 <body>
-
+<script>
+/* --- Tự động điền dữ liệu từ pre.html --- */
+window.addEventListener('DOMContentLoaded',()=>{
+  const raw=localStorage.getItem('qmData');
+  if(!raw) return;
+  const d=JSON.parse(raw);
+  // Điền thông tin công ty
+  document.getElementById('fCompany').value=d.company;
+  document.getElementById('fAddress').value=d.address;
+  document.getElementById('fTax').value=d.tax;
+  // Xóa dòng SP mặc định trong modal
+  const proList=document.getElementById('proList');
+  proList.innerHTML='';
+  // Tạo lại các dòng SP
+  d.products.forEach(it=>{
+    addPro(); // hàm addPro() đã có trong file bạn cũ
+    const last=proList.lastElementChild;
+    last.querySelector('.pName').value=it.name;
+    last.querySelector('.pInfo').value=it.info;
+    last.querySelector('.pImg').value=it.img;
+    last.querySelector('.pQty').value=it.qty;
+    last.querySelector('.pPrice').value=it.price?it.price.toLocaleString('vi-VN'):'';
+  });
+  // Tự động render ra các bảng luôn
+  applyData();
+  // (tuỳ chọn) xóa localStorage để lần sau không còn
+  // localStorage.removeItem('qmData');
+});
+</script>
 <!-- ============ 3 TRANG NỘI DUNG ============ -->
 <div id="pages"contenteditable="true">
   <!-- Trang 1: Báo giá -->
