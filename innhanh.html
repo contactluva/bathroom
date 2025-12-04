@@ -316,7 +316,7 @@ strong:has(+ .fill-company) {
     </p>
 
     <p>
-      Chúng tôi kính đề nghị Quý cơ quan thanh toán 50 % giá trị đơn hàng còn lại, tương ứng số tiền:
+      Chúng tôi kính đề nghị Quý cơ quan thanh toán 100% giá trị đơn hàng còn lại, tương ứng số tiền:
       <strong id="conlai">…</strong> (<em id="conlai-chu">…</em>)
     </p>
 
@@ -597,7 +597,7 @@ window.onload=()=>{document.querySelectorAll('.fill-date').forEach(el=>el.textCo
 /* ---------- Tính 50 % còn lại cho trang 4 ---------- */
 function updateDNTP(){
   const tong = parseFloat(document.getElementById('bg-total').textContent.replace(/\D/g,'')) || 0;
-  const conlai = Math.round(tong / 2);
+  const conlai = Math.round(tong);
   document.getElementById('conlai').textContent = formatNum(conlai) + ' đồng';
   document.getElementById('conlai-chu').textContent =
         numberToVietnameseWords(conlai, {currencyUnit:'đồng', capitalize:true});
