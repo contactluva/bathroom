@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>3 trong 1 – Quang Minh (final++)</title>
+<style>
+body{margin:0;font-family:Arial;font-size:14px}
+.page{width:210mm;min-height:297mm;padding:20px 15px 0;box-sizing:border-box;margin:auto;border-bottom:1px dashed #ccc}
+h1,h4,p{margin:5px 0 10px}
+table{width:100%;border-collapse:collapse}
+td,th{border:1px solid rgba(0,0,0,.4);padding:4px;text-align:center;vertical-align:middle}
+textarea{border:none;resize:none;font:inherit;text-align:center;width:95%;overflow:hidden}
+textarea.product-info{text-align:left;line-height:1.3}
+img.preview{max-width:100px;max-height:100px;display:block;margin:auto}
+.hidden{display:none}
+.btn{position:fixed;bottom:15px;padding:8px 16px;color:#fff;border:none;cursor:pointer;z-index:1000}
+#inputBtn{left:15px;background:#2196F3}
+#signatureBtn{left:120px;background:#FF9800}
+#printBtn{right:15px;background:#4CAF50}
+#okBtn{background:#4CAF50;color:#fff;padding:6px 18px;border:none;margin-top:10px;cursor:pointer}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center}
+.modal-content{background:#fff;padding:20px;border-radius:4px;width:500px;max-height:90vh;overflow:auto}
+.row{display:flex;gap:10px;margin-bottom:8px;align-items:center}
+.row label{width:120px}
+.row input,.row textarea{flex:1}
+.proItem{border:1px dashed #ccc;padding:8px;margin-bottom:8px;border-radius:4px}
+.upload-btn{display:inline-block;width:30px;height:30px;line-height:30px;text-align:center;background:#008CBA;color:#fff;border-radius:50%;cursor:pointer;margin:5px auto;font-size:20px}
+input[type=file]{display:none}
+.signature-container{display:none;text-align:right;margin-top:-10px}
+.signature-container.active{display:block}
+.no-border,.no-border td,.no-border th{border:none !important}
+.page {
+  width: 210mm;
+  min-height: 297mm;           /* giữ lại để xem trên màn hình */
+  padding: 18mm 12mm 10mm;     /* giảm một chút cho vừa A4 thực tế */
+  box-sizing: border-box;
+  margin: 0 auto 30px;         /* khoảng cách giữa các trang khi xem web */
+  position: relative;
+  page-break-after: always;    /* QUAN TRỌNG NHẤT: buộc ngắt trang sạch */
+  page-break-inside: avoid;    /* không cho nội dung bên trong bị cắt đôi */
+  background: white;
+}
+
+/* Xóa đường kẻ cắt khi xem web nếu bạn không cần nữa (tùy chọn) */
+.page:last-child { margin-bottom: 0; }
+
+/* In ấn hoàn hảo – sạch header/footer + không bị lệch trang */
+@media print {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto;
+  }
+
+  .btn, .modal, #signatureBtn, .logo ~ br, .upload-btn { display: none !important; }
+
+  .signature-container.active { display: block !important; }
+
+  .page {
+    margin: 0 !important;
+    padding: 18mm 12mm 10mm;
+    min-height: 297mm;
+    height: 297mm;
+    overflow: hidden;
+    page-break-after: always;
+    page-break-inside: avoid;
+    box-shadow: none;
+  }
+
+  .page:last-child {
+    page-break-after: avoid;
+  }
+
+  /* Xóa hoàn toàn header/footer mặc định của trình duyệt */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+    @top-left      { content: none }
+    @top-center    { content: none }
+    @top-right     { content: none }
+    @bottom-left   { content: none }
+    @bottom-center { content: none }
+    @bottom-right  { content: none }
+  }
+}
+  body {
+    margin: 15mm 12mm !important;
+    print-color-adjust: exact;
+  }
+}
+textarea {
+    border: none;
+    resize: none;
+    font: inherit;
+    width: 95%;
+    overflow: hidden;
+    min-height: 50px;        /* thêm dòng này */
+}
+
+textarea.product-info {
+    text-align: left;
+    line-height: 1.4;
+}
+
+/* Quan trọng nhất: tự động giãn chiều cao khi gõ hoặc khi render */
+textarea.product-name,
+textarea.product-info {
+    height: auto;
+    overflow: hidden;
+}
+textarea.product-name:focus,
+textarea.product-info:focus,
+textarea.product-name,
+textarea.product-info {
+    height: auto !important;
+}
+/* ==== SỬA LỖI HIỂN THỊ ĐỦ 3 DÒNG THÔNG TIN SẢN PHẨM ==== */
+textarea.product-info {
+    height: auto !important;
+    min-height: 70px !important;
+    overflow: visible !important;
+    white-space: pre-wrap !important;
+}
+
+/* Tự động giãn chiều cao ngay khi render (không cần gõ tay) */
+textarea.product-info[readonly],
+textarea.product-info {
+    height: auto !important;
+}
+/* Gọi hàm tự động giãn ngay khi render xong */
+</style>
+</head>
+<body>
+
+<!-- ============ 3 TRANG NỘI DUNG ============ -->
+<div id="pages">
+  <!-- Trang 1: Báo giá -->
+  <div class="page">
+    <div class="logo" style="display:flex;align-items:center;margin-bottom:15px">
+      <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/logo%20QM.webp" width="66" height="66" style="margin-right:10px">
+      <div>
+        <strong>CÔNG TY TNHH QUANG MINH VN</strong><br>
+        <span style="font-size:12px;color:#555">MST:2401038011 - Thôn Hữu Định, xã Hợp Thịnh, Bắc Ninh</span>
+      </div>
+    </div>
+    <table class="no-border" style="border:none;width:100%">
+      <tr>
+        <td style="text-align:left;border:none"><i>Kính gửi:</i> <strong class="fill-company"></strong></td>
+        <td style="text-align:right;border:none"><i>Ngày:</i> <span class="fill-date"></span></td>
+      </tr>
+    </table>
+    <h1 style="text-align:center;margin:10px 0">BÁO GIÁ SẢN PHẨM</h1>
+    <table>
+      <thead><tr>
+        <th>Chủng loại</th><th>Tên sản phẩm</th><th>Thông tin SP</th><th>Hình ảnh</th>
+        <th>Giá bán lẻ<br><small>(đ) chưa VAT</small></th><th>Số lượng</th><th>Thành tiền</th>
+      </tr></thead>
+      <tbody id="bg-rows"></tbody>
+      <tfoot>
+        <tr><td colspan="6" style="text-align:right">VAT (8%)</td><td style="white-space:nowrap"><span id="bg-vat"></span> đ</td></tr>
+        <tr><td colspan="6" style="text-align:right"><strong>Tổng</strong></td><td style="white-space:nowrap"><strong><span id="bg-total"></span> đ</strong></td></tr>
+      </tfoot>
+    </table>
+    <p><strong>Miễn phí giao hàng</strong></p>
+    <p><em>Áp dụng từ: 01/01/2025</em></p>
+    <div class="signature-container" id="sig1"><img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký" style="max-width:350px"></div>
+  </div>
+
+  <!-- Trang 2: Phiếu xuất kho -->
+  <div class="page">
+    <div class="logo" style="display:flex;align-items:center;margin-bottom:15px">
+      <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/logo%20QM.webp" width="66" height="66" style="margin-right:10px">
+      <div>
+        <strong>CÔNG TY TNHH QUANG MINH VN</strong><br>
+        <span style="font-size:12px;color:#555">MST:2401038011 - Thôn Hữu Định, xã Hợp Thịnh, Bắc Ninh</span>
+      </div>
+    </div>
+    <h4 style="text-align:center;font-weight:400;margin:5px 0">ĐH:QM8093201</h4>
+    <h1 style="text-align:center;margin:10px 0">PHIẾU XUẤT KHO</h1>
+    <table class="no-border" style="border:none;width:100%;margin-bottom:10px">
+      <tr>
+        <td style="text-align:left;border:none"><i>Khách hàng:</i> <strong class="fill-company"></strong></td>
+        <td style="text-align:right;border:none"><i>Ngày:</i> <span class="fill-date"></span></td>
+      </tr>
+    </table>
+    <table>
+      <thead><tr>
+        <th>Tên sản phẩm</th><th>Giá bán lẻ<br><small>(đ) chưa VAT</small></th><th>Số lượng</th><th>Thành tiền</th>
+      </tr></thead>
+      <tbody id="pxk-rows"></tbody>
+      <tfoot>
+        <tr><td colspan="3" style="text-align:right">VAT (8%)</td><td style="white-space:nowrap"><span id="pxk-vat"></span> đ</td></tr>
+        <tr><td colspan="3" style="text-align:right"><strong>Tổng</strong></td><td style="white-space:nowrap"><strong><span id="pxk-total"></span> đ</strong></td></tr>
+        <tr><td colspan="4" style="text-align:left;font-size:12px">Sản phẩm mới 100%. Bảo hành 12 tháng tại Công ty TNHH Quang Minh VN kể từ ngày giao hàng.</td></tr>
+      </tfoot>
+    </table>
+    <div style="display:flex;justify-content:space-between;margin-top:20px;text-align:center">
+      <div><strong>KHÁCH HÀNG</strong><br><small>(Ký, họ tên)</small></div>
+      <div><strong>QUANGMINH., LTD</strong><br><small>(Ký, họ tên)</small></div>
+    </div>
+    <div class="signature-container" id="sig2"><img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký" style="max-width:350px"></div>
+  </div>
+
+  <!-- Trang 3: Biên bản bàn giao -->
+  <div class="page">
+    <table class="no-border" style="border:none;width:100%;margin-bottom:10px">
+      <tr>
+        <td style="text-align:left;border:none">
+          <strong>CÔNG TY TNHH QUANG MINH VN</strong><br>
+          <span style="font-size:12px;color:#555">MST:2401038011 - Thôn Hữu Định, xã Hợp Thịnh, Bắc Ninh</span>
+        </td>
+        <td style="text-align:center;border:none">
+          <strong>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br><span style="font-size:12px">Độc lập – Tự do – Hạnh phúc</span>
+        </td>
+      </tr>
+    </table>
+    <div style="text-align:center;margin:55px 0 0 0"><span class="fill-date"></span></div>
+    <h1 style="text-align:center;margin:10px 0">BIÊN BẢN BÀN GIAO</h1>
+    <p class="editable bennhan" contenteditable="true"><b>Bên nhận hàng:</b> <span class="fill-caps"></span></p>
+    <p class="editable bennhan" contenteditable="true">- Địa chỉ: <span class="fill-address"></span></p>
+    <p class="editable bennhan" contenteditable="true">- Mã số thuế: <span class="fill-tax"></span></p>
+    <p class="editable bennhan" contenteditable="true"><b>Bên giao hàng:</b> CÔNG TY TNHH QUANG MINH VN</p>
+    <p class="editable bennhan" contenteditable="true">- Địa chỉ: Thôn Hữu Định, xã Hợp Thịnh, Bắc Ninh</p>
+    <p class="editable bennhan" contenteditable="true">- Mã số thuế: 2401038011</p>
+    <p>Hai bên cùng nhau thống nhất số lượng giao hàng như sau:</p>
+    <table>
+      <thead><tr>
+        <th>Tên sản phẩm</th><th>Giá bán lẻ<br><small>(đ) chưa VAT</small></th><th>Số lượng</th><th>Thành tiền</th>
+      </tr></thead>
+      <tbody id="bbb-rows"></tbody>
+      <tfoot>
+        <tr><td colspan="3" style="text-align:right">VAT (8%)</td><td style="white-space:nowrap"><span id="bbb-vat"></span> đ</td></tr>
+        <tr><td colspan="3" style="text-align:right"><strong>Tổng</strong></td><td style="white-space:nowrap"><strong><span id="bbb-total"></span> đ</strong></td></tr>
+        <tr><td colspan="4" style="text-align:right;font-size:12px;font-style:italic"><span id="bangchu"></span></td></tr>
+      </tfoot>
+    </table>
+    <p class="editable" contenteditable="true">Kể từ ngày <span class="fill-date"></span> số tài sản trên do bên <span class="fill-caps"></span> chịu trách nhiệm quản lý.</p>
+    <div style="display:flex;justify-content:space-between;margin-top:20px;text-align:center">
+      <div><strong>KHÁCH HÀNG</strong><br><small>(Ký, họ tên)</small></div>
+      <div><strong>QUANGMINH., LTD</strong><br><small>(Ký, họ tên)</small></div>
+    </div>
+    <div class="signature-container" id="sig3"><img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký" style="max-width:350px"></div>
+  </div>
+</div>
+
+<!-- ============ NÚT ĐIỀU KHIỂN ============ -->
+<button id="inputBtn" class="btn">Nhập liệu</button>
+<button id="signatureBtn" class="btn">Chữ ký</button>
+<button id="printBtn" class="btn" onclick="window.print()">In PDF</button>
+
+<!-- ============ MODAL NHẬP LIỆU ============ -->
+<div class="modal" id="inputModal">
+  <div class="modal-content">
+    <h3>Nhập thông tin</h3>
+    <div class="row"><label>Tên công ty</label><input id="fCompany"></div>
+    <div class="row"><label>Địa chỉ</label><input id="fAddress"></div>
+    <div class="row"><label>Mã số thuế</label><input id="fTax"></div>
+    <div id="proList">
+      <div class="proItem">
+        <div class="row"><label>Tên SP</label><input class="pName"></div>
+        <div class="row"><label>Thông tin SP</label><textarea class="pInfo" rows="3">• Giới hạn cân:
+• Bước nhảy: d=
+• Bảo hành 1 năm</textarea></div>
+        <div class="row"><label>Hình ảnh</label>
+          <div style="display:flex;gap:5px;align-items:center">
+            <input type="text" class="pImg" placeholder="Link ảnh" style="flex:1">
+            <label class="upload-btn" onclick="this.nextElementSibling.click()">+</label>
+            <input type="file" accept="image/*" onchange="uploadImg(this)">
+          </div>
+        </div>
+        <div class="row"><label>Số lượng</label><input type="number" class="pQty" value="1"></div>
+        <div class="row"><label>Đơn giá</label><input type="text" class="pPrice" placeholder="đ" oninput="formatPriceModal(this)"></div>
+      </div>
+    </div>
+    <button onclick="addPro()">+ Thêm SP</button>
+    <div style="text-align:right;margin-top:10px">
+      <button id="okBtn" onclick="applyData()">OK</button>
+      <button onclick="closeModal()">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Mở/tắt modal ---------- */
+function openModal(){document.getElementById('inputModal').style.display='flex';}
+function closeModal(){document.getElementById('inputModal').style.display='none';}
+document.getElementById('inputBtn').onclick=openModal;
+
+/* ---------- Upload ảnh ---------- */
+function uploadImg(inp){
+  if(inp.files&&inp.files[0]){
+    const file=inp.files[0];
+    const link=URL.createObjectURL(file);
+    inp.previousElementSibling.previousElementSibling.value=link;
+  }
+}
+
+/* ---------- Thêm dòng SP ---------- */
+function addPro(){
+  const d=document.createElement('div');d.className='proItem';
+  d.innerHTML=`<hr>
+    <div class="row"><label>Tên SP</label><input class="pName"></div>
+    <div class="row"><label>Thông tin SP</label><textarea class="pInfo" rows="3">• Giới hạn cân:
+• Bước nhảy: d=
+• Bảo hành 1 năm</textarea></div>
+    <div class="row"><label>Hình ảnh</label>
+      <div style="display:flex;gap:5px;align-items:center">
+        <input type="text" class="pImg" placeholder="Link ảnh" style="flex:1">
+        <label class="upload-btn" onclick="this.nextElementSibling.click()">+</label>
+        <input type="file" accept="image/*" onchange="uploadImg(this)">
+      </div>
+    </div>
+    <div class="row"><label>Số lượng</label><input type="number" class="pQty" value="1"></div>
+    <div class="row"><label>Đơn giá</label><input type="text" class="pPrice" placeholder="đ" oninput="formatPriceModal(this)"></div>`;
+  document.getElementById('proList').appendChild(d);
+}
+
+/* ---------- Định dạng tiền trong modal ---------- */
+function formatPriceModal(inp){
+  let v=inp.value.replace(/\D/g,'');
+  inp.value=v?parseFloat(v).toLocaleString('vi-VN'):'';
+}
+
+/* ---------- Lấy ngày hiện tại ---------- */
+function today(){
+  const d=new Date(),dd=String(d.getDate()).padStart(2,'0'),mm=String(d.getMonth()+1).padStart(2,'0'),y=d.getFullYear();
+  return `${dd}/${mm}/${y}`;
+}
+
+/* ---------- Đọc số thành chữ (hàm bạn cung cấp) ---------- */
+function numberToVietnameseWords(input, { currencyUnit = 'đồng', fractionUnit = 'xu', capitalize = false } = {}) {
+  if (input === null || input === undefined || input === '') return '';
+  const DIGITS = ['không','một','hai','ba','bốn','năm','sáu','bảy','tám','chín'];
+  const UNITS = ['', 'nghìn', 'triệu', 'tỷ', 'nghìn tỷ', 'triệu tỷ', 'tỷ tỷ'];
+  function readThreeDigits(num) {
+    const hundreds = Math.floor(num / 100);
+    const tens = Math.floor((num % 100) / 10);
+    const ones = num % 10;
+    let parts = [];
+    if (hundreds) {
+      parts.push(DIGITS[hundreds] + ' trăm');
+    } else if (tens || ones) {
+      // không thêm "không trăm", dùng "lẻ" ở dưới
+    }
+    if (tens > 1) {
+      parts.push(DIGITS[tens] + ' mươi');
+      if (ones === 1) parts.push('mốt');
+      else if (ones === 4) parts.push('tư');
+      else if (ones === 5) parts.push('lăm');
+      else if (ones > 0) parts.push(DIGITS[ones]);
+    } else if (tens === 1) {
+      parts.push('mười');
+      if (ones === 1) parts.push('một');
+      else if (ones === 4) parts.push('bốn');
+      else if (ones === 5) parts.push('lăm');
+      else if (ones > 0) parts.push(DIGITS[ones]);
+    } else {
+      if (ones > 0) {
+        if (hundreds) parts.push('lẻ ' + (ones === 5 ? 'năm' : DIGITS[ones]));
+        else parts.push(DIGITS[ones]);
+      }
+    }
+    return parts.join(' ').replace(/\s+/g, ' ').trim();
+  }
+  function integerToWords(n) {
+    if (n === 0) return 'không';
+    let words = [];
+    let i = 0;
+    while (n > 0) {
+      const chunk = n % 1000;
+      if (chunk) {
+        let chunkWords = readThreeDigits(chunk);
+        const unitName = UNITS[i] || '';
+        if (unitName) chunkWords = chunkWords + ' ' + unitName;
+        words.unshift(chunkWords);
+      }
+      n = Math.floor(n / 1000);
+      i++;
+    }
+    return words.join(' ').replace(/\s+/g, ' ').trim();
+  }
+  function capitalizeFirst(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+  let str = (typeof input === 'number') ? String(input) : input.replace(/[, ]+/g, '');
+  if (!/^[-+]?\d+(\.\d+)?$/.test(str)) return '';
+  const negative = str.startsWith('-');
+  if (negative) str = str.slice(1);
+  const [intPartStr, fracPartStr = ''] = str.split('.');
+  const intPart = parseInt(intPartStr, 10);
+  let resultParts = [];
+  if (negative) resultParts.push('âm');
+  const intWords = integerToWords(intPart);
+  if (intWords) resultParts.push(intWords + (currencyUnit ? ' ' + currencyUnit : ''));
+  if (fracPartStr && parseInt(fracPartStr, 10) !== 0) {
+    const normalizedFrac = fracPartStr.length > 2 ? fracPartStr.slice(0, 2) : fracPartStr.padEnd(2, '0');
+    const fracNum = parseInt(normalizedFrac, 10);
+    if (fracNum) {
+      const fracWords = integerToWords(fracNum);
+      resultParts.push('và ' + fracWords + (fractionUnit ? ' ' + fractionUnit : ''));
+    }
+  }
+  let out = resultParts.join(' ').replace(/\s+/g, ' ').trim();
+  if (capitalize) out = capitalizeFirst(out);
+  return out;
+}
+
+/* ---------- Apply toàn bộ ---------- */
+function applyData(){
+  const c=document.getElementById('fCompany').value.trim().toUpperCase();
+  const a=document.getElementById('fAddress').value.trim();
+  const t=document.getElementById('fTax').value.trim();
+  const full=`${c} - MST: ${t}`;
+  document.querySelectorAll('.fill-company').forEach(el=>el.textContent=full);
+  document.querySelectorAll('.fill-caps').forEach(el=>el.textContent=c);
+  document.querySelectorAll('.fill-address').forEach(el=>el.textContent=a);
+  document.querySelectorAll('.fill-tax').forEach(el=>el.textContent=t);
+  document.querySelectorAll('.fill-date').forEach(el=>el.textContent=today());
+
+  /* Lấy SP */
+  const items=[...document.querySelectorAll('.proItem')].map(it=>({
+    name:it.querySelector('.pName').value.trim(),
+    info:it.querySelector('.pInfo').value.trim(),
+    img:it.querySelector('.pImg').value.trim(),
+    qty:parseFloat(it.querySelector('.pQty').value)||0,
+    price:parseFloat(it.querySelector('.pPrice').value.replace(/\./g,''))||0
+  })).filter(it=>it.name);
+
+  /* Render 3 bảng */
+  function renderRows(tbodyId,vatId,totalId,withImg=false){
+    const tbody=document.getElementById(tbodyId);tbody.innerHTML='';
+    let sub=0;
+    items.forEach(it=>{
+      const tr=document.createElement('tr');
+      if(withImg){
+        tr.innerHTML=`
+          <td>Điện tử</td>
+          <td><textarea class="product-name">${it.name}</textarea></td>
+          <td><textarea class="product-info" oninput="autoHeight(this)">${it.info}</textarea></td>
+          <td><img class="preview" src="${it.img}"></td>
+          <td style="white-space:nowrap">${formatNum(it.price)} đ</td>
+          <td>${it.qty}</td>
+          <td style="white-space:nowrap">${formatNum(it.price*it.qty)} đ</td>`;
+      }else{
+        tr.innerHTML=`
+          <td><textarea class="product-name">${it.name}</textarea></td>
+          <td style="white-space:nowrap">${formatNum(it.price)} đ</td>
+          <td>${it.qty}</td>
+          <td style="white-space:nowrap">${formatNum(it.price*it.qty)} đ</td>`;
+      }
+      tbody.appendChild(tr);sub+=it.price*it.qty;
+    });
+    const vat=sub*0.08;
+    document.getElementById(vatId).textContent=formatNum(vat);
+    document.getElementById(totalId).textContent=formatNum(sub+vat);
+    const chu=numberToVietnameseWords(Math.round(sub+vat),{currencyUnit:'đồng',capitalize:true});
+    document.getElementById('bangchu').textContent=chu;
+  }
+  renderRows('bg-rows','bg-vat','bg-total',true);
+  renderRows('pxk-rows','pxk-vat','pxk-total');
+  renderRows('bbb-rows','bbb-vat','bbb-total');
+
+  closeModal();
+}
+
+/* ---------- Tự chỉnh chiều cao textarea ---------- */
+function autoHeight(t){
+  t.style.height='auto';t.style.height=t.scrollHeight+'px';
+}
+
+/* ---------- Định dạng tiền ---------- */
+function formatNum(v){return v?parseFloat(v).toLocaleString('vi-VN'):'';}
+
+/* ---------- Chữ ký ---------- */
+document.getElementById('signatureBtn').onclick=()=>{
+  document.querySelectorAll('.signature-container').forEach(el=>el.classList.toggle('active'));
+};
+
+/* ---------- Khởi tạo ---------- */
+window.onload=()=>{document.querySelectorAll('.fill-date').forEach(el=>el.textContent=today());};
+</script>
+</body>
+</html>
