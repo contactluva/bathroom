@@ -131,6 +131,14 @@ textarea.product-info {
   textarea.pInfo {
     text-align: left;
 }
+
+  /* Giới hạn chiều rộng tối đa 400px cho phần “Kính gửi” */
+.page:nth-child(1) .fill-company,   /* Báo giá */
+.page:nth-child(2) .fill-company {  /* Phiếu xuất kho */
+  display: inline-block;
+  max-width: 400px;
+  word-break: break-word;           /* tự xuống dòng nếu tràn */
+}
 </style>
 </head>
 <body>
