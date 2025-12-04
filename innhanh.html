@@ -156,7 +156,7 @@ textarea.product-info {
     <table>
       <thead><tr>
         <th>Chủng loại</th><th>Tên sản phẩm</th><th>Thông tin SP</th><th>Hình ảnh</th>
-        <th>Giá bán lẻ<br><small>(đ) chưa VAT</small></th><th>Số lượng</th><th>Thành tiền</th>
+        <th>Giá bán lẻ<br><small>(chưa VAT)</small></th><th>Số lượng</th><th>Thành tiền</th>
       </tr></thead>
       <tbody id="bg-rows"></tbody>
       <tfoot>
@@ -208,7 +208,7 @@ textarea.product-info {
     </table>
     <table>
       <thead><tr>
-        <th>Tên sản phẩm</th><th>Giá bán lẻ<br><small>(đ) chưa VAT</small></th><th>Số lượng</th><th>Thành tiền</th>
+        <th>Tên sản phẩm</th><th>Giá bán lẻ<br><small>(chưa VAT)</small></th><th>Số lượng</th><th>Thành tiền</th>
       </tr></thead>
       <tbody id="pxk-rows"></tbody>
       <tfoot>
@@ -237,7 +237,7 @@ textarea.product-info {
         </td>
       </tr>
     </table>
-    <div style="text-align:center;margin:55px 0 0 0"><span class="fill-date"></span></div>
+    <div style="text-align:center;margin:55px 0 0 0">Ngày: <span class="fill-date"></span></div>
     <h1 style="text-align:center;margin:10px 0">BIÊN BẢN BÀN GIAO</h1>
     <p class="editable bennhan" contenteditable="true"><b>Bên nhận hàng:</b> <span class="fill-caps"></span></p>
     <p class="editable bennhan" contenteditable="true">- Địa chỉ: <span class="fill-address"></span></p>
@@ -248,14 +248,18 @@ textarea.product-info {
     <p>Hai bên cùng nhau thống nhất số lượng giao hàng như sau:</p>
     <table>
       <thead><tr>
-        <th>Tên sản phẩm</th><th>Giá bán lẻ<br><small>(đ) chưa VAT</small></th><th>Số lượng</th><th>Thành tiền</th>
+        <th>Tên sản phẩm</th><th>Giá bán lẻ<br><small>(chưa VAT)</small></th><th>Số lượng</th><th>Thành tiền</th>
       </tr></thead>
       <tbody id="bbb-rows"></tbody>
       <tfoot>
         <tr><td colspan="3" style="text-align:right">VAT (8%)</td><td style="white-space:nowrap"><span id="bbb-vat"></span> đ</td></tr>
         <tr><td colspan="3" style="text-align:right"><strong>Tổng</strong></td><td style="white-space:nowrap"><strong><span id="bbb-total"></span> đ</strong></td></tr>
-        <tr><td colspan="4" style="text-align:right;font-size:12px;font-style:italic"><span id="bangchu"></span></td></tr>
-      </tfoot>
+        <tr>
+    <td colspan="4" style="text-align:right; font-size:12px; font-style:italic;">
+        <span style="font-style:normal; font-weight:500;">Bằng chữ:</span> 
+        <span id="bangchu"></span>
+    </td>
+</tr>      </tfoot>
     </table>
     <p class="editable" contenteditable="true">Kể từ ngày <span class="fill-date"></span> số tài sản trên do bên <span class="fill-caps"></span> chịu trách nhiệm quản lý.</p>
     <div style="display:flex;justify-content:space-between;margin-top:20px;text-align:center">
@@ -281,7 +285,7 @@ textarea.product-info {
     <div id="proList">
       <div class="proItem">
         <div class="row"><input class="pName" placeholder="Tên SP"></div>
-        <div class="row"><label>Thông tin SP</label><textarea class="pInfo" rows="3">• Giới hạn cân:
+        <div class="row"><textarea class="pInfo" rows="3">• Giới hạn cân:
 • Bước nhảy: d=
 • Bảo hành 1 năm</textarea></div>
         <div class="row"><label>Hình ảnh</label>
