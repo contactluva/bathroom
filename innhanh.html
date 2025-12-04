@@ -132,14 +132,17 @@ textarea.product-info {
     text-align: left;
 }
 
-  /* Giới hạn chiều rộng tối đa 400px cho phần “Kính gửi” */
-.page:nth-child(1) .fill-company,   /* Báo giá */
-.page:nth-child(2) .fill-company {  /* Phiếu xuất kho */
-   max-width: 400px;          /* giới hạn chiều rộng tổng */
-  display: inline;           /* giữ trên cùng 1 dòng với “Kính gửi:” */
-  padding-left: 4.2em;       /* = chiều dài “Kính gửi: ” (điều chỉnh 4–5 em tùy font) */
-  text-indent: -4.2em;       /* kéo dòng đầu về sát “Kính gửi:” */
+/* ---------- Chỉnh “Kính gửi:” + tên công ty ---------- */
+.fill-company {
+  max-width: 400px;          /* giới hạn chiều rộng phần tên */
+  display: inline-block;     /* giữ trên cùng 1 dòng đầu */
   word-break: break-word;    /* tự xuống dòng khi hết chỗ */
+  vertical-align: top;       /* căn đỉnh với “Kính gửi:” */
+}
+/* Nếu “Kính gửi:” nằm trong <strong> cố định, bổ sung thêm: */
+strong:has(+ .fill-company) {
+  white-space: nowrap;       /* không cho “Kính gửi:” xuống dòng */
+  margin-right: 0.4em;       /* khoảng cách sau dấu hai chấm */
 }
 </style>
 </head>
@@ -252,7 +255,7 @@ textarea.product-info {
     <p class="editable bennhan" contenteditable="true"><b>Bên nhận hàng:</b> <span class="fill-caps"></span></p>
     <p class="editable bennhan" contenteditable="true">- Địa chỉ: <span class="fill-address"></span></p>
     <p class="editable bennhan" contenteditable="true">- Mã số thuế: <span class="fill-tax"></span></p>
-    <p class="editable bennhan" contenteditable="true"><b>Bên giao hàng:</b> CÔNG TY TNHH QUANG MINH VN</p>
+    <p class="editable bennhan" contenteditable="true"><b>Bên giao hàng:</b> Công Ty TNHH Quang Minh VN</p>
     <p class="editable bennhan" contenteditable="true">- Địa chỉ: Thôn Hữu Định, xã Hợp Thịnh, Bắc Ninh</p>
     <p class="editable bennhan" contenteditable="true">- Mã số thuế: 2401038011</p>
     <p>Hai bên cùng nhau thống nhất số lượng giao hàng như sau:</p>
@@ -520,7 +523,7 @@ function numberToVietnameseWords(input, { currencyUnit = 'đồng', fractionUnit
 
 /* ---------- Apply toàn bộ ---------- */
 function applyData(){
-  const c=document.getElementById('fCompany').value.trim().toUpperCase();
+  const c = toTitleCase(document.getElementById('fCompany').value.trim());
   const a=document.getElementById('fAddress').value.trim();
   const t=document.getElementById('fTax').value.trim();
   const full=`${c} - MST: ${t}`;
@@ -602,6 +605,11 @@ function updateDNTP(){
 /* Gọi sau khi nhấn OK modal */
 const oldApply = applyData;                 // lưu hàm applyData cũ
 applyData = function(){ oldApply(); updateDNTP(); };
+function toTitleCase(str) {
+  return str
+    .toLowerCase()
+    .replace(/(?:^|\s)\S/g, ch => ch.toUpperCase());
+}
 </script>
 </body>
 </html>
