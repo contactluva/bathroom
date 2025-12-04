@@ -128,6 +128,9 @@ textarea.product-info {
     height: auto !important;
 }
 /* Gọi hàm tự động giãn ngay khi render xong */
+  textarea.pInfo {
+    text-align: left;
+}
 </style>
 </head>
 <body>
@@ -272,12 +275,12 @@ textarea.product-info {
 <div class="modal" id="inputModal">
   <div class="modal-content">
     <h3>Nhập thông tin</h3>
-    <div class="row"><label>Tên công ty</label><input id="fCompany"></div>
-    <div class="row"><label>Địa chỉ</label><input id="fAddress"></div>
-    <div class="row"><label>Mã số thuế</label><input id="fTax"></div>
+    <div class="row"><input id="fCompany" placeholder="Tên công ty"></div>
+    <div class="row"><input id="fAddress" placeholder="Địa chỉ"></div>
+    <div class="row"><input id="fTax" placeholder="Mã số thuế"></div>
     <div id="proList">
       <div class="proItem">
-        <div class="row"><label>Tên SP</label><input class="pName"></div>
+        <div class="row"><input class="pName" placeholder="Tên SP">></div>
         <div class="row"><label>Thông tin SP</label><textarea class="pInfo" rows="3">• Giới hạn cân:
 • Bước nhảy: d=
 • Bảo hành 1 năm</textarea></div>
