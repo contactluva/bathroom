@@ -5,71 +5,136 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nhập liệu – Quang Minh</title>
 <style>
-body{margin:0;font-family:Arial;font-size:14px;background:#f7f7f7}
-.container{max-width:600px;margin:auto;padding:10px}
-h3{margin:10px 0}
-.row{display:flex;flex-wrap:wrap;margin-bottom:8px}
-.row label{flex:0 0 120px}
-.row input,.row textarea{flex:1 1 200px;padding:6px}
-.proItem{background:#fff;border:1px dashed #ccc;padding:8px;margin-bottom:8px;border-radius:4px}
-.upload-btn{display:inline-block;max-width:30px !important;height:30px;line-height:30px;text-align:center;background:#008CBA;color:#fff;border-radius:50%;cursor:pointer;margin-left:5px}
+:root{
+  --bg:#f2f2f7;          /* nền iOS */
+  --card:#ffffff;
+  --primary:#007aff;
+  --radius:12px;
+  --shadow:0 2px 12px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif}
+body{margin:0;background:var(--bg);font-size:16px;color:#000}
+.container{max-width:600px;margin:auto;padding:16px}
+h3{margin:0 0 16px;font-weight:600;font-size:20px}
+
+/* field chung: trắng – bo tròn – đổ bóng */
+.inp{
+  width:100%;
+  border:none;
+  outline:none;
+  padding:8px 16px;
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  font-size:15px;
+}
+.row{margin-bottom:12px}
+.row input,.row textarea{resize:none}
+.row textarea{height:80px}
+
+/* card sản phẩm */
+.proItem{
+  background:#ffffff21;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+  margin-bottom:16px;
+}
+.proItem hr{display:none}   /* bỏ đường kẻ cũ */
+
+input.pImg.inp {
+    width: 60%;
+}
+
+/* nút + upload */
+.upload-btn{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--primary);color:#fff;
+  display:inline-flex;align-items:center;justify-content:center;
+  margin-left:8px;font-size:20px;cursor:pointer;
+}
 input[type=file]{display:none}
-button{padding:8px 16px;margin:5px 5px 5px 0;border:none;border-radius:4px;cursor:pointer}
-#okBtn{background:#4CAF50;color:#fff}
-#addBtn{background:#2196F3;color:#fff}
+
+/* 2 ô Số lượng – Đơn giá cùng hàng */
+.dual{
+  display:flex;justify-content:space-between;
+}
+.dual>div{width:48%}
+.dual label{font-weight:600;font-size:14px;margin-bottom:4px;display:block}
+
+/* nút hành động */
+.btn{
+  padding:12px 20px;border:none;border-radius:var(--radius);
+  font-size:16px;font-weight:500;color:#fff;cursor:pointer;
+}
+#addBtn{background:var(--primary);}
+#okBtn{background:#34c759;width:100%; margin-top: 30px;}
 </style>
 </head>
 <body>
 <div class="container">
   <h3>Nhập thông tin</h3>
 
-  <div class="row"><input id="fCompany" placeholder="Tên công ty"></div>
-  <div class="row"><input id="fAddress" placeholder="Địa chỉ"></div>
-  <div class="row"><input id="fTax" placeholder="Mã số thuế"></div>
+  <div class="row"><input id="fCompany" class="inp" placeholder="Tên công ty"></div>
+  <div class="row"><input id="fAddress" class="inp" placeholder="Địa chỉ"></div>
+  <div class="row"><input id="fTax" class="inp" placeholder="Mã số thuế"></div>
 
   <div id="proList">
     <div class="proItem">
-      <div class="row"><input class="pName" placeholder="Tên sản phẩm"></div>
-      <div class="row"><textarea class="pInfo" rows="3">• Giới hạn cân:
+      <div class="row"><input class="pName inp" placeholder="Tên sản phẩm"></div>
+      <div class="row"><textarea class="pInfo inp" rows="3">• Giới hạn cân:
 • Bước nhảy: d=
 • Bảo hành 1 năm</textarea></div>
       <div class="row">
-        <div style="display:flex;align-items:center">
-          <input type="text" class="pImg" placeholder="Link ảnh" style="flex:1">
-          <label class="upload-btn" onclick="this.nextElementSibling.click()">+</label>
-          <input type="file" accept="image/*" onchange="uploadImg(this)">
+        <input type="text" class="pImg inp" placeholder="Link ảnh">
+        <label class="upload-btn" onclick="this.nextElementSibling.click()">+</label>
+        <input type="file" accept="image/*" onchange="uploadImg(this)">
+      </div>
+      <div class="dual">
+        <div>
+          <label>Số lượng</label>
+          <input type="number" class="pQty inp" value="1">
+        </div>
+        <div>
+          <label>Đơn giá</label>
+          <input type="text" class="pPrice inp" placeholder="đ" oninput="formatPriceModal(this)">
         </div>
       </div>
-      <div class="row"><label>Số lượng</label><input type="number" class="pQty" value="1"></div>
-      <div class="row"><label>Đơn giá</label><input type="text" class="pPrice" placeholder="đ" oninput="formatPriceModal(this)" placeholder="Đơn giá"></div>
     </div>
   </div>
 
-  <button id="addBtn" onclick="addPro()">+ Thêm SP</button>
-  <div style="text-align:right;margin-top:10px">
-    <button id="okBtn" onclick="saveAndGo()">Sang trang in</button>
+  <button id="addBtn" class="btn" onclick="addPro()">+ Thêm SP</button>
+  <div style="margin-top:16px">
+    <button id="okBtn" class="btn" onclick="saveAndGo()">Hoàn tất</button>
   </div>
 </div>
 
 <script>
 function addPro(){
   const d=document.createElement('div');d.className='proItem';
-  d.innerHTML=`<hr>
-    <div class="row"><label>Tên SP</label><input class="pName"></div>
-    <div class="row"><label>Thông tin SP</label><textarea class="pInfo" rows="3">• Giới hạn cân:
+  d.innerHTML=`
+    <div class="row"><input class="pName inp" placeholder="Tên sản phẩm"></div>
+    <div class="row"><textarea class="pInfo inp" rows="3">• Giới hạn cân:
 • Bước nhảy: d=
 • Bảo hành 1 năm</textarea></div>
-    <div class="row"><label>Hình ảnh</label>
-      <div style="display:flex;align-items:center">
-        <input type="text" class="pImg" placeholder="Link ảnh" style="flex:1">
-        <label class="upload-btn" onclick="this.nextElementSibling.click()">+</label>
-        <input type="file" accept="image/*" onchange="uploadImg(this)">
-      </div>
+    <div class="row">
+      <input type="text" class="pImg inp" placeholder="Link ảnh">
+      <label class="upload-btn" onclick="this.nextElementSibling.click()">+</label>
+      <input type="file" accept="image/*" onchange="uploadImg(this)">
     </div>
-    <div class="row"><label>Số lượng</label><input type="number" class="pQty" value="1"></div>
-    <div class="row"><label>Đơn giá</label><input type="text" class="pPrice" placeholder="đ" oninput="formatPriceModal(this)"></div>`;
+    <div class="dual">
+      <div>
+        <label>Số lượng</label>
+        <input type="number" class="pQty inp" value="1">
+      </div>
+      <div>
+        <label>Đơn giá</label>
+        <input type="text" class="pPrice inp" placeholder="đ" oninput="formatPriceModal(this)">
+      </div>
+    </div>`;
   document.getElementById('proList').appendChild(d);
 }
+
 function formatPriceModal(inp){
   let v=inp.value.replace(/\D/g,'');
   inp.value=v?parseFloat(v).toLocaleString('vi-VN'):'';
