@@ -24,7 +24,7 @@ img.preview{max-width:100px;max-height:100px;display:block;margin:auto}
 .row label{width:120px}
 .row input,.row textarea{flex:1}
 .proItem{border:1px dashed #ccc;padding:8px;margin-bottom:8px;border-radius:4px}
-.upload-btn{display:inline-block;width:30px;height:30px;line-height:30px;text-align:center;background:#008CBA;color:#fff;border-radius:50%;cursor:pointer;margin:5px auto;font-size:20px}
+.upload-btn{display:inline-block;width:30px !important;;height:30px;line-height:30px;text-align:center;background:#008CBA;color:#fff;border-radius:50%;cursor:pointer;margin:5px auto;font-size:20px}
 input[type=file]{display:none}
 .signature-container{display:none;text-align:right;margin-top:-10px}
 .signature-container.active{display:block}
@@ -306,12 +306,32 @@ function openModal(){document.getElementById('inputModal').style.display='flex';
 function closeModal(){document.getElementById('inputModal').style.display='none';}
 document.getElementById('inputBtn').onclick=openModal;
 
-/* ---------- Upload ảnh ---------- */
-function uploadImg(inp){
-  if(inp.files&&inp.files[0]){
-    const file=inp.files[0];
-    const link=URL.createObjectURL(file);
-    inp.previousElementSibling.previousElementSibling.value=link;
+function uploadImg(input) {
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      // Đưa chuỗi base64 vào ô input text
+      const textInput = input.parentElement.querySelector('.pImg');
+      textInput.value = e.target.result; // đây là data:image/jpeg;base64,...
+
+      // Tùy chọn: hiện luôn preview nhỏ trong modal
+      const preview = document.createElement('img');
+      preview.src = e.target.result;
+      preview.style.maxWidth = '100px';
+      preview.style.maxHeight = '100px';
+      preview.style.marginTop = '5px';
+
+      // Xóa preview cũ nếu có
+      const old = input.parentElement.parentElement.querySelector('.temp-preview');
+      if (old) old.remove();
+
+      preview.className = 'temp-preview';
+      input.parentElement.parentElement.appendChild(preview);
+    };
+
+    reader.readAsDataURL(file); // ← quan trọng nhất
   }
 }
 
