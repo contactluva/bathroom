@@ -1,0 +1,14 @@
+[
+  {
+    "stt": 1,
+    "en": "How are you?",
+    "vi": "Bạn khỏe không?",
+    "status": "đã học"
+  },
+  {
+    "stt": 2,
+    "en": "Nice to meet you",
+    "vi": "Rất vui được gặp bạn",
+    "status": "chưa học"
+  }
+]
