@@ -367,6 +367,202 @@ window.addEventListener('DOMContentLoaded',()=>{
   <!-- ============ HẾT TRANG 4 ============ -->
 </div>
 
+<!-- ============ TRANG 5: PHIẾU THU ============ -->
+<div class="page" id="phieuThuPage" contenteditable="true">
+  <style>
+    /* Định dạng riêng cho trang Phiếu Thu – giống mẫu bạn cung cấp */
+    #phieuThuPage {
+      font-family: "Times New Roman", Times, serif;
+      font-size: 14px;
+      line-height: 1.4;
+      padding: 40px;
+    }
+    .pt-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+    .pt-company {
+      width: 60%;
+    }
+    .pt-company-name {
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 16px;
+    }
+    .pt-form-info {
+      width: 40%;
+      text-align: center;
+    }
+    .pt-form-title {
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .pt-title-section {
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .pt-main-title {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 0;
+      padding-bottom: 5px;
+    }
+    .pt-accounting {
+      position: absolute;
+      right: 0;
+      top: 0;
+      text-align: left;
+      font-size: 14px;
+    }
+    .pt-content-line {
+      margin-bottom: 10px;
+    }
+    .pt-label {
+      font-weight: normal;
+    }
+    .pt-value {
+      font-weight: bold;
+    }
+    .pt-italic {
+      font-style: italic;
+    }
+    .pt-sign-table {
+      width: 100%;
+      margin-top: 30px;
+      text-align: center;
+      border-collapse: collapse;
+    }
+    .pt-sign-table th {
+      font-weight: bold;
+      padding-bottom: 5px;
+    }
+    .pt-sign-table td {
+      vertical-align: top;
+      padding-bottom: 80px;
+      font-style: italic;
+      font-size: 13px;
+    }
+    #phieuThuPage .pt-sign-table,
+#phieuThuPage .pt-sign-table th,
+#phieuThuPage .pt-sign-table td {
+  border: none !important;
+}
+  </style>
+
+  <div class="pt-header">
+    <div class="pt-company">
+      <div class="pt-company-name">CÔNG TY TNHH QUANG MINH VN</div>
+      <div>MST: 2401038011</div>
+      <div>Thôn Hữu Định, xã Hợp Thịnh, Bắc Ninh</div>
+    </div>
+    <div class="pt-form-info">
+      <div class="pt-form-title">Mẫu số 01 - TT</div>
+      <div class="pt-italic">(Ban hành theo Thông tư số 200/2014/TT-BTC<br>Ngày 22/12/2014 của Bộ Tài chính)</div>
+    </div>
+  </div>
+
+  <div class="pt-title-section">
+    <h1 class="pt-main-title">PHIẾU THU</h1>
+    <div class="pt-italic">Ngày <span class="fill-date"></span></div>
+    <div class="pt-accounting">
+      <div>Quyển số: ....................</div>
+      <div>Số: <b>PT26019</b></div>
+      <div>Nợ: ..........................</div>
+      <div>Có: ..........................</div>
+    </div>
+  </div>
+
+  <div class="pt-content">
+    <div class="pt-content-line">
+      <span class="pt-label">Họ và tên người nộp tiền:</span>
+      <span class="pt-value fill-company"></span>
+    </div>
+    <div class="pt-content-line">
+      <span class="pt-label">Địa chỉ:</span>
+      <span class="fill-address"></span>
+    </div>
+    <div class="pt-content-line">
+      <span class="pt-label">Lý do nộp:</span>
+      <span>Mua hàng.</span>
+    </div>
+    <div class="pt-content-line">
+      <span class="pt-label">Số tiền:</span>
+      <span class="pt-value" id="pt-tien"></span>
+    </div>
+    <div class="pt-content-line">
+      <span class="pt-label">Viết bằng chữ:</span>
+      <span class="pt-italic" id="pt-tienchu"></span>
+    </div>
+    <div class="pt-content-line">
+      <span class="pt-label">Kèm theo:</span>
+      <span>....................................................... Chứng từ gốc</span>
+    </div>
+  </div>
+
+  <table class="pt-sign-table">
+    <thead>
+      <tr>
+        <th>Giám đốc</th>
+        <th>Kế toán trưởng</th>
+        <th>Người nộp tiền</th>
+        <th>Người lập phiếu</th>
+        <th>Thủ quỹ</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>(Ký, họ tên, đóng dấu)</td>
+        <td>(Ký, họ tên)</td>
+        <td>(Ký, họ tên)</td>
+        <td>(Ký, họ tên)</td>
+        <td>(Ký, họ tên)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top: 40px;">
+    <div class="pt-content-line">
+      <span class="pt-label">Đã nhận đủ số tiền (viết bằng chữ):</span>
+      <span class="pt-italic" id="pt-tienchu2"></span>
+    </div>
+    <div class="pt-content-line">
+      + Tỷ giá ngoại tệ (vàng bạc, đá quý): ..............................................................
+    </div>
+    <div class="pt-content-line">
+      + Số tiền quy đổi: ..............................................................................................
+    </div>
+  </div>
+</div>
+<!-- ============ HẾT TRANG 5 ============ -->
+
+<script>
+/* ---------- Tự động fill Phiếu Thu ---------- */
+function fillPhieuThu(){
+  const raw = localStorage.getItem('qmData');
+  if (!raw) return;
+  const d = JSON.parse(raw);
+
+  // --- thông tin khách hàng ---
+  document.querySelector('#phieuThuPage .fill-company').textContent = toTitleCase(d.company||'');
+  document.querySelector('#phieuThuPage .fill-address').textContent = d.address||'';
+  document.querySelectorAll('#phieuThuPage .fill-date').forEach(el=>el.textContent=today());
+
+  // --- tiền ---
+  const tong = d.products.reduce((s,it)=>s+(it.qty||0)*(it.price||0),0);
+  const vat  = Math.round(tong*0.08);
+  const total= tong + vat;
+  document.getElementById('pt-tien').textContent     = total.toLocaleString('vi-VN') + ' đồng';
+  document.getElementById('pt-tienchu').textContent  = numberToVietnameseWords(total,{currencyUnit:'đồng',capitalize:true});
+  document.getElementById('pt-tienchu2').textContent = numberToVietnameseWords(total,{currencyUnit:'đồng',capitalize:true});
+}
+
+/* chạy sau khi trang đã load */
+window.addEventListener('DOMContentLoaded', fillPhieuThu);
+</script>
+
+
 <!-- ============ NÚT ĐIỀU KHIỂN ============ -->
 <button id="inputBtn" class="btn">Nhập liệu</button>
 <button id="signatureBtn" class="btn">Chữ ký</button>
