@@ -8,17 +8,50 @@
       font-family: Arial;
       padding: 20px;
     }
+
+    /* GRID 3 CỘT */
+    #output {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
     .image-item {
-      margin-bottom: 20px;
+      position: relative;
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 8px;
+      background: #fafafa;
     }
+
+    .image-wrapper {
+      position: relative;
+    }
+
     img {
-      max-width: 300px;
+      width: 100%;
       display: block;
-      margin-bottom: 10px;
+      border-radius: 6px;
     }
-    button {
-      padding: 6px 12px;
+
+    /* NÚT DOWNLOAD GÓC TRÊN PHẢI */
+    .download-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 14px 18px;
+      font-size: 12px;
+      background: rgba(0,0,0,0.9);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
       cursor: pointer;
+    }
+
+    .filename {
+      margin-top: 8px;
+      font-size: 13px;
+      word-break: break-all;
     }
   </style>
 </head>
@@ -60,25 +93,21 @@ function processImage(img, filename) {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
 
-  // Kích thước gốc
   const width = img.width;
   const height = img.height;
 
-  // Crop bỏ 9% phải + 9% dưới
   const newWidth = width * 0.91;
   const newHeight = height * 0.91;
 
   canvas.width = newWidth;
   canvas.height = newHeight;
 
-  // Vẽ phần giữ lại
   ctx.drawImage(
     img,
-    0, 0, newWidth, newHeight,   // vùng source
-    0, 0, newWidth, newHeight    // vùng đích
+    0, 0, newWidth, newHeight,
+    0, 0, newWidth, newHeight
   );
 
-  // Convert sang JPG
   const dataURL = canvas.toDataURL('image/jpeg', 0.9);
 
   displayResult(dataURL, filename);
@@ -88,25 +117,34 @@ function displayResult(dataURL, filename) {
   const container = document.createElement('div');
   container.className = 'image-item';
 
+  const wrapper = document.createElement('div');
+  wrapper.className = 'image-wrapper';
+
   const img = document.createElement('img');
   img.src = dataURL;
 
   const btn = document.createElement('button');
-  btn.textContent = 'Download';
+  btn.className = 'download-btn';
+  btn.textContent = '↓';
 
   btn.onclick = function() {
     const link = document.createElement('a');
     link.href = dataURL;
-
-    // đổi tên file sang jpg
     const newName = filename.replace(/\.[^/.]+$/, "") + ".jpg";
     link.download = newName;
-
     link.click();
   };
 
-  container.appendChild(img);
-  container.appendChild(btn);
+  const name = document.createElement('div');
+  name.className = 'filename';
+  name.textContent = filename;
+
+  wrapper.appendChild(img);
+  wrapper.appendChild(btn);
+
+  container.appendChild(wrapper);
+  container.appendChild(name);
+
   output.appendChild(container);
 }
 </script>
