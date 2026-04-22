@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Batch Image Crop & Convert</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+    }
+    .image-item {
+      margin-bottom: 20px;
+    }
+    img {
+      max-width: 300px;
+      display: block;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Import & Crop ảnh hàng loạt</h2>
+
+<input type="file" id="fileInput" multiple accept="image/*">
+
+<div id="output"></div>
+
+<script>
+const input = document.getElementById('fileInput');
+const output = document.getElementById('output');
+
+input.addEventListener('change', handleFiles);
+
+function handleFiles(event) {
+  const files = event.target.files;
+  output.innerHTML = '';
+
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      const img = new Image();
+      img.src = e.target.result;
+
+      img.onload = function() {
+        processImage(img, file.name);
+      };
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+function processImage(img, filename) {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  // Kích thước gốc
+  const width = img.width;
+  const height = img.height;
+
+  // Crop bỏ 9% phải + 9% dưới
+  const newWidth = width * 0.91;
+  const newHeight = height * 0.91;
+
+  canvas.width = newWidth;
+  canvas.height = newHeight;
+
+  // Vẽ phần giữ lại
+  ctx.drawImage(
+    img,
+    0, 0, newWidth, newHeight,   // vùng source
+    0, 0, newWidth, newHeight    // vùng đích
+  );
+
+  // Convert sang JPG
+  const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+
+  displayResult(dataURL, filename);
+}
+
+function displayResult(dataURL, filename) {
+  const container = document.createElement('div');
+  container.className = 'image-item';
+
+  const img = document.createElement('img');
+  img.src = dataURL;
+
+  const btn = document.createElement('button');
+  btn.textContent = 'Download';
+
+  btn.onclick = function() {
+    const link = document.createElement('a');
+    link.href = dataURL;
+
+    // đổi tên file sang jpg
+    const newName = filename.replace(/\.[^/.]+$/, "") + ".jpg";
+    link.download = newName;
+
+    link.click();
+  };
+
+  container.appendChild(img);
+  container.appendChild(btn);
+  output.appendChild(container);
+}
+</script>
+
+</body>
+</html>
