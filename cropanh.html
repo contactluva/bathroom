@@ -103,14 +103,15 @@ cropBottomInput.onchange = e => {
   handleCropBottom(e.target.files);
 };
 
-// ===== COMMON EFFECT PIPELINE =====
+// ===== EFFECT PIPELINE =====
 function applyEffects(canvas, ctx, w, h) {
-  // RANDOM FILTER
+  // FILTER
   const b = 1 + (Math.random() - 0.5) * 0.1;
   const c = 1 + (Math.random() - 0.5) * 0.1;
   const s = 1 + (Math.random() - 0.5) * 0.1;
 
   ctx.filter = `brightness(${b}) contrast(${c}) saturate(${s})`;
+
   const temp = document.createElement('canvas');
   temp.width = w;
   temp.height = h;
@@ -119,32 +120,77 @@ function applyEffects(canvas, ctx, w, h) {
   tctx.drawImage(canvas, 0, 0);
   ctx.clearRect(0, 0, w, h);
   ctx.drawImage(temp, 0, 0);
-
   ctx.filter = 'none';
 
   // NOISE
   const imgData = ctx.getImageData(0, 0, w, h);
   const data = imgData.data;
+
   for (let i = 0; i < data.length; i += 4) {
     const n = (Math.random() - 0.5) * 6;
     data[i] += n;
     data[i+1] += n;
     data[i+2] += n;
   }
+
   ctx.putImageData(imgData, 0, 0);
 
-  // LIQUID WARP
-  const warp = document.createElement('canvas');
-  warp.width = w;
-  warp.height = h;
-  const wctx = warp.getContext('2d');
-  wctx.drawImage(canvas, 0, 0);
+  // LIQUID WARP (multi-point)
+  subtleWarp(ctx, w, h);
+}
 
-  const shift = 3;
-  for (let y = 0; y < h; y++) {
-    const dx = Math.sin(y * 0.02) * shift;
-    ctx.drawImage(warp, 0, y, w, 1, dx, y, w, 1);
+// ===== WARP MULTI-POINT =====
+function subtleWarp(ctx, w, h) {
+  const src = ctx.getImageData(0, 0, w, h);
+  const dst = ctx.createImageData(w, h);
+
+  const srcData = src.data;
+  const dstData = dst.data;
+
+  const points = [];
+  const count = 2 + Math.floor(Math.random() * 3); // 2–4 điểm
+
+  for (let i = 0; i < count; i++) {
+    points.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      radius: 80 + Math.random() * 120,
+      strength: (Math.random() - 0.5) * 8
+    });
   }
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+
+      let dx = 0;
+      let dy = 0;
+
+      for (let p of points) {
+        const distX = x - p.x;
+        const distY = y - p.y;
+        const dist = Math.sqrt(distX * distX + distY * distY);
+
+        if (dist < p.radius) {
+          const power = 1 - dist / p.radius;
+          dx += distX * power * p.strength * 0.01;
+          dy += distY * power * p.strength * 0.01;
+        }
+      }
+
+      const sx = Math.max(0, Math.min(w - 1, Math.round(x + dx)));
+      const sy = Math.max(0, Math.min(h - 1, Math.round(y + dy)));
+
+      const si = (sy * w + sx) * 4;
+      const di = (y * w + x) * 4;
+
+      dstData[di] = srcData[si];
+      dstData[di+1] = srcData[si+1];
+      dstData[di+2] = srcData[si+2];
+      dstData[di+3] = srcData[si+3];
+    }
+  }
+
+  ctx.putImageData(dst, 0, 0);
 }
 
 // ===== EXPORT =====
@@ -223,7 +269,7 @@ function handleWatermark(files) {
   });
 }
 
-// ===== CROP BOTTOM 15% =====
+// ===== CROP BOTTOM =====
 function handleCropBottom(files) {
   Array.from(files).forEach(file => {
     const reader = new FileReader();
