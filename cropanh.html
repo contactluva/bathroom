@@ -12,42 +12,22 @@ h3 { margin-top: 40px; }
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 20px;
-  margin-top: 10px;
 }
 
 .image-item {
-  position: relative;
   border: 1px solid #ddd;
   padding: 10px;
   border-radius: 8px;
   background: #fafafa;
 }
 
-.image-wrapper { position: relative; }
-
-img {
-  width: 100%;
-  display: block;
-  border-radius: 6px;
-}
+img { width: 100%; border-radius: 6px; }
 
 .download-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  padding: 10px 12px;
-  font-size: 12px;
-  background: rgba(0,0,0,0.9);
-  color: #fff;
-  border: none;
-  border-radius: 4px;
+  margin-top: 6px;
+  width: 100%;
+  padding: 6px;
   cursor: pointer;
-}
-
-.filename {
-  margin-top: 8px;
-  font-size: 12px;
-  word-break: break-all;
 }
 </style>
 </head>
@@ -56,19 +36,20 @@ img {
 
 <h2>Batch Tool</h2>
 
-<h3>Crop Tool (91%)</h3>
-<input type="file" id="cropInput" multiple accept="image/*">
+<h3>Crop 91%</h3>
+<input type="file" id="cropInput" multiple>
 <div id="cropOutput" class="grid"></div>
 
-<h3>Watermark Tool</h3>
-<input type="file" id="wmInput" multiple accept="image/*">
+<h3>Watermark</h3>
+<input type="file" id="wmInput" multiple>
 <div id="wmOutput" class="grid"></div>
 
 <h3>Crop Bottom 15%</h3>
-<input type="file" id="cropBottomInput" multiple accept="image/*">
+<input type="file" id="cropBottomInput" multiple>
 <div id="cropBottomOutput" class="grid"></div>
 
 <script>
+
 // ===== WATERMARK =====
 const watermarkSrc = "https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/899.png";
 let watermarkImg = null;
@@ -79,171 +60,164 @@ wm.src = watermarkSrc;
 wm.onload = () => watermarkImg = wm;
 
 // ===== INPUT =====
-const cropInput = document.getElementById('cropInput');
-const wmInput = document.getElementById('wmInput');
-const cropBottomInput = document.getElementById('cropBottomInput');
+cropInput.onchange = e => handleFiles(e.target.files, cropOutput, "crop");
+wmInput.onchange = e => handleFiles(e.target.files, wmOutput, "wm");
+cropBottomInput.onchange = e => handleFiles(e.target.files, cropBottomOutput, "bottom");
 
-const cropOutput = document.getElementById('cropOutput');
-const wmOutput = document.getElementById('wmOutput');
-const cropBottomOutput = document.getElementById('cropBottomOutput');
+// ===== MAIN PIPELINE =====
+function handleFiles(files, target, type) {
+  target.innerHTML = '';
 
-// ===== EVENTS =====
-cropInput.onchange = e => {
-  cropOutput.innerHTML = '';
-  handleCrop(e.target.files);
-};
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
 
-wmInput.onchange = e => {
-  wmOutput.innerHTML = '';
-  handleWatermark(e.target.files);
-};
+    reader.onload = e => {
+      const img = new Image();
+      img.src = e.target.result;
 
-cropBottomInput.onchange = e => {
-  cropBottomOutput.innerHTML = '';
-  handleCropBottom(e.target.files);
-};
+      img.onload = () => processImage(img, file.name, target, type);
+    };
 
-// ===== EXPORT (XÓA METADATA) =====
-function exportImage(canvas, filename, target) {
+    reader.readAsDataURL(file);
+  });
+}
+
+function processImage(img, filename, target, type) {
+
+  // ===== STEP 1: xử lý riêng từng tool =====
+  let canvas = document.createElement('canvas');
+  let ctx = canvas.getContext('2d');
+
+  if (type === "crop") {
+    canvas.width = img.width * 0.91;
+    canvas.height = img.height * 0.91;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  } else if (type === "bottom") {
+    canvas.width = img.width;
+    canvas.height = img.height * 0.85;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  } else {
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+
+    if (watermarkImg) {
+      const wmWidth = 59;
+      const scale = wmWidth / watermarkImg.width;
+      const wmHeight = watermarkImg.height * scale;
+
+      const x = canvas.width - wmWidth - 14;
+      const y = canvas.height - wmHeight + 2;
+
+      ctx.drawImage(watermarkImg, x, y, wmWidth, wmHeight);
+    }
+  }
+
+  // ===== STEP 2: resize chuẩn Pinterest =====
+  canvas = resizeCanvas(canvas, 1500);
+  ctx = canvas.getContext('2d');
+
+  // ===== STEP 3: random filter =====
+  const b = 1 + (Math.random() - 0.5) * 0.1;
+  const c = 1 + (Math.random() - 0.5) * 0.1;
+  const s = 1 + (Math.random() - 0.5) * 0.1;
+
+  ctx.filter = `brightness(${b}) contrast(${c}) saturate(${s})`;
+  ctx.drawImage(canvas, 0, 0);
+  ctx.filter = 'none';
+
+  // ===== STEP 4: noise =====
+  addNoise(ctx, canvas.width, canvas.height);
+
+  // ===== STEP 5: warp =====
+  subtleWarp(canvas);
+
+  // ===== STEP 6: export (xoá metadata) =====
   canvas.toBlob(blob => {
     const url = URL.createObjectURL(blob);
-    displayResult(url, filename, target);
-  }, 'image/jpeg', 0.9);
+    display(url, filename, target);
+  }, 'image/jpeg', 0.82 + Math.random() * 0.08);
 }
 
-// ===== CROP 91% =====
-function handleCrop(files) {
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
+// ===== RESIZE =====
+function resizeCanvas(oldCanvas, maxSize) {
+  let w = oldCanvas.width;
+  let h = oldCanvas.height;
 
-    reader.onload = e => {
-      const img = new Image();
-      img.src = e.target.result;
+  if (w <= maxSize && h <= maxSize) return oldCanvas;
 
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+  let ratio = Math.min(maxSize / w, maxSize / h);
 
-        const w = img.width * 0.91;
-        const h = img.height * 0.91;
+  const canvas = document.createElement('canvas');
+  canvas.width = w * ratio;
+  canvas.height = h * ratio;
 
-        canvas.width = w;
-        canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(oldCanvas, 0, 0, canvas.width, canvas.height);
 
-        ctx.drawImage(img, 0, 0, w, h, 0, 0, w, h);
-
-        exportImage(canvas, file.name, cropOutput);
-      };
-    };
-
-    reader.readAsDataURL(file);
-  });
+  return canvas;
 }
 
-// ===== WATERMARK =====
-function handleWatermark(files) {
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
+// ===== NOISE =====
+function addNoise(ctx, w, h) {
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const data = imgData.data;
 
-    reader.onload = e => {
-      const img = new Image();
-      img.src = e.target.result;
+  for (let i = 0; i < data.length; i += 4) {
+    const n = (Math.random() - 0.5) * 6;
+    data[i] += n;
+    data[i+1] += n;
+    data[i+2] += n;
+  }
 
-      img.onload = () => {
-        if (!watermarkImg) return;
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        ctx.drawImage(img, 0, 0);
-
-        const wmWidth = 59;
-        const scale = wmWidth / watermarkImg.width;
-        const wmHeight = watermarkImg.height * scale;
-
-        const x = canvas.width - wmWidth - 14;
-        const y = canvas.height - wmHeight + 2;
-
-        ctx.drawImage(watermarkImg, x, y, wmWidth, wmHeight);
-
-        exportImage(canvas, file.name, wmOutput);
-      };
-    };
-
-    reader.readAsDataURL(file);
-  });
+  ctx.putImageData(imgData, 0, 0);
 }
 
-// ===== CROP BOTTOM 15% =====
-function handleCropBottom(files) {
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
+// ===== WARP =====
+function subtleWarp(canvas) {
+  const ctx = canvas.getContext('2d');
 
-    reader.onload = e => {
-      const img = new Image();
-      img.src = e.target.result;
+  const temp = document.createElement('canvas');
+  temp.width = canvas.width;
+  temp.height = canvas.height;
 
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+  const tctx = temp.getContext('2d');
+  tctx.drawImage(canvas, 0, 0);
 
-        const newHeight = img.height * 0.85;
+  const shift = 3;
 
-        canvas.width = img.width;
-        canvas.height = newHeight;
-
-        ctx.drawImage(
-          img,
-          0, 0,
-          img.width, newHeight,
-          0, 0,
-          img.width, newHeight
-        );
-
-        exportImage(canvas, file.name, cropBottomOutput);
-      };
-    };
-
-    reader.readAsDataURL(file);
-  });
+  for (let y = 0; y < canvas.height; y++) {
+    const dx = Math.sin(y * 0.02) * shift;
+    ctx.drawImage(temp, 0, y, canvas.width, 1, dx, y, canvas.width, 1);
+  }
 }
 
 // ===== UI =====
-function displayResult(url, filename, target) {
-  const container = document.createElement('div');
-  container.className = 'image-item';
-
-  const wrapper = document.createElement('div');
-  wrapper.className = 'image-wrapper';
+function display(url, filename, target) {
+  const div = document.createElement('div');
+  div.className = 'image-item';
 
   const img = document.createElement('img');
   img.src = url;
 
   const btn = document.createElement('button');
   btn.className = 'download-btn';
-  btn.textContent = '↓';
+  btn.textContent = 'Download';
 
   btn.onclick = () => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename.replace(/\.[^/.]+$/, "") + ".jpg";
-    link.click();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename.replace(/\.[^/.]+$/, "") + ".jpg";
+    a.click();
   };
 
-  const name = document.createElement('div');
-  name.className = 'filename';
-  name.textContent = filename;
-
-  wrapper.appendChild(img);
-  wrapper.appendChild(btn);
-  container.appendChild(wrapper);
-  container.appendChild(name);
-
-  target.appendChild(container);
+  div.appendChild(img);
+  div.appendChild(btn);
+  target.appendChild(div);
 }
+
 </script>
 
 </body>
