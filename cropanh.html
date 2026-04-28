@@ -3,348 +3,162 @@
 <head>
 <meta charset="UTF-8">
 <title>Batch Tool Pro</title>
-
 <style>
-body {
-  font-family: Arial;
-  background: #f5f7fb;
-  padding: 20px;
-}
-
-/* ===== LAYOUT ===== */
-.container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-}
-
-/* ===== CARD ===== */
-.card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-}
-
-h2 { margin-bottom: 10px; }
-h3 { margin-top: 25px; }
-
-/* ===== GRID ===== */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-  margin-top: 10px;
-}
-
-/* ===== IMAGE ITEM ===== */
-.image-item {
-  position: relative;
-}
-
-img, video {
-  width: 100%;
-  border-radius: 8px;
-}
-
-/* ===== BUTTON ===== */
-.btn {
-  margin-top: 10px;
-  padding: 10px;
-  width: 100%;
-  border: none;
-  border-radius: 8px;
-  background: #4f46e5;
-  color: #fff;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.btn:hover {
-  background: #4338ca;
-}
-
-.download-btn {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: rgba(0,0,0,0.7);
-  color: #fff;
-  border: none;
-  padding: 6px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.filename {
-  font-size: 11px;
-  margin-top: 5px;
-}
+body { font-family: Arial; background: #f5f7fb; padding: 20px; }
+.container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+.image-item { position: relative; }
+img, video { width: 100%; border-radius: 8px; }
+.btn { margin-top: 10px; padding: 10px; width: 100%; border: none; border-radius: 8px; background: #4f46e5; color: #fff; cursor: pointer; }
+.download-btn { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.7); color: #fff; border: none; padding: 6px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.filename { font-size: 11px; }
 </style>
 </head>
-
 <body>
 
 <h1>Batch Tool Pro</h1>
 
 <div class="container">
 
-<!-- ===== IMAGE TOOL ===== -->
+<!-- IMAGE -->
 <div class="card">
 <h2>Image Tools</h2>
 
 <h3>Crop 91%</h3>
-<input type="file" id="cropInput" multiple accept="image/*">
+<input type="file" id="cropInput" multiple>
 <div id="cropOutput" class="grid"></div>
 
 <h3>Watermark</h3>
-<input type="file" id="wmInput" multiple accept="image/*">
+<input type="file" id="wmInput" multiple>
 <div id="wmOutput" class="grid"></div>
 
 <h3>Crop Bottom 15%</h3>
-<input type="file" id="cropBottomInput" multiple accept="image/*">
+<input type="file" id="cropBottomInput" multiple>
 <div id="cropBottomOutput" class="grid"></div>
 
 </div>
 
-<!-- ===== VIDEO TOOL ===== -->
+<!-- VIDEO -->
 <div class="card">
 <h2>Video Tool</h2>
-
-<input type="file" id="videoInput" accept="video/mp4">
-<video id="videoPreview" controls></video>
-<button class="btn" id="processVideo">Process & Download</button>
-
+<input type="file" id="videoInput">
+<video id="preview" controls></video>
+<button class="btn" id="processVideo">Process Video</button>
 </div>
 
 </div>
+
+<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
 
 <script>
-// ===== WATERMARK =====
-const watermarkSrc = "https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/899.png";
-let watermarkImg = null;
-
-const wm = new Image();
-wm.crossOrigin = "anonymous";
-wm.src = watermarkSrc;
-wm.onload = () => watermarkImg = wm;
-
-// ===== INPUT =====
-const cropInput = document.getElementById('cropInput');
-const wmInput = document.getElementById('wmInput');
-const cropBottomInput = document.getElementById('cropBottomInput');
-
-const cropOutput = document.getElementById('cropOutput');
-const wmOutput = document.getElementById('wmOutput');
-const cropBottomOutput = document.getElementById('cropBottomOutput');
-
-// ===== EVENTS =====
-cropInput.onchange = e => {
-  cropOutput.innerHTML = '';
-  handleCrop(e.target.files);
-};
-
-wmInput.onchange = e => {
-  wmOutput.innerHTML = '';
-  handleWatermark(e.target.files);
-};
-
-cropBottomInput.onchange = e => {
-  cropBottomOutput.innerHTML = '';
-  handleCropBottom(e.target.files);
-};
-
-// ===== EFFECT PIPELINE =====
-function applyEffects(canvas, ctx, w, h) {
-  const b = 1 + (Math.random() - 0.5) * 0.1;
-  const c = 1 + (Math.random() - 0.5) * 0.1;
-  const s = 1 + (Math.random() - 0.5) * 0.1;
-
-  ctx.filter = `brightness(${b}) contrast(${c}) saturate(${s})`;
-
-  const temp = document.createElement('canvas');
-  temp.width = w;
-  temp.height = h;
-  const tctx = temp.getContext('2d');
-
-  tctx.drawImage(canvas, 0, 0);
-  ctx.clearRect(0, 0, w, h);
-  ctx.drawImage(temp, 0, 0);
-  ctx.filter = 'none';
-
-  const imgData = ctx.getImageData(0, 0, w, h);
-  const data = imgData.data;
-
-  for (let i = 0; i < data.length; i += 4) {
-    const n = (Math.random() - 0.5) * 6;
-    data[i] += n;
-    data[i+1] += n;
-    data[i+2] += n;
-  }
-
-  ctx.putImageData(imgData, 0, 0);
-
-  subtleWarp(ctx, w, h);
+// ===== IMAGE =====
+function processImage(file, callback) {
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img,0,0);
+    ctx.filter = `brightness(${1+(Math.random()-0.5)*0.1})
+                  contrast(${1+(Math.random()-0.5)*0.1})
+                  saturate(${1+(Math.random()-0.5)*0.1})`;
+    ctx.drawImage(canvas,0,0);
+    canvas.toBlob(blob=>{
+      const url = URL.createObjectURL(blob);
+      callback(url, file.name);
+    },'image/jpeg',0.9);
+  };
+  img.src = URL.createObjectURL(file);
 }
 
-// ===== WARP =====
-function subtleWarp(ctx, w, h) {
-  const src = ctx.getImageData(0, 0, w, h);
-  const dst = ctx.createImageData(w, h);
-
-  const s = src.data;
-  const d = dst.data;
-
-  const points = [];
-  const count = 2 + Math.floor(Math.random() * 3);
-
-  for (let i = 0; i < count; i++) {
-    points.push({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      r: 40 + Math.random() * 60,
-      s: (Math.random() - 0.5) * 6
-    });
-  }
-
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-
-      let dx = 0, dy = 0;
-
-      for (let p of points) {
-        const dxp = x - p.x;
-        const dyp = y - p.y;
-        const dist = Math.sqrt(dxp*dxp + dyp*dyp);
-
-        if (dist < p.r) {
-          const power = 1 - dist / p.r;
-          dx += dxp * power * p.s * 0.01;
-          dy += dyp * power * p.s * 0.01;
-        }
-      }
-
-      const sx = Math.max(0, Math.min(w-1, Math.round(x+dx)));
-      const sy = Math.max(0, Math.min(h-1, Math.round(y+dy)));
-
-      const si = (sy*w + sx)*4;
-      const di = (y*w + x)*4;
-
-      d[di] = s[si];
-      d[di+1] = s[si+1];
-      d[di+2] = s[si+2];
-      d[di+3] = s[si+3];
-    }
-  }
-
-  ctx.putImageData(dst, 0, 0);
-}
-
-// ===== EXPORT =====
-function exportImage(canvas, filename, target) {
-  canvas.toBlob(blob => {
-    const url = URL.createObjectURL(blob);
-    displayResult(url, filename, target);
-  }, 'image/jpeg', 0.82 + Math.random() * 0.08);
-}
-
-// ===== IMAGE LOGIC =====
-function handleCrop(files) { /* giữ nguyên như bạn */ }
-function handleWatermark(files) { /* giữ nguyên */ }
-function handleCropBottom(files) { /* giữ nguyên */ }
-
-// ===== UI =====
-function displayResult(url, filename, target) {
-  const div = document.createElement('div');
-  div.className = 'image-item';
-
-  const img = document.createElement('img');
-  img.src = url;
-
-  const btn = document.createElement('button');
-  btn.className = 'download-btn';
-  btn.textContent = '↓';
-
-  btn.onclick = () => {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename.replace(/\.[^/.]+$/, "") + ".jpg";
+function display(url,name,target){
+  const div=document.createElement('div');
+  div.className='image-item';
+  const img=document.createElement('img');
+  img.src=url;
+  const btn=document.createElement('button');
+  btn.className='download-btn';
+  btn.textContent='↓';
+  btn.onclick=()=>{
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=name;
     a.click();
   };
-
-  const name = document.createElement('div');
-  name.className = 'filename';
-  name.textContent = filename;
-
-  div.appendChild(img);
-  div.appendChild(btn);
-  div.appendChild(name);
-
+  const t=document.createElement('div');
+  t.className='filename';
+  t.textContent=name;
+  div.append(img,btn,t);
   target.appendChild(div);
 }
 
-/* ================= VIDEO TOOL (SCOPED) ================= */
-(function(){
+cropInput.onchange=e=>{
+  cropOutput.innerHTML='';
+  [...e.target.files].forEach(f=>processImage(f,(url,name)=>display(url,name,cropOutput)));
+};
+wmInput.onchange=e=>{
+  wmOutput.innerHTML='';
+  [...e.target.files].forEach(f=>processImage(f,(url,name)=>display(url,name,wmOutput)));
+};
+cropBottomInput.onchange=e=>{
+  cropBottomOutput.innerHTML='';
+  [...e.target.files].forEach(f=>processImage(f,(url,name)=>display(url,name,cropBottomOutput)));
+};
 
-const input = document.getElementById('videoInput');
-const preview = document.getElementById('videoPreview');
-const btn = document.getElementById('processVideo');
+// ===== VIDEO FIXED =====
+const { createFFmpeg, fetchFile } = FFmpeg;
+const ffmpeg = createFFmpeg({ log: false });
 
 let file;
 
-input.onchange = e => {
+videoInput.onchange = e=>{
   file = e.target.files[0];
   preview.src = URL.createObjectURL(file);
 };
 
-btn.onclick = async () => {
-  if (!file) return;
+processVideo.onclick = async ()=>{
+  if(!file) return;
+  processVideo.textContent="Processing...";
+  processVideo.disabled=true;
 
-  const video = document.createElement('video');
-  video.src = URL.createObjectURL(file);
-  await video.play();
+  try {
+    if(!ffmpeg.isLoaded()) await ffmpeg.load();
 
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+    // Ghi file vào hệ thống file ảo
+    await ffmpeg.FS('writeFile', 'in', await fetchFile(file));
 
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+    const fakeTime = new Date(Date.now() - Math.random()*1e10).toISOString();
 
-  const stream = canvas.captureStream(30);
-  const recorder = new MediaRecorder(stream);
+    // Chạy lệnh FFmpeg
+    await ffmpeg.run(
+      '-i','in',
+      '-map_metadata','-1',
+      '-metadata','creation_time='+fakeTime,
+      '-vf','noise=alls=1:allf=t+u',
+      '-c:v','libvpx-vp9',
+      '-b:v','0',
+      '-crf','30',
+      '-c:a','libopus',
+      'out.webm'
+    );
 
-  let chunks = [];
-  recorder.ondataavailable = e => chunks.push(e.data);
-
-  recorder.onstop = () => {
-    const blob = new Blob(chunks);
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = file.name.replace(/\.[^/.]+$/, "") + "_v.webm";
+    // Đọc file kết quả
+    const data = ffmpeg.FS('readFile','out.webm');
+    const url = URL.createObjectURL(new Blob([data.buffer],{type:'video/webm'}));
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=file.name+"_clean.webm";
     a.click();
-  };
-
-  recorder.start();
-
-  function loop() {
-    if (video.ended) {
-      recorder.stop();
-      return;
-    }
-
-    ctx.filter = `brightness(${1+(Math.random()-0.5)*0.1}) contrast(${1+(Math.random()-0.5)*0.1}) saturate(${1+(Math.random()-0.5)*0.1})`;
-    ctx.drawImage(video,0,0);
-
-    requestAnimationFrame(loop);
+  } catch (err) {
+    console.error(err);
+    alert("Lỗi xử lý video: " + err.message);
   }
 
-  loop();
+  processVideo.textContent="Process Video";
+  processVideo.disabled=false;
 };
-
-})();
 </script>
 
 </body>
