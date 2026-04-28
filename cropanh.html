@@ -5,115 +5,49 @@
 <title>Batch Tool</title>
 
 <style>
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  padding: 16px;
-  background: #f5f7fb;
-  color: #222;
-}
+body { font-family: Arial; padding: 20px; }
+h3 { margin-top: 40px; }
 
-/* TITLE */
-h2 {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-h3 {
-  margin-top: 30px;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-/* INPUT */
-input[type="file"] {
-  margin-top: 10px;
-  padding: 10px;
-  border: 1px dashed #ccc;
-  border-radius: 10px;
-  background: #fff;
-  cursor: pointer;
-  width: 100%;
-  max-width: 400px;
-}
-
-/* GRID */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 16px;
-  margin-top: 15px;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 20px;
+  margin-top: 10px;
 }
 
-/* CARD */
 .image-item {
-  background: #fff;
-  border-radius: 14px;
-  padding: 10px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.image-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
-/* IMAGE */
-.image-wrapper {
   position: relative;
-  overflow: hidden;
-  border-radius: 10px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 8px;
+  background: #fafafa;
 }
+
+.image-wrapper { position: relative; }
 
 img {
   width: 100%;
   display: block;
-  border-radius: 10px;
+  border-radius: 6px;
 }
 
-/* BUTTON */
 .download-btn {
   position: absolute;
-  bottom: 8px;
+  top: 8px;
   right: 8px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   font-size: 12px;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0,0,0,0.9);
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
-  opacity: 0;
-  transition: 0.2s;
 }
 
-.image-wrapper:hover .download-btn {
-  opacity: 1;
-}
-
-/* FILENAME */
 .filename {
-  margin-top: 6px;
-  font-size: 11px;
-  color: #666;
-  text-align: center;
-}
-
-/* MOBILE */
-@media (max-width: 600px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  h2 { font-size: 20px; }
-  h3 { font-size: 16px; }
-
-  .download-btn {
-    opacity: 1;
-    bottom: 6px;
-    right: 6px;
-  }
+  margin-top: 8px;
+  font-size: 12px;
+  word-break: break-all;
 }
 </style>
 </head>
@@ -171,6 +105,7 @@ cropBottomInput.onchange = e => {
 
 // ===== EFFECT PIPELINE =====
 function applyEffects(canvas, ctx, w, h) {
+  // FILTER
   const b = 1 + (Math.random() - 0.5) * 0.1;
   const c = 1 + (Math.random() - 0.5) * 0.1;
   const s = 1 + (Math.random() - 0.5) * 0.1;
@@ -187,6 +122,7 @@ function applyEffects(canvas, ctx, w, h) {
   ctx.drawImage(temp, 0, 0);
   ctx.filter = 'none';
 
+  // NOISE
   const imgData = ctx.getImageData(0, 0, w, h);
   const data = imgData.data;
 
@@ -199,56 +135,58 @@ function applyEffects(canvas, ctx, w, h) {
 
   ctx.putImageData(imgData, 0, 0);
 
+  // LIQUID WARP (multi-point)
   subtleWarp(ctx, w, h);
 }
 
-// ===== WARP =====
+// ===== WARP MULTI-POINT =====
 function subtleWarp(ctx, w, h) {
   const src = ctx.getImageData(0, 0, w, h);
   const dst = ctx.createImageData(w, h);
 
-  const s = src.data;
-  const d = dst.data;
+  const srcData = src.data;
+  const dstData = dst.data;
 
   const points = [];
-  const count = 2 + Math.floor(Math.random() * 3);
+  const count = 2 + Math.floor(Math.random() * 3); // 2–4 điểm
 
   for (let i = 0; i < count; i++) {
     points.push({
       x: Math.random() * w,
       y: Math.random() * h,
-      r: 40 + Math.random() * 60,
-      s: (Math.random() - 0.5) * 6
+      radius: 40 + Math.random() * 60,
+      strength: (Math.random() - 0.5) * 6
     });
   }
 
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
 
-      let dx = 0, dy = 0;
+      let dx = 0;
+      let dy = 0;
 
       for (let p of points) {
-        const dxp = x - p.x;
-        const dyp = y - p.y;
-        const dist = Math.sqrt(dxp*dxp + dyp*dyp);
+        const distX = x - p.x;
+        const distY = y - p.y;
+        const dist = Math.sqrt(distX * distX + distY * distY);
 
-        if (dist < p.r) {
-          const power = 1 - dist / p.r;
-          dx += dxp * power * p.s * 0.01;
-          dy += dyp * power * p.s * 0.01;
+        if (dist < p.radius) {
+          const power = 1 - dist / p.radius;
+          dx += distX * power * p.strength * 0.01;
+          dy += distY * power * p.strength * 0.01;
         }
       }
 
-      const sx = Math.max(0, Math.min(w-1, Math.round(x+dx)));
-      const sy = Math.max(0, Math.min(h-1, Math.round(y+dy)));
+      const sx = Math.max(0, Math.min(w - 1, Math.round(x + dx)));
+      const sy = Math.max(0, Math.min(h - 1, Math.round(y + dy)));
 
-      const si = (sy*w + sx)*4;
-      const di = (y*w + x)*4;
+      const si = (sy * w + sx) * 4;
+      const di = (y * w + x) * 4;
 
-      d[di] = s[si];
-      d[di+1] = s[si+1];
-      d[di+2] = s[si+2];
-      d[di+3] = s[si+3];
+      dstData[di] = srcData[si];
+      dstData[di+1] = srcData[si+1];
+      dstData[di+2] = srcData[si+2];
+      dstData[di+3] = srcData[si+3];
     }
   }
 
@@ -263,7 +201,7 @@ function exportImage(canvas, filename, target) {
   }, 'image/jpeg', 0.82 + Math.random() * 0.08);
 }
 
-// ===== HANDLERS =====
+// ===== CROP 91% =====
 function handleCrop(files) {
   Array.from(files).forEach(file => {
     const reader = new FileReader();
@@ -293,6 +231,7 @@ function handleCrop(files) {
   });
 }
 
+// ===== WATERMARK =====
 function handleWatermark(files) {
   Array.from(files).forEach(file => {
     const reader = new FileReader();
@@ -330,6 +269,7 @@ function handleWatermark(files) {
   });
 }
 
+// ===== CROP BOTTOM =====
 function handleCropBottom(files) {
   Array.from(files).forEach(file => {
     const reader = new FileReader();
