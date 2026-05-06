@@ -377,14 +377,15 @@ phoneInput.setAttribute('autocomplete', 'tel');
       const priceVal = parseFloat(document.getElementById('totalSpanx1').dataset.price) || 0;
       const total = priceVal * qty;
 
-      const message =
-        `*Khách hàng đang quan tâm*\n` +
-        `Sản phẩm: ${title}\n` +
-        `Số lượng: ${qty}\n` +
-        `Tổng tiền: ${total.toLocaleString('vi-VN')}₫\n` +
-        `Địa chỉ: ${address}, ${ward}, ${district}, ${province}\n` +
-        `SĐT: ${phone}\n` +
-        `Ghi chú: ${note || 'Không'}`;
+    const message =
+  `🛒 *KH ĐANG QUAN TÂM*\n\n` +  // `*` sẽ giữ nguyên, không bị escape
+  `🔹 Sản phẩm: ${title}\n` +
+  `🔹 Số lượng: ${qty}\n` +
+  `🔹 Tổng tiền: ${total.toLocaleString('vi-VN')}₫\n` +
+  `🔹 Địa chỉ: ${address}, ${ward}, ${district}, ${province}\n\n` +
+  `🔹 Số điện thoại:   *${phone}*   ` +  
+  `|  [Zalo](https://zalo.me/${phone})\n\n` +
+  `📝 Ghi chú: ${note || 'Không'}`;
 
       const TELEGRAM_BOT_TOKEN = '5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA';
       const CHAT_ID = '-702616123';
@@ -432,13 +433,14 @@ phoneInput.setAttribute('autocomplete', 'tel');
     }
     submitBtn.disabled = true;
     const message =
-      `*Đơn hàng mới*\n` +
-      `Sản phẩm: ${title}\n` +
-      `Số lượng: ${qty}\n` +
-      `Tổng tiền: ${total.toLocaleString('vi-VN')}₫\n` +
-      `Địa chỉ: ${address}, ${ward}, ${district}, ${province}\n` +
-      `SĐT: ${phone}\n` +
-      `Ghi chú: ${note || 'Không'}`;
+  `🛒 *ĐƠN HÀNG MỚI*\n\n` +  // `*` sẽ giữ nguyên, không bị escape
+  `🔹 Sản phẩm: ${title}\n` +
+  `🔹 Số lượng: ${qty}\n` +
+  `🔹 Tổng tiền: ${total.toLocaleString('vi-VN')}₫\n` +
+  `🔹 Địa chỉ: ${address}, ${ward}, ${district}, ${province}\n\n` +
+  `🔹 Số điện thoại:   *${phone}*   ` +  
+  `|  [Zalo](https://zalo.me/${phone})\n\n` +
+  `📝 Ghi chú: ${note || 'Không'}`;
     try {
       const TELEGRAM_BOT_TOKEN = '5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA';
       const CHAT_ID = '-702616123';
