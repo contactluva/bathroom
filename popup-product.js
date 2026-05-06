@@ -384,7 +384,7 @@ phoneInput.setAttribute('autocomplete', 'tel');
   `🔹 Tổng tiền: ${total.toLocaleString('vi-VN')}₫\n` +
   `🔹 Địa chỉ: ${address}, ${ward}, ${district}, ${province}\n\n` +
   `🔹 Số điện thoại:   *${phone}*   ` +  
-  `|  [Zalo](https://zalo.me/${phone})\n\n` +
+  `[Gọi](https://cantieuly.net/goi/${phone}) | [Zalo](https://zalo.me/${phone})\n\n` +
   `📝 Ghi chú: ${note || 'Không'}`;
 
       const TELEGRAM_BOT_TOKEN = '5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA';
@@ -439,7 +439,7 @@ phoneInput.setAttribute('autocomplete', 'tel');
   `🔹 Tổng tiền: ${total.toLocaleString('vi-VN')}₫\n` +
   `🔹 Địa chỉ: ${address}, ${ward}, ${district}, ${province}\n\n` +
   `🔹 Số điện thoại:   *${phone}*   ` +  
-  `|  [Zalo](https://zalo.me/${phone})\n\n` +
+  `[Gọi](https://cantieuly.net/goi/${phone}) | [Zalo](https://zalo.me/${phone})\n\n` +
   `📝 Ghi chú: ${note || 'Không'}`;
     try {
       const TELEGRAM_BOT_TOKEN = '5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA';
