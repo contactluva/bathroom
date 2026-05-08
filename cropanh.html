@@ -141,6 +141,8 @@ function applyEffects(canvas, ctx, w, h) {
 
 // ===== WARP MULTI-POINT =====
 function subtleWarp(ctx, w, h) {
+w = Math.floor(w);
+h = Math.floor(h);
   const src = ctx.getImageData(0, 0, w, h);
   const dst = ctx.createImageData(w, h);
 
@@ -204,25 +206,44 @@ function exportImage(canvas, filename, target) {
 // ===== CROP 91% =====
 function handleCrop(files) {
   Array.from(files).forEach(file => {
+
     const reader = new FileReader();
 
     reader.onload = e => {
+
       const img = new Image();
       img.src = e.target.result;
 
       img.onload = () => {
+
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
-        const w = img.width * 0.91;
-        const h = img.height * 0.91;
+        const cropScale = 0.91;
 
-        canvas.width = w;
-        canvas.height = h;
+        const cropW = Math.floor(img.width * cropScale);
+        const cropH = Math.floor(img.height * cropScale);
 
-        ctx.drawImage(img, 0, 0, w, h, 0, 0, w, h);
+        const sx = Math.floor((img.width - cropW) / 2);
+        const sy = Math.floor((img.height - cropH) / 2);
 
-        applyEffects(canvas, ctx, w, h);
+        canvas.width = cropW;
+        canvas.height = cropH;
+
+        ctx.drawImage(
+          img,
+          sx,
+          sy,
+          cropW,
+          cropH,
+          0,
+          0,
+          cropW,
+          cropH
+        );
+
+        applyEffects(canvas, ctx, cropW, cropH);
+
         exportImage(canvas, file.name, cropOutput);
       };
     };
@@ -230,7 +251,6 @@ function handleCrop(files) {
     reader.readAsDataURL(file);
   });
 }
-
 // ===== WATERMARK =====
 function handleWatermark(files) {
   Array.from(files).forEach(file => {
