@@ -49,6 +49,11 @@ img {
   font-size: 12px;
   word-break: break-all;
 }
+
+.download-btn.downloaded {
+  background: #cfcfcf;
+  color: #555;
+}
 </style>
 </head>
 
@@ -333,12 +338,18 @@ function displayResult(url, filename, target) {
   btn.className = 'download-btn';
   btn.textContent = '↓';
 
-  btn.onclick = () => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename.replace(/\.[^/.]+$/, "") + ".jpg";
-    link.click();
-  };
+btn.onclick = () => {
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename.replace(/\.[^/.]+$/, "") + ".jpg";
+  link.click();
+
+  // đổi màu sau khi download
+  btn.classList.add('downloaded');
+
+  // đổi icon nếu muốn
+  btn.textContent = '✓';
+};
 
   const name = document.createElement('div');
   name.className = 'filename';
