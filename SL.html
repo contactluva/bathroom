@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Trading Calculator (R:R 1:1.6)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121619;
+            color: #e9ecef;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            background-color: #1e2329;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 480px;
+            border: 1px solid #333;
+        }
+        h2 { color: #f0b90b; text-align: center; margin-bottom: 10px; font-size: 1.4rem; }
+        
+        /* Discipline Tracker Header */
+        .tracker-box {
+            background: #181a20; padding: 12px; border-radius: 8px; margin-bottom: 20px;
+            text-align: center; border: 1px solid #474d57;
+        }
+        .tracker-status { font-weight: bold; font-size: 1rem; color: #848e9c;}
+        .tracker-status span { color: #f0b90b; font-size: 1.2rem;}
+        .tracker-status.limit-reached span { color: #f6465d; }
+
+        /* Tabs Style */
+        .tab { display: flex; margin-bottom: 20px; border-bottom: 1px solid #474d57; }
+        .tab button {
+            background-color: inherit; color: #848e9c; flex: 1; border: none;
+            outline: none; cursor: pointer; padding: 12px 10px; transition: 0.3s;
+            font-size: 0.95rem; font-weight: bold;
+        }
+        .tab button.active { color: #f0b90b; border-bottom: 2px solid #f0b90b; }
+        .tabcontent { display: none; animation: fadeEffect 0.5s; }
+        @keyframes fadeEffect { from {opacity: 0;} to {opacity: 1;} }
+
+        /* Inputs & Radios */
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.85rem; color: #848e9c; }
+        
+        /* Input Wrapper for "X" button */
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        input[type="number"] {
+            width: 100%; padding: 12px; padding-right: 35px; background-color: #2b3139; 
+            border: 1px solid #474d57; border-radius: 8px; color: white; 
+            font-size: 1rem; box-sizing: border-box;
+            -moz-appearance: textfield; 
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input:focus { outline: none; border-color: #f0b90b; }
+        
+        .clear-btn {
+            position: absolute; right: 10px; background: none; border: none;
+            color: #848e9c; font-size: 1.2rem; cursor: pointer; padding: 0; 
+            line-height: 1; transition: 0.2s;
+        }
+        .clear-btn:hover { color: #f6465d; }
+
+        .radio-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .radio-item {
+            flex: 1; text-align: center; padding: 10px; border: 1px solid #474d57;
+            border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.9rem; font-weight: bold;
+        }
+        .radio-item.active-long { background-color: #2ebd85; border-color: #2ebd85; color: white; }
+        .radio-item.active-short { background-color: #f6465d; border-color: #f6465d; color: white; }
+
+        /* Buttons & Results */
+        .btn-calc {
+            width: 100%; padding: 14px; background-color: #f0b90b; border: none;
+            border-radius: 8px; color: #000; font-weight: bold; font-size: 1rem;
+            cursor: pointer; margin-top: 5px; transition: 0.3s;
+        }
+        .btn-calc:hover { background-color: #ffe082; }
+
+        .btn-confirm {
+            background-color: transparent; color: #2ebd85; border: 1px solid #2ebd85;
+            padding: 10px; border-radius: 6px; cursor: pointer; width: 100%;
+            margin-top: 15px; font-size: 0.85rem; transition: 0.3s; font-weight: bold;
+        }
+        .btn-confirm:hover { background-color: #2ebd85; color: #000; }
+        .btn-confirm:disabled { border-color: #474d57; color: #848e9c; cursor: not-allowed; background-color: transparent; }
+        
+        .result { margin-top: 20px; padding-top: 15px; border-top: 1px solid #333; }
+        .result-item {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; padding: 10px; background: #2b3139; border-radius: 6px;
+        }
+        .result-label { font-size: 0.85rem; color: #848e9c; }
+        .result-value { font-weight: bold; color: #f0b90b; cursor: pointer; font-family: monospace; font-size: 1.05rem; }
+        
+        /* Dynamic Calculator Box */
+        .dynamic-box {
+            background: #181a20; border: 1px dashed #f0b90b; padding: 15px;
+            border-radius: 8px; margin-bottom: 15px;
+        }
+        .dynamic-box-title { text-align: center; color: #f0b90b; font-size: 0.85rem; font-weight: bold; margin-bottom: 12px; }
+        .dynamic-flex { display: flex; gap: 15px; }
+        .dynamic-flex .input-group { margin-bottom: 0; flex: 1; }
+        .dynamic-flex input { background: #2b3139; padding: 10px; font-weight: bold; color: #f0b90b; text-align: center;}
+        
+        .info-text { font-size: 0.8rem; color: #2ebd85; margin-bottom: 15px; text-align: center; }
+        .warning-text { color: #f6465d; font-size: 0.85rem; margin-top: 10px; text-align: center; font-weight: bold; }
+        .copy-hint { font-size: 0.75rem; color: #5e6673; text-align: center; margin-top: 10px; margin-bottom: 5px;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>KỶ LUẬT LÀ VÀNG(R:R 1:1.6)</h2>
+    
+    <div class="tracker-box">
+        <div class="tracker-status" id="tradeStatus">Lệnh thực tế hôm nay: <span id="tradeCount">0</span>/3</div>
+        <div id="limitMsg" class="warning-text" style="display: none;">Đã hết Quota ngày! Kỷ luật là chén thánh, hãy tắt máy!</div>
+    </div>
+
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'Tab2')">Tự Đặt Cắt Lỗ</button>
+        <button class="tablinks" onclick="openTab(event, 'Tab1')">Margin = Tổng Vốn</button>
+    </div>
+
+    <div id="Tab2" class="tabcontent" style="display: block;">
+        <div class="info-text">SL/TP đã tính gộp phí sàn 0.2%. Rủi ro bảo toàn 3% vốn.</div>
+        
+        <div class="input-group">
+            <div class="radio-group">
+                <div id="btnLong2" class="radio-item active-long" onclick="setSide(2, 'long')">LONG</div>
+                <div id="btnShort2" class="radio-item" onclick="setSide(2, 'short')">SHORT</div>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Tổng vốn (USDT)</label>
+            <div class="input-wrapper">
+                <input type="number" id="cap2" value="1000" step="any">
+                <button class="clear-btn" type="button" onclick="clearInput('cap2')">&times;</button>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Giá vào lệnh (Entry)</label>
+            <div class="input-wrapper">
+                <input type="number" id="entry2" value="50000" step="any">
+                <button class="clear-btn" type="button" onclick="clearInput('entry2')">&times;</button>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Giá Stop Loss tự soi chart</label>
+            <div class="input-wrapper">
+                <input type="number" id="slPrice2" value="48000" step="any">
+                <button class="clear-btn" type="button" onclick="clearInput('slPrice2')">&times;</button>
+            </div>
+        </div>
+
+        <button class="btn-calc" onclick="calcTab2()">TÍNH QUY MÔ & TP (THỬ NGHIỆM)</button>
+
+        <div class="result">
+            <div class="result-item">
+                <span class="result-label">Tổng quy mô lệnh (Size):</span>
+                <span class="result-value" id="resSize2" onclick="copyText('resSize2')">0.00</span>
+            </div>
+
+            <div class="dynamic-box" id="dynBox" style="display: none;">
+                <div class="dynamic-box-title">ĐIỀU CHỈNH KÝ QUỸ ĐỂ ĐẠT QUY MÔ TRÊN</div>
+                <div class="dynamic-flex">
+                    <div class="input-group">
+                        <label>Đòn bẩy là (x):</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="dynLev" value="10" step="1" oninput="onLevChange()">
+                            <button class="clear-btn" type="button" onclick="clearInput('dynLev')">&times;</button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Ký quỹ tương ứng:</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="dynMargin" step="any" oninput="onMarginChange()">
+                            <button class="clear-btn" type="button" onclick="clearInput('dynMargin')">&times;</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">Giá Chốt Lời (Net R:R 1:1.6):</span>
+                <span class="result-value" id="resTP2" onclick="copyText('resTP2')">0.00</span>
+            </div>
+            <p class="copy-hint">Click vào số để copy chuẩn định dạng Binance</p>
+
+            <button class="btn-confirm" onclick="recordTrade()">✅ XÁC NHẬN ĐÃ VÀO LỆNH (TÍNH 1 LƯỢT)</button>
+        </div>
+    </div>
+
+    <div id="Tab1" class="tabcontent">
+        <div class="info-text">SL/TP đã tính gộp phí sàn 0.2%. Thua tối đa đúng 3% vốn.</div>
+        
+        <div class="input-group">
+            <div class="radio-group">
+                <div id="btnLong1" class="radio-item active-long" onclick="setSide(1, 'long')">LONG</div>
+                <div id="btnShort1" class="radio-item" onclick="setSide(1, 'short')">SHORT</div>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Tổng vốn = Số tiền Margin (USDT)</label>
+            <div class="input-wrapper">
+                <input type="number" id="cap1" value="1000" step="any">
+                <button class="clear-btn" type="button" onclick="clearInput('cap1')">&times;</button>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Đòn bẩy cố định (1:X)</label>
+            <div class="input-wrapper">
+                <input type="number" id="lev1" value="5">
+                <button class="clear-btn" type="button" onclick="clearInput('lev1')">&times;</button>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Giá vào lệnh (Entry)</label>
+            <div class="input-wrapper">
+                <input type="number" id="entry1" value="50000" step="any">
+                <button class="clear-btn" type="button" onclick="clearInput('entry1')">&times;</button>
+            </div>
+        </div>
+
+        <button class="btn-calc" onclick="calcTab1()">TÍNH SL & TP (THỬ NGHIỆM)</button>
+        <div id="warnFee1" class="warning-text" style="display: none;">Cảnh báo: Phí sàn ăn hết 3% rủi ro! Hãy giảm đòn bẩy.</div>
+
+        <div class="result">
+            <div class="result-item">
+                <span class="result-label">Quy mô vị thế (Size):</span>
+                <span class="result-value" id="resSize1">0.00</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Giá Stop Loss:</span>
+                <span class="result-value" id="resSL1" onclick="copyText('resSL1')">0.00</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Giá Chốt Lời (Net R:R 1:1.6):</span>
+                <span class="result-value" id="resTP1" onclick="copyText('resTP1')">0.00</span>
+            </div>
+            <p class="copy-hint">Click vào số để copy chuẩn định dạng Binance</p>
+            
+            <button class="btn-confirm" onclick="recordTrade()">✅ XÁC NHẬN ĐÃ VÀO LỆNH (TÍNH 1 LƯỢT)</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const RISK_PERCENT = 0.03; 
+    const RR_RATIO = 1.6; 
+    const FEE_RATE = 0.002; 
+
+    let side1 = 'long';
+    let side2 = 'long';
+    let currentPositionSize2 = 0; 
+
+    // Hàm xóa nội dung ô nhập
+    function clearInput(id) {
+        const el = document.getElementById(id);
+        el.value = '';
+        el.focus();
+        if(id === 'dynLev') onLevChange();
+        if(id === 'dynMargin') onMarginChange();
+    }
+
+    // --- LOGIC CACHE KỶ LUẬT GIAO DỊCH ---
+    function initTradeTracker() {
+        const today = new Date().toLocaleDateString();
+        let tradeData = JSON.parse(localStorage.getItem('tradeLimit_v4'));
+        
+        if (!tradeData || tradeData.date !== today) {
+            tradeData = { date: today, count: 0 };
+            localStorage.setItem('tradeLimit_v4', JSON.stringify(tradeData));
+        }
+        updateUI(tradeData.count);
+    }
+
+    function recordTrade() {
+        let tradeData = JSON.parse(localStorage.getItem('tradeLimit_v4'));
+        if (tradeData.count < 3) {
+            tradeData.count += 1;
+            localStorage.setItem('tradeLimit_v4', JSON.stringify(tradeData));
+            updateUI(tradeData.count);
+            alert("Lưu log thành công! Chúc bạn giao dịch thuận lợi.");
+        }
+    }
+
+    function updateUI(count) {
+        document.getElementById('tradeCount').innerText = count;
+        const confirmBtns = document.getElementsByClassName('btn-confirm');
+        
+        if (count >= 3) {
+            document.getElementById('tradeStatus').classList.add('limit-reached');
+            document.getElementById('limitMsg').style.display = 'block';
+            for (let btn of confirmBtns) {
+                btn.disabled = true;
+                btn.innerText = "🔒 ĐÃ KHÓA - HẾT QUOTA HÔM NAY";
+            }
+        } else {
+            for (let btn of confirmBtns) {
+                btn.disabled = false;
+                btn.innerText = "✅ XÁC NHẬN ĐÃ VÀO LỆNH (TÍNH 1 LƯỢT)";
+            }
+        }
+    }
+
+    window.onload = initTradeTracker;
+
+    // --- UI TABS ---
+    function openTab(evt, tabName) {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    function setSide(tab, s) {
+        if (tab === 1) {
+            side1 = s;
+            document.getElementById('btnLong1').className = s === 'long' ? 'radio-item active-long' : 'radio-item';
+            document.getElementById('btnShort1').className = s === 'short' ? 'radio-item active-short' : 'radio-item';
+        } else {
+            side2 = s;
+            document.getElementById('btnLong2').className = s === 'long' ? 'radio-item active-long' : 'radio-item';
+            document.getElementById('btnShort2').className = s === 'short' ? 'radio-item active-short' : 'radio-item';
+        }
+    }
+
+    function formatBinance(num) {
+        return parseFloat(num.toFixed(6)).toString();
+    }
+
+    function copyText(id) {
+        const text = document.getElementById(id).innerText;
+        if(text === '0.00' || text === '0' || text === 'Lỗi!') return;
+        navigator.clipboard.writeText(text);
+        
+        const element = document.getElementById(id);
+        const originalText = element.innerText;
+        element.innerText = "Đã Copy!";
+        setTimeout(() => { element.innerText = originalText; }, 1000);
+    }
+
+    // --- TAB 1 LOGIC ---
+    function calcTab1() {
+        const cap = parseFloat(document.getElementById('cap1').value);
+        const lev = parseFloat(document.getElementById('lev1').value);
+        const entry = parseFloat(document.getElementById('entry1').value);
+
+        if (!cap || !lev || !entry) return;
+
+        const riskMoney = cap * RISK_PERCENT; 
+        const positionSize = cap * lev;
+        const slPct = (riskMoney / positionSize) - FEE_RATE;
+
+        if (slPct <= 0) {
+            document.getElementById('warnFee1').style.display = 'block';
+            document.getElementById('resSL1').innerText = "Lỗi!";
+            document.getElementById('resTP1').innerText = "Lỗi!";
+            return;
+        } else {
+            document.getElementById('warnFee1').style.display = 'none';
+        }
+
+        const tpPct = (riskMoney * RR_RATIO / positionSize) + FEE_RATE;
+
+        let slPrice, tpPrice;
+        if (side1 === 'long') {
+            slPrice = entry * (1 - slPct);
+            tpPrice = entry * (1 + tpPct);
+        } else {
+            slPrice = entry * (1 + slPct);
+            tpPrice = entry * (1 - tpPct);
+        }
+
+        document.getElementById('resSize1').innerText = positionSize.toFixed(2);
+        document.getElementById('resSL1').innerText = formatBinance(slPrice);
+        document.getElementById('resTP1').innerText = formatBinance(tpPrice);
+    }
+
+    // --- TAB 2 LOGIC ---
+    function calcTab2() {
+        const cap = parseFloat(document.getElementById('cap2').value);
+        const entry = parseFloat(document.getElementById('entry2').value);
+        const slPrice = parseFloat(document.getElementById('slPrice2').value);
+
+        if (!cap || !entry || !slPrice) return;
+
+        if (side2 === 'long' && slPrice >= entry) { alert('LONG: SL phải < Entry!'); return; }
+        if (side2 === 'short' && slPrice <= entry) { alert('SHORT: SL phải > Entry!'); return; }
+
+        const riskMoney = cap * RISK_PERCENT;
+        const slPct = Math.abs(entry - slPrice) / entry;
+
+        currentPositionSize2 = riskMoney / (slPct + FEE_RATE);
+        const tpPct = (riskMoney * RR_RATIO / currentPositionSize2) + FEE_RATE;
+
+        let tpPrice = side2 === 'long' ? entry * (1 + tpPct) : entry * (1 - tpPct);
+
+        document.getElementById('resSize2').innerText = currentPositionSize2.toFixed(2);
+        document.getElementById('resTP2').innerText = formatBinance(tpPrice);
+
+        document.getElementById('dynBox').style.display = 'block';
+        document.getElementById('dynLev').value = 10; 
+        onLevChange(); 
+    }
+
+    function onLevChange() {
+        if(currentPositionSize2 === 0) return;
+        let lev = parseFloat(document.getElementById('dynLev').value);
+        if(lev > 0) {
+            let marginReq = currentPositionSize2 / lev;
+            document.getElementById('dynMargin').value = marginReq.toFixed(2);
+        } else {
+            document.getElementById('dynMargin').value = '';
+        }
+    }
+
+    function onMarginChange() {
+        if(currentPositionSize2 === 0) return;
+        let margin = parseFloat(document.getElementById('dynMargin').value);
+        if(margin > 0) {
+            let levReq = currentPositionSize2 / margin;
+            document.getElementById('dynLev').value = levReq.toFixed(1);
+        } else {
+            document.getElementById('dynLev').value = '';
+        }
+    }
+</script>
+
+</body>
+</html>
