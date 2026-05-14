@@ -356,7 +356,7 @@ span#totalSpanx1.loading {
       })
       .catch(err => {
         console.error('Lỗi tải dữ liệu địa phương:', err);
-        responseMsg.innerHTML = '<div style="color:#c5221f">Không thể tải dữ liệu tỉnh/thành. Vui lòng thử lại sau.</div>';
+        responseMsg.innerHTML = '<div style="color:#c5221f"></div>';
       });
   }
 
