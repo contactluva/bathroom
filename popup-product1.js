@@ -270,7 +270,7 @@ span#totalSpanx1.loading {
           <div class="free-shipx1">Đơn hàng này được <strong>FREE SHIP</strong>!</div>
           <div class="headingx1">Thông tin người nhận</div>
           <div class="form-rowx1">
-            <select id="cityx1"><option value="" selected>Tỉnh/TP</option></select>
+            <select id="cityx1"><option value="" selected>Chọn tỉnh/TP</option></select>
             <select id="wardx1"><option value="" selected>Phường/Xã</option></select>
           </div>
           <div class="form-rowx1">
