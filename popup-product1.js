@@ -14,11 +14,12 @@
     color: #fff;
     background: #e82608;
     border-radius: 30px;
-    padding: 6px 15px;
+    padding: 8px 25px;
     box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
     border: none;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
+    font-weight: 700;
 }
 
 /* Khi màn hình ≥ 600px thì căn giữa */
