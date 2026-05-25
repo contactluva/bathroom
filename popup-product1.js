@@ -146,6 +146,7 @@ span#totalSpanx1.loading {
     display: flex;
     gap: 10px;
     margin-bottom: 12px;
+    position: relative;
 }
 
 .form-rowx1 select, .form-rowx1 input, .form-rowx1 textarea {
@@ -169,6 +170,65 @@ span#totalSpanx1.loading {
 
 .form-rowx1.fullx1>* {
     flex-basis: 100%;
+}
+
+/* AUTOCOMPLETE WARD */
+.ward-wrapx1 {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+#wardx1 {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.ward-dropdownx1 {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #dadce0;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.ward-dropdownx1.active {
+    display: block;
+}
+
+.ward-itemx1 {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #202124;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.ward-itemx1:hover, .ward-itemx1.highlighted {
+    background: #e8f0fe;
+    color: #1a73e8;
+}
+
+.ward-itemx1:last-child {
+    border-bottom: none;
+}
+
+.ward-itemx1.no-result {
+    color: #999;
+    cursor: default;
+}
+
+.ward-itemx1.no-result:hover {
+    background: #fff;
+    color: #999;
 }
 
 .note-togglex1 {
@@ -272,11 +332,14 @@ span#totalSpanx1.loading {
           <div class="headingx1">Thông tin người nhận</div>
           <div class="form-rowx1">
             <select id="cityx1"><option value="" selected>Chọn tỉnh/TP</option></select>
-            <select id="wardx1"><option value="" selected>Phường/Xã</option></select>
+            <div class="ward-wrapx1">
+              <input type="text" id="wardx1" placeholder="Gõ tên phường/xã..." autocomplete="off">
+              <div class="ward-dropdownx1" id="wardDropdownx1"></div>
+            </div>
           </div>
           <div class="form-rowx1">
             <input type="text" id="addressx1" placeholder="Số nhà, xóm, ngõ..." required>
-            <input type="text" id="phonex1" placeholder="Số điện thoại" required pattern="\d{10,11}">
+            <input type="text" id="phonex1" placeholder="Số điện thoại" required pattern="\\d{10,11}">
           </div>
           <label class="note-togglex1">
             <input type="checkbox" id="noteTogglex1">
@@ -314,7 +377,8 @@ span#totalSpanx1.loading {
 
   /* 5. Khai báo các biến dùng chung */
   const citySel   = document.getElementById('cityx1');
-  const wardSel   = document.getElementById('wardx1');
+  const wardInput = document.getElementById('wardx1');
+  const wardDropdown = document.getElementById('wardDropdownx1');
   const qtySel    = document.getElementById('qtyx1');
   const overlay   = document.getElementById('overlayx1');
   const closeBtn  = document.getElementById('closeBtnx1');
@@ -329,12 +393,14 @@ span#totalSpanx1.loading {
   const DATA_URL = 'https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/json/data.json';
   let vnData = [];
   let dataLoaded = false;
+  let currentWards = []; // Danh sách phường/xã của tỉnh đang chọn
 
   function loadLocationData() {
     citySel.innerHTML = '<option value="">Tỉnh/TP</option>';
-    wardSel.innerHTML = '<option value="">Phường/Xã</option>';
+    wardInput.value = '';
+    wardInput.placeholder = 'Chọn tỉnh/TP trước';
+    wardInput.disabled = true;
     citySel.disabled = true;
-    wardSel.disabled = true;
 
     fetch(DATA_URL)
       .then(res => {
@@ -350,25 +416,142 @@ span#totalSpanx1.loading {
         });
 
         citySel.disabled = false;
-        wardSel.disabled = false;
+        wardInput.disabled = false;
+        wardInput.placeholder = 'Gõ tên phường/xã...';
 
         // Restore saved data after load
         restoreFormData();
       })
       .catch(err => {
         console.error('Lỗi tải dữ liệu địa phương:', err);
-        responseMsg.innerHTML = '<div style="color:#c5221f"></div>';
+        responseMsg.innerHTML = '<div style="color:#c5221f">Không thể tải dữ liệu địa phương. Vui lòng thử lại sau.</div>';
       });
   }
 
-  citySel.addEventListener('change', () => {
-    wardSel.length = 1;
-    const province = vnData.find(p => p.province_code === citySel.value);
-    if (!province?.wards) return;
+  /* AUTOCOMPLETE WARD FUNCTIONALITY */
+  let highlightedIndex = -1;
 
-    province.wards.forEach(w => {
-      wardSel.add(new Option(w.name, w.ward_code));
+  function filterWards(query) {
+    const term = query.toLowerCase().trim();
+    if (!term) {
+      renderDropdown(currentWards);
+      return;
+    }
+    const filtered = currentWards.filter(w => w.name.toLowerCase().includes(term));
+    renderDropdown(filtered, term);
+  }
+
+  function renderDropdown(wards, highlightTerm = '') {
+    if (wards.length === 0) {
+      wardDropdown.innerHTML = '<div class="ward-itemx1 no-result">Không tìm thấy phường/xã</div>';
+      wardDropdown.classList.add('active');
+      highlightedIndex = -1;
+      return;
+    }
+
+    wardDropdown.innerHTML = wards.map((w, i) => {
+      let name = w.name;
+      if (highlightTerm) {
+        const regex = new RegExp(`(${highlightTerm})`, 'gi');
+        name = name.replace(regex, '<strong>$1</strong>');
+      }
+      return `<div class="ward-itemx1" data-index="${i}" data-code="${w.ward_code}" data-name="${w.name}">${name}</div>`;
+    }).join('');
+    
+    wardDropdown.classList.add('active');
+    highlightedIndex = -1;
+  }
+
+  function selectWard(name, code) {
+    wardInput.value = name;
+    wardInput.dataset.code = code;
+    wardDropdown.classList.remove('active');
+    highlightedIndex = -1;
+    saveFormData();
+  }
+
+  function closeWardDropdown() {
+    wardDropdown.classList.remove('active');
+    highlightedIndex = -1;
+  }
+
+  citySel.addEventListener('change', () => {
+    wardInput.value = '';
+    wardInput.dataset.code = '';
+    currentWards = [];
+    
+    const province = vnData.find(p => p.province_code === citySel.value);
+    if (!province?.wards) {
+      wardInput.placeholder = 'Chọn tỉnh/TP có dữ liệu';
+      return;
+    }
+
+    currentWards = province.wards;
+    wardInput.placeholder = 'Gõ tên phường/xã...';
+    
+    // Hiện dropdown ngay nếu click vào ô input
+    if (document.activeElement === wardInput) {
+      renderDropdown(currentWards);
+    }
+  });
+
+  wardInput.addEventListener('input', (e) => {
+    filterWards(e.target.value);
+  });
+
+  wardInput.addEventListener('focus', () => {
+    if (currentWards.length > 0) {
+      renderDropdown(currentWards);
+    }
+  });
+
+  // Đóng dropdown khi click ra ngoài
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.ward-wrapx1')) {
+      closeWardDropdown();
+    }
+  });
+
+  // Xử lý keyboard navigation
+  wardInput.addEventListener('keydown', (e) => {
+    const items = wardDropdown.querySelectorAll('.ward-itemx1:not(.no-result)');
+    if (!wardDropdown.classList.contains('active') || items.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      highlightedIndex = (highlightedIndex + 1) % items.length;
+      updateHighlight(items);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+      updateHighlight(items);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && items[highlightedIndex]) {
+        const item = items[highlightedIndex];
+        selectWard(item.dataset.name, item.dataset.code);
+      }
+    } else if (e.key === 'Escape') {
+      closeWardDropdown();
+    }
+  });
+
+  function updateHighlight(items) {
+    items.forEach((item, i) => {
+      if (i === highlightedIndex) {
+        item.classList.add('highlighted');
+        item.scrollIntoView({ block: 'nearest' });
+      } else {
+        item.classList.remove('highlighted');
+      }
     });
+  }
+
+  // Click chọn từ dropdown
+  wardDropdown.addEventListener('click', (e) => {
+    const item = e.target.closest('.ward-itemx1');
+    if (!item || item.classList.contains('no-result')) return;
+    selectWard(item.dataset.name, item.dataset.code);
   });
 
   /* 7. Xử lý popup */
@@ -388,6 +571,7 @@ span#totalSpanx1.loading {
     document.body.style.overflow = '';
     responseMsg.textContent = '';
     modalFooter.style.display = 'none';
+    closeWardDropdown();
   }
 
   closeBtn.addEventListener('click', closePopup);
@@ -485,7 +669,7 @@ span#totalSpanx1.loading {
     captureTimeout = setTimeout(() => {
       if (captured) return;
       const province = citySel.options[citySel.selectedIndex]?.text || '';
-      const ward = wardSel.options[wardSel.selectedIndex]?.text || '';
+      const ward = wardInput.value.trim();
       const address = document.getElementById('addressx1').value.trim();
       const note = noteInput.value.trim();
       const qty = qtySel.value;
@@ -532,12 +716,12 @@ span#totalSpanx1.loading {
     const priceVal = parseFloat(document.getElementById('totalSpanx1').dataset.price) || 0;
     const total = priceVal * qty;
     const province = citySel.options[citySel.selectedIndex]?.text || '';
-    const ward = wardSel.options[wardSel.selectedIndex]?.text || '';
+    const ward = wardInput.value.trim();
     const address = document.getElementById('addressx1').value.trim();
     const phone = document.getElementById('phonex1').value.trim();
     const note = noteInput.value.trim();
 
-    if (!province || province === 'Tỉnh/TP' || !ward || ward === 'Phường/Xã' || !address || !phone) {
+    if (!province || province === 'Tỉnh/TP' || !ward || !address || !phone) {
       responseMsg.textContent = 'Vui lòng điền đầy đủ thông tin!';
       return;
     }
@@ -604,10 +788,12 @@ span#totalSpanx1.loading {
   });
 
   /* 13. Auto-save / restore */
+  let saveFormData, restoreFormData;
+  
   (() => {
     const STORAGE_KEY = 'popupFormData';
     const EXPIRE_DAYS = 10;
-    const fields = ['cityx1', 'wardx1', 'addressx1', 'phonex1', 'notex1'];
+    const fields = ['cityx1', 'addressx1', 'phonex1', 'notex1'];
 
     function getStored() {
       try {
@@ -631,9 +817,18 @@ span#totalSpanx1.loading {
       if (data.cityx1 && dataLoaded) {
         citySel.value = data.cityx1;
         citySel.dispatchEvent(new Event('change'));
+        // Sau khi change city, wards sẽ load, rồi restore ward
         setTimeout(() => {
-          if (data.wardx1) wardSel.value = data.wardx1;
-        }, 200);
+          if (data.wardx1) {
+            wardInput.value = data.wardx1;
+            // Tìm ward_code từ tên nếu có
+            const province = vnData.find(p => p.province_code === data.cityx1);
+            if (province) {
+              const w = province.wards.find(wd => wd.name === data.wardx1);
+              if (w) wardInput.dataset.code = w.ward_code;
+            }
+          }
+        }, 300);
       }
       if (data.addressx1) document.getElementById('addressx1').value = data.addressx1;
       if (data.phonex1) document.getElementById('phonex1').value = data.phonex1;
@@ -644,17 +839,30 @@ span#totalSpanx1.loading {
       }
     }
 
+    // Lưu dữ liệu
+    saveFormData = function() {
+      const obj = {};
+      fields.forEach(fid => { obj[fid] = document.getElementById(fid)?.value || ''; });
+      // Lưu thêm ward name
+      obj.wardx1 = wardInput.value;
+      store(obj);
+    };
+
+    // Gắn sự kiện auto-save
     fields.forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
-      ['change', 'input'].forEach(evt => el.addEventListener(evt, () => {
-        const obj = {};
-        fields.forEach(fid => { obj[fid] = document.getElementById(fid)?.value || ''; });
-        store(obj);
-      }));
+      ['change', 'input'].forEach(evt => el.addEventListener(evt, saveFormData));
     });
+    
+    // Lưu khi chọn ward
+    wardInput.addEventListener('change', saveFormData);
 
-    document.getElementById('muahangx1').addEventListener('click', () => fill(getStored()));
+    restoreFormData = function() {
+      fill(getStored());
+    };
+
+    document.getElementById('muahangx1').addEventListener('click', restoreFormData);
   })();
 
   /* 14. Expose closePopup to global scope for modal footer button */
