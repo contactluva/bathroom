@@ -433,7 +433,7 @@ span#totalSpanx1.loading {
 
         citySel.disabled = false;
         wardInput.disabled = false;
-        wardInput.placeholder = 'Gõ tên phường/xã...';
+        wardInput.placeholder = 'Phường/xã...';
 
         // Restore saved data after load
         restoreFormData();
@@ -525,7 +525,7 @@ span#totalSpanx1.loading {
     }
 
     currentWards = province.wards;
-    wardInput.placeholder = 'Gõ tên phường/xã...';
+    wardInput.placeholder = 'Phường/xã...';
     
     // Hiện dropdown ngay nếu click vào ô input
     if (document.activeElement === wardInput) {
