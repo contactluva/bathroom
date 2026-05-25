@@ -1,5 +1,21 @@
 /* popup-product.js – toàn bộ CSS + JS dạng IIFE */
 (() => {
+  /* ========== HÀM TIỆN ÍCH: BỎ DẤU TIẾNG VIỆT ========== */
+  function removeVietnameseTones(str) {
+    if (!str) return '';
+    str = str.toLowerCase();
+    str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+    str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+    str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+    str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+    str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+    str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+    str = str.replace(/đ/g, "d");
+    // Bỏ dấu còn sót (dấu mũ, dấu hỏi...)
+    str = str.replace(/[^\w\s]/g, '');
+    return str;
+  }
+
   /* 1. CSS inline */
   const style = document.createElement('style');
   style.textContent = `
@@ -428,17 +444,20 @@ span#totalSpanx1.loading {
       });
   }
 
-  /* AUTOCOMPLETE WARD FUNCTIONALITY */
+  /* ========== AUTOCOMPLETE WARD – TÌM KIẾM KHÔNG DẤU ========== */
   let highlightedIndex = -1;
 
   function filterWards(query) {
-    const term = query.toLowerCase().trim();
+    const term = removeVietnameseTones(query);
     if (!term) {
       renderDropdown(currentWards);
       return;
     }
-    const filtered = currentWards.filter(w => w.name.toLowerCase().includes(term));
-    renderDropdown(filtered, term);
+    // Lọc: so sánh không dấu, nhưng hiển thị có dấu
+    const filtered = currentWards.filter(w => 
+      removeVietnameseTones(w.name).includes(term)
+    );
+    renderDropdown(filtered, query);
   }
 
   function renderDropdown(wards, highlightTerm = '') {
@@ -449,11 +468,30 @@ span#totalSpanx1.loading {
       return;
     }
 
+    // Tạo regex highlight từ từ khóa KHÔNG DẤU
+    let highlightRegex = null;
+    if (highlightTerm) {
+      const noAccentTerm = removeVietnameseTones(highlightTerm);
+      // Tạo pattern match cả có dấu và không dấu
+      const chars = noAccentTerm.split('').map(c => {
+        const map = {
+          'a': '[aàáạảãâầấậẩẫăằắặẳẵ]',
+          'e': '[eèéẹẻẽêềếệểễ]',
+          'i': '[iìíịỉĩ]',
+          'o': '[oòóọỏõôồốộổỗơờớợởỡ]',
+          'u': '[uùúụủũưừứựửữ]',
+          'y': '[yỳýỵỷỹ]',
+          'd': '[dđ]'
+        };
+        return map[c] || c;
+      }).join('');
+      highlightRegex = new RegExp(`(${chars})`, 'gi');
+    }
+
     wardDropdown.innerHTML = wards.map((w, i) => {
       let name = w.name;
-      if (highlightTerm) {
-        const regex = new RegExp(`(${highlightTerm})`, 'gi');
-        name = name.replace(regex, '<strong>$1</strong>');
+      if (highlightRegex) {
+        name = name.replace(highlightRegex, '<strong style="color:#1a73e8">$1</strong>');
       }
       return `<div class="ward-itemx1" data-index="${i}" data-code="${w.ward_code}" data-name="${w.name}">${name}</div>`;
     }).join('');
