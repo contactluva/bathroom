@@ -349,7 +349,7 @@ span#totalSpanx1.loading {
           <div class="form-rowx1">
             <select id="cityx1"><option value="" selected>Chọn tỉnh/TP</option></select>
             <div class="ward-wrapx1">
-              <input type="text" id="wardx1" placeholder="Gõ tên phường/xã..." autocomplete="off">
+              <input type="text" id="wardx1" placeholder="Chọn phường/xã..." autocomplete="off">
               <div class="ward-dropdownx1" id="wardDropdownx1"></div>
             </div>
           </div>
