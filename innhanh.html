@@ -67,22 +67,24 @@ input[type=file]{display:none}
     box-shadow: none;
   }
 
+  /* Hợp đồng: giống hệt .page bình thường, không cần đặc biệt */
+  .page.hd-page {
+    height: 297mm;
+    min-height: 297mm;
+    overflow: hidden;
+    page-break-inside: avoid;
+  }
+
   .page:last-child {
     page-break-after: avoid;
   }
 
-  /* Xóa hoàn toàn header/footer mặc định của trình duyệt */
   @page {
     size: A4 portrait;
     margin: 0;
-    @top-left      { content: none }
-    @top-center    { content: none }
-    @top-right     { content: none }
-    @bottom-left   { content: none }
-    @bottom-center { content: none }
-    @bottom-right  { content: none }
   }
 }
+
   body {
     margin: 15mm 12mm !important;
     print-color-adjust: exact;
@@ -132,17 +134,222 @@ textarea.product-info {
     text-align: left;
 }
 
-/* ---------- Chỉnh “Kính gửi:” + tên công ty ---------- */
+/* ---------- Chỉnh "Kính gửi:" + tên công ty ---------- */
 .fill-company {
   max-width: 400px;          /* giới hạn chiều rộng phần tên */
   display: inline-block;     /* giữ trên cùng 1 dòng đầu */
   word-break: break-word;    /* tự xuống dòng khi hết chỗ */
-  vertical-align: top;       /* căn đỉnh với “Kính gửi:” */
+  vertical-align: top;       /* căn đỉnh với "Kính gửi:" */
 }
-/* Nếu “Kính gửi:” nằm trong <strong> cố định, bổ sung thêm: */
+/* Nếu "Kính gửi:" nằm trong <strong> cố định, bổ sung thêm: */
 strong:has(+ .fill-company) {
-  white-space: nowrap;       /* không cho “Kính gửi:” xuống dòng */
+  white-space: nowrap;       /* không cho "Kính gửi:" xuống dòng */
   margin-right: 0.4em;       /* khoảng cách sau dấu hai chấm */
+}
+
+/* ===== STYLE HỢP ĐỒNG ===== */
+.hd-page {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 20mm 20mm 15mm;
+  /* Thêm các thuộc tính để đồng nhất với .page */
+  width: 210mm;
+  min-height: 297mm;
+  box-sizing: border-box;
+  margin: 0 auto 30px;
+  position: relative;
+  page-break-after: always;
+  background: white;
+}
+.hd-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.hd-header h2 {
+  margin: 0 0 5px;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+.hd-header h1 {
+  margin: 0;
+  font-size: 20px;
+  text-transform: uppercase;
+}
+.hd-header .hd-so {
+  font-weight: bold;
+  margin-top: 5px;
+}
+.hd-center {
+  text-align: center;
+  margin: 10px 0;
+}
+.hd-center .hd-quoc-hieu {
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 15px;
+}
+.hd-center .hd-doclap {
+  font-size: 13px;
+}
+.hd-center .hd-line {
+  width: 150px;
+  border-top: 1px solid #000;
+  margin: 3px auto;
+}
+.hd-table-info {
+  width: 100%;
+  margin: 15px 0;
+}
+.hd-table-info td {
+  border: none;
+  text-align: left;
+  padding: 3px 0;
+  vertical-align: top;
+}
+.hd-table-info td:first-child {
+  width: 140px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+.hd-table-sp {
+  width: 100%;
+  margin: 10px 0;
+  border-collapse: collapse;
+}
+.hd-table-sp th, .hd-table-sp td {
+  border: 1px solid #000;
+  padding: 6px;
+  text-align: center;
+  vertical-align: middle;
+}
+.hd-table-sp th {
+  background: #f5f5f5;
+  font-weight: bold;
+}
+.hd-table-sp td:nth-child(2) {
+  text-align: left;
+}
+.hd-bangchu {
+  font-style: italic;
+  margin: 5px 0 15px;
+}
+.hd-dieu {
+  font-weight: bold;
+  text-transform: uppercase;
+  margin: 15px 0 8px;
+  text-decoration: underline;
+}
+.hd-content {
+  text-align: justify;
+  margin-bottom: 8px;
+}
+.hd-content ul {
+  margin: 5px 0;
+  padding-left: 25px;
+}
+.hd-content ul li {
+  margin-bottom: 3px;
+}
+.hd-sign {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  text-align: center;
+}
+.hd-sign > div {
+  width: 45%;
+}
+.hd-sign strong {
+  display: block;
+  margin-bottom: 5px;
+}
+.hd-sign small {
+  font-style: italic;
+}
+.hd-signature-img {
+  max-width: 200px;
+  margin-top: 10px;
+}
+
+/* ===== STYLE PHIẾU THU ===== */
+#phieuThuPage {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 40px;
+}
+.pt-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+.pt-company {
+  width: 60%;
+}
+.pt-company-name {
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 16px;
+}
+.pt-form-info {
+  width: 40%;
+  text-align: center;
+}
+.pt-form-title {
+  font-weight: bold;
+  font-size: 16px;
+}
+.pt-title-section {
+  text-align: center;
+  margin-bottom: 20px;
+  position: relative;
+}
+.pt-main-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin: 0;
+  padding-bottom: 5px;
+}
+.pt-accounting {
+  position: absolute;
+  right: 0;
+  top: 0;
+  text-align: left;
+  font-size: 14px;
+}
+.pt-content-line {
+  margin-bottom: 10px;
+}
+.pt-label {
+  font-weight: normal;
+}
+.pt-value {
+  font-weight: bold;
+}
+.pt-italic {
+  font-style: italic;
+}
+.pt-sign-table {
+  width: 100%;
+  margin-top: 30px;
+  text-align: center;
+  border-collapse: collapse;
+}
+.pt-sign-table th {
+  font-weight: bold;
+  padding-bottom: 5px;
+}
+.pt-sign-table td {
+  vertical-align: top;
+  padding-bottom: 80px;
+  font-style: italic;
+  font-size: 13px;
+}
+#phieuThuPage .pt-sign-table,
+#phieuThuPage .pt-sign-table th,
+#phieuThuPage .pt-sign-table td {
+  border: none !important;
 }
 </style>
 </head>
@@ -176,8 +383,9 @@ window.addEventListener('DOMContentLoaded',()=>{
   // localStorage.removeItem('qmData');
 });
 </script>
-<!-- ============ 3 TRANG NỘI DUNG ============ -->
-<div id="pages"contenteditable="true">
+<!-- ============ 6 TRANG NỘI DUNG ============ -->
+<div id="pages" contenteditable="true">
+
   <!-- Trang 1: Báo giá -->
   <div class="page">
     <div class="logo" style="display:flex;align-items:center;margin-bottom:15px">
@@ -235,7 +443,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   </div>
 
   <!-- Trang 2: Phiếu xuất kho -->
-  <div class="page"contenteditable="true">
+  <div class="page" contenteditable="true">
     <div class="logo" style="display:flex;align-items:center;margin-bottom:15px">
       <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/logo%20QM.webp" width="66" height="66" style="margin-right:10px">
       <div>
@@ -270,7 +478,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   </div>
 
   <!-- Trang 3: Biên bản bàn giao -->
-  <div class="page"contenteditable="true">
+  <div class="page" contenteditable="true">
     <table class="no-border" style="border:none;width:100%;margin-bottom:10px">
       <tr>
         <td style="text-align:left;border:none">
@@ -313,9 +521,6 @@ window.addEventListener('DOMContentLoaded',()=>{
     </div>
     <div class="signature-container" id="sig3"><img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký" style="max-width:350px"></div>
   </div>
-</div>
-
-
 
   <!-- Trang 4: Đề nghị thanh toán -->
   <div class="page" contenteditable="true">
@@ -368,203 +573,305 @@ window.addEventListener('DOMContentLoaded',()=>{
       <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký">
     </div>
   </div>
-  <!-- ============ HẾT TRANG 4 ============ -->
-</div>
 
-<!-- ============ TRANG 5: PHIẾU THU ============ -->
-<div class="page" id="phieuThuPage" contenteditable="true">
-  <style>
-    /* Định dạng riêng cho trang Phiếu Thu – giống mẫu bạn cung cấp */
-    #phieuThuPage {
-      font-family: "Times New Roman", Times, serif;
-      font-size: 14px;
-      line-height: 1.4;
-      padding: 40px;
-    }
-    .pt-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 30px;
-    }
-    .pt-company {
-      width: 60%;
-    }
-    .pt-company-name {
-      font-weight: bold;
-      text-transform: uppercase;
-      font-size: 16px;
-    }
-    .pt-form-info {
-      width: 40%;
-      text-align: center;
-    }
-    .pt-form-title {
-      font-weight: bold;
-      font-size: 16px;
-    }
-    .pt-title-section {
-      text-align: center;
-      margin-bottom: 20px;
-      position: relative;
-    }
-    .pt-main-title {
-      font-size: 28px;
-      font-weight: bold;
-      margin: 0;
-      padding-bottom: 5px;
-    }
-    .pt-accounting {
-      position: absolute;
-      right: 0;
-      top: 0;
-      text-align: left;
-      font-size: 14px;
-    }
-    .pt-content-line {
-      margin-bottom: 10px;
-    }
-    .pt-label {
-      font-weight: normal;
-    }
-    .pt-value {
-      font-weight: bold;
-    }
-    .pt-italic {
-      font-style: italic;
-    }
-    .pt-sign-table {
-      width: 100%;
-      margin-top: 30px;
-      text-align: center;
-      border-collapse: collapse;
-    }
-    .pt-sign-table th {
-      font-weight: bold;
-      padding-bottom: 5px;
-    }
-    .pt-sign-table td {
-      vertical-align: top;
-      padding-bottom: 80px;
-      font-style: italic;
-      font-size: 13px;
-    }
-    #phieuThuPage .pt-sign-table,
-#phieuThuPage .pt-sign-table th,
-#phieuThuPage .pt-sign-table td {
-  border: none !important;
-}
-  </style>
+  <!-- ============ TRANG 5: PHIẾU THU ============ -->
+  <div class="page" id="phieuThuPage" contenteditable="true">
 
-  <div class="pt-header">
-    <div class="pt-company">
-      <div class="pt-company-name">CÔNG TY TNHH QUANG MINH VN</div>
-      <div>MST: 2401038011</div>
-      <div>Thôn Hữu Định, xã Hợp Thịnh, Bắc Ninh</div>
+    <div class="pt-header">
+      <div class="pt-company">
+        <div class="pt-company-name">CÔNG TY TNHH QUANG MINH VN</div>
+        <div>MST: 2401038011</div>
+        <div>Thôn Hữu Định, xã Hợp Thịnh, Bắc Ninh</div>
+      </div>
+      <div class="pt-form-info">
+        <div class="pt-form-title">Mẫu số 01 - TT</div>
+        <div class="pt-italic">(Ban hành theo Thông tư số 200/2014/TT-BTC<br>Ngày 22/12/2014 của Bộ Tài chính)</div>
+      </div>
     </div>
-    <div class="pt-form-info">
-      <div class="pt-form-title">Mẫu số 01 - TT</div>
-      <div class="pt-italic">(Ban hành theo Thông tư số 200/2014/TT-BTC<br>Ngày 22/12/2014 của Bộ Tài chính)</div>
+
+    <div class="pt-title-section">
+      <h1 class="pt-main-title">PHIẾU THU</h1>
+      <div class="pt-italic">Ngày <span class="fill-date"></span></div>
+      <div class="pt-accounting">
+        <div>Quyển số: ....................</div>
+        <div>Số: <b>PT26019</b></div>
+        <div>Nợ: ..........................</div>
+        <div>Có: ..........................</div>
+      </div>
+    </div>
+
+    <div class="pt-content">
+      <div class="pt-content-line">
+        <span class="pt-label">Họ và tên người nộp tiền:</span>
+        <span class="pt-value fill-company"></span>
+      </div>
+      <div class="pt-content-line">
+        <span class="pt-label">Địa chỉ:</span>
+        <span class="fill-address"></span>
+      </div>
+      <div class="pt-content-line">
+        <span class="pt-label">Lý do nộp:</span>
+        <span>Mua hàng.</span>
+      </div>
+      <div class="pt-content-line">
+        <span class="pt-label">Số tiền:</span>
+        <span class="pt-value" id="pt-tien"></span>
+      </div>
+      <div class="pt-content-line">
+        <span class="pt-label">Viết bằng chữ:</span>
+        <span class="pt-italic" id="pt-tienchu"></span>
+      </div>
+      <div class="pt-content-line">
+        <span class="pt-label">Kèm theo:</span>
+        <span>....................................................... Chứng từ gốc</span>
+      </div>
+    </div>
+
+    <table class="pt-sign-table">
+      <thead>
+        <tr>
+          <th>Giám đốc</th>
+          <th>Kế toán trưởng</th>
+          <th>Người nộp tiền</th>
+          <th>Người lập phiếu</th>
+          <th>Thủ quỹ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>(Ký, họ tên, đóng dấu)</td>
+          <td>(Ký, họ tên)</td>
+          <td>(Ký, họ tên)</td>
+          <td>(Ký, họ tên)</td>
+          <td>(Ký, họ tên)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 40px;">
+      <div class="pt-content-line">
+        <span class="pt-label">Đã nhận đủ số tiền (viết bằng chữ):</span>
+        <span class="pt-italic" id="pt-tienchu2"></span>
+      </div>
+      <div class="pt-content-line">
+        + Tỷ giá ngoại tệ (vàng bạc, đá quý): ..............................................................
+      </div>
+      <div class="pt-content-line">
+        + Số tiền quy đổi: ..............................................................................................
+      </div>
     </div>
   </div>
+  <!-- ============ HẾT TRANG 5 ============ -->
+  <!-- ============ TRANG 6A: HỢP ĐỒNG - TRANG 1 ============ -->
+  <div class="page hd-page" id="hopDongPage1" contenteditable="true">
+    <div class="hd-center">
+      <div class="hd-quoc-hieu">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+      <div class="hd-doclap">Độc lập – Tự do – Hạnh phúc</div>
+      <div class="hd-line"></div>
+    </div>
 
-  <div class="pt-title-section">
-    <h1 class="pt-main-title">PHIẾU THU</h1>
-    <div class="pt-italic">Ngày <span class="fill-date"></span></div>
-    <div class="pt-accounting">
-      <div>Quyển số: ....................</div>
-      <div>Số: <b>PT26019</b></div>
-      <div>Nợ: ..........................</div>
-      <div>Có: ..........................</div>
+    <div class="hd-header">
+      <h2>Hợp đồng mua bán hàng hóa</h2>
+      <div class="hd-so">Số: <span id="hd-so">....../HĐMB/QMVN</span></div>
     </div>
-  </div>
 
-  <div class="pt-content">
-    <div class="pt-content-line">
-      <span class="pt-label">Họ và tên người nộp tiền:</span>
-      <span class="pt-value fill-company"></span>
-    </div>
-    <div class="pt-content-line">
-      <span class="pt-label">Địa chỉ:</span>
-      <span class="fill-address"></span>
-    </div>
-    <div class="pt-content-line">
-      <span class="pt-label">Lý do nộp:</span>
-      <span>Mua hàng.</span>
-    </div>
-    <div class="pt-content-line">
-      <span class="pt-label">Số tiền:</span>
-      <span class="pt-value" id="pt-tien"></span>
-    </div>
-    <div class="pt-content-line">
-      <span class="pt-label">Viết bằng chữ:</span>
-      <span class="pt-italic" id="pt-tienchu"></span>
-    </div>
-    <div class="pt-content-line">
-      <span class="pt-label">Kèm theo:</span>
-      <span>....................................................... Chứng từ gốc</span>
-    </div>
-  </div>
+    <p style="font-style:italic; text-align:center; margin:10px 0;">
+      Căn cứ vào Bộ luật dân sự của nước Cộng hòa xã hội chủ nghĩa Việt Nam số 91/2015/QH13 ngày 24/11/2015 và có hiệu lực từ ngày 01/01/2017.<br>
+      Căn cứ vào Bộ luật Thương mại số 36/2005/QH11 ngày 14 tháng 6 năm 2005 của nước Cộng hòa xã hội chủ nghĩa Việt Nam.<br>
+      Căn cứ nhu cầu, khả năng của mỗi bên.
+    </p>
 
-  <table class="pt-sign-table">
-    <thead>
+    <p style="text-align:center; font-weight:500; margin:15px 0;">
+      Hôm nay, ngày <span class="fill-date"></span>, tại Công ty TNHH Quang Minh VN, chúng tôi gồm:
+    </p>
+
+    <table class="hd-table-info">
       <tr>
-        <th>Giám đốc</th>
-        <th>Kế toán trưởng</th>
-        <th>Người nộp tiền</th>
-        <th>Người lập phiếu</th>
-        <th>Thủ quỹ</th>
+        <td><strong>BÊN A (BÊN MUA)</strong></td>
+        <td>: <span class="fill-caps" style="font-weight:bold;"></span></td>
       </tr>
-    </thead>
-    <tbody>
       <tr>
-        <td>(Ký, họ tên, đóng dấu)</td>
-        <td>(Ký, họ tên)</td>
-        <td>(Ký, họ tên)</td>
-        <td>(Ký, họ tên)</td>
-        <td>(Ký, họ tên)</td>
+        <td>Địa chỉ</td>
+        <td>: <span class="fill-address"></span></td>
       </tr>
-    </tbody>
-  </table>
+      <tr>
+        <td>Mã số thuế</td>
+        <td>: <span class="fill-tax"></span></td>
+      </tr>
+      <tr>
+        <td>Điện thoại</td>
+        <td>: <span class="hd-dienthoai-a" contenteditable="true">..........................</span></td>
+      </tr>
+      <tr>
+        <td>Đại diện</td>
+        <td>: <span class="hd-daidien-a" contenteditable="true">..........................</span></td>
+      </tr>
+      <tr>
+        <td>Chức vụ</td>
+        <td>: <span class="hd-chucvu-a" contenteditable="true">Giám Đốc</span></td>
+      </tr>
+    </table>
 
-  <div style="margin-top: 40px;">
-    <div class="pt-content-line">
-      <span class="pt-label">Đã nhận đủ số tiền (viết bằng chữ):</span>
-      <span class="pt-italic" id="pt-tienchu2"></span>
+    <p style="text-align:center; font-weight:bold; text-decoration:underline; margin:10px 0;">Và</p>
+
+    <table class="hd-table-info">
+      <tr>
+        <td><strong>BÊN B (BÊN BÁN)</strong></td>
+        <td>: <strong>CÔNG TY TNHH QUANG MINH VN</strong></td>
+      </tr>
+      <tr>
+        <td>Địa chỉ</td>
+        <td>: Thôn Hữu Định, xã Hợp Thịnh, tỉnh Bắc Ninh, Việt Nam</td>
+      </tr>
+      <tr>
+        <td>Mã số thuế</td>
+        <td>: 2401038011</td>
+      </tr>
+      <tr>
+        <td>Đại diện</td>
+        <td>: Ông Nguyễn Văn Đức</td>
+      </tr>
+      <tr>
+        <td>Chức vụ</td>
+        <td>: Giám đốc</td>
+      </tr>
+    </table>
+
+    <p style="font-style:italic; text-align:center; margin:15px 0;">
+      Sau khi bàn bạc và thỏa thuận, hai bên thống nhất ký hợp đồng mua bán hàng hóa như sau:
+    </p>
+
+    <div class="hd-dieu">ĐIỀU I. BÊN B BÁN CHO BÊN A HÀNG HÓA THEO BẢNG KÊ DƯỚI ĐÂY:</div>
+
+    <table class="hd-table-sp">
+      <thead>
+        <tr>
+          <th style="width:40px;">STT</th>
+          <th>Tên vật tư</th>
+          <th style="width:60px;">ĐVT</th>
+          <th style="width:70px;">Số lượng</th>
+          <th style="width:120px;">Đơn giá (đ)</th>
+          <th style="width:140px;">Thành tiền (đ)</th>
+        </tr>
+      </thead>
+      <tbody id="hd-rows"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="5" style="text-align:right; font-weight:bold;">Cộng tiền hàng</td>
+          <td style="font-weight:bold;" id="hd-subtotal"></td>
+        </tr>
+        <tr>
+          <td colspan="5" style="text-align:right; font-weight:bold;">Tiền thuế GTGT (8%)</td>
+          <td style="font-weight:bold;" id="hd-vat"></td>
+        </tr>
+        <tr>
+          <td colspan="5" style="text-align:right; font-weight:bold;">Tổng cộng tiền thanh toán</td>
+          <td style="font-weight:bold;" id="hd-total"></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="hd-bangchu">
+      <em>(Bằng chữ: <span id="hd-bangchu"></span>)</em>
     </div>
-    <div class="pt-content-line">
-      + Tỷ giá ngoại tệ (vàng bạc, đá quý): ..............................................................
-    </div>
-    <div class="pt-content-line">
-      + Số tiền quy đổi: ..............................................................................................
+
+    <div class="hd-dieu">ĐIỀU II: CHẤT LƯỢNG</div>
+    <div class="hd-content">
+      Bên B đảm bảo và chịu trách nhiệm về chất lượng vật tư theo các tiêu chuẩn Nhà nước quy định được công bố trên bao bì sản phẩm.
+     
     </div>
   </div>
-</div>
-<!-- ============ HẾT TRANG 5 ============ -->
+  <!-- ============ HẾT TRANG 6A ============ -->
 
-<script>
-/* ---------- Tự động fill Phiếu Thu ---------- */
-function fillPhieuThu(){
-  const raw = localStorage.getItem('qmData');
-  if (!raw) return;
-  const d = JSON.parse(raw);
+  <!-- ============ TRANG 6B: HỢP ĐỒNG - TRANG 2 ============ -->
+  <div class="page hd-page" id="hopDongPage2" contenteditable="true">
+   <ul>
+        <li>Xuất xứ: Trung Quốc</li>
+        <li>Thời gian bảo hành: 12 tháng</li>
+      </ul>
+    <div class="hd-dieu">ĐIỀU III: ĐIỀU KIỆN BẢO HÀNH VÀ CÁCH THỨC BẢO HÀNH</div>
+    <div class="hd-content">
+      <strong>Hàng được phép bảo hành</strong>
+      <ul>
+        <li>Không đảm bảo chất lượng.</li>
+        <li>Lỗi kỹ thuật không do người dùng.</li>
+        <li>Không đúng mẫu mã, chủng loại.</li>
+        <li>Hỏng/vỡ do vận chuyển của công ty.</li>
+      </ul>
+      <strong>Quy định bảo hành</strong>
+      <ul>
+        <li>Đúng hàng do công ty cung cấp, còn tem mác.</li>
+        <li>Hàng mới được đổi trả trong 7 ngày.</li>
+        <li>Hàng đổi mới phải bằng hoặc cao hơn giá trị đã mua.</li>
+        <li>Khách hàng gửi hàng cần bảo hành về địa chỉ công ty để được bảo hành.</li>
+        <li>Thời gian bảo hành 10 ngày kể từ khi nhận hàng lỗi.</li>
+      </ul>
+    </div>
 
-  // --- thông tin khách hàng ---
-  document.querySelector('#phieuThuPage .fill-company').textContent = toTitleCase(d.company||'');
-  document.querySelector('#phieuThuPage .fill-address').textContent = d.address||'';
-  document.querySelectorAll('#phieuThuPage .fill-date').forEach(el=>el.textContent=today());
+    <div class="hd-dieu">ĐIỀU IV: THỜI GIAN GIAO HÀNG, ĐỊA ĐIỂM GIAO HÀNG, PHƯƠNG THỨC THANH TOÁN</div>
+    <div class="hd-content">
+      <ul>
+        <li>Thời gian giao hàng: Giao hàng trong vòng 3-5 ngày kể từ ngày nhận được đơn đặt hàng.</li>
+        <li>Địa điểm giao hàng: <span class="fill-address"></span></li>
+        <li>Thanh toán: Ngay khi nhận hàng.</li>
+        <li>Thông tin chuyển khoản:
+          <ul>
+            <li>Người thụ hưởng: <strong>Công ty TNHH Quang Minh VN</strong></li>
+            <li>Số tài khoản: <strong>865789</strong></li>
+            <li>Tại ngân hàng: <strong>TechcomBank – CN Trần Phú</strong></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
 
-  // --- tiền ---
-  const tong = d.products.reduce((s,it)=>s+(it.qty||0)*(it.price||0),0);
-  const vat  = Math.round(tong*0.08);
-  const total= tong + vat;
-  document.getElementById('pt-tien').textContent     = total.toLocaleString('vi-VN') + ' đồng';
-  document.getElementById('pt-tienchu').textContent  = numberToVietnameseWords(total,{currencyUnit:'đồng',capitalize:true});
-  document.getElementById('pt-tienchu2').textContent = numberToVietnameseWords(total,{currencyUnit:'đồng',capitalize:true});
-}
+    <div class="hd-dieu">ĐIỀU V: TRÁCH NHIỆM CỦA MỖI BÊN</div>
+    <div class="hd-content">
+      <strong>Bên A:</strong> Có trách nhiệm báo trước thời gian, các thông tin liên quan đến việc nhận hàng, trong thời gian sớm nhất để bên B xử lý kịp thời.<br><br>
+      <strong>Bên B:</strong> Có trách nhiệm giao đúng hàng hóa và tài liệu đúng thời gian và địa điểm, và đảm bảo thời gian bảo hành như Điều II.
+    </div>
 
-/* chạy sau khi trang đã load */
-window.addEventListener('DOMContentLoaded', fillPhieuThu);
-</script>
+    <div class="hd-dieu">ĐIỀU VI: THANH LÝ HỢP ĐỒNG</div>
+    <div class="hd-content">
+      Sau 07 ngày làm việc kể từ ngày hai Bên đã thực hiện đầy đủ quyền và nghĩa vụ của mình đồng thời nghiêm chỉnh thực hiện các điều khoản trong hợp đồng này mà không có vướng mắc gì bằng văn bản thì hợp đồng được xem là đã thanh lý.
+    </div>
+    
+     <div class="hd-dieu">ĐIỀU VII: ĐIỀU KHOẢN CHUNG</div>
+    <div class="hd-content">
+      Trong quá trình thực hiện, nếu có các vấn đề phát sinh hai bên phải cùng nhau tìm biện pháp giải quyết trên tinh thần hợp tác, nếu cần sẽ làm thêm phụ bản kèm theo Hợp đồng.
+    </div>
+  </div>
+  <!-- ============ HẾT TRANG 6B ============ -->
+
+  <!-- ============ TRANG 6C: HỢP ĐỒNG - TRANG 3 ============ -->
+  <div class="page hd-page" id="hopDongPage3" contenteditable="true">
+  
+    <div class="hd-content">
+       Nếu bên nào vi phạm điều khoản của Hợp đồng sẽ bị xử phạt theo Luật pháp hiện hành. Trường hợp hai bên tranh chấp không giải quyết được bằng thương lượng sẽ đưa ra Tòa án thành phố Hà Nội xét xử theo Pháp luật. Quyết định của Tòa án là quyết định cuối cùng mà hai bên phải thi hành, chi phí phát sinh do bên thua kiện phải chịu.
+    </div>
+
+    <p style="text-align:center; margin:15px 0; font-style:italic;">
+      Hợp đồng này được làm thành 4 (bốn) bản có giá trị pháp lý như nhau, mỗi bên giữ 2 (hai) bản để làm căn cứ thực hiện.
+    </p>
+
+    <div class="hd-sign">
+      <div>
+        <strong>ĐẠI DIỆN BÊN A</strong>
+        <small>(Ký, họ tên, đóng dấu)</small>
+        <div class="signature-container" id="sig-hd-a" style="display:none; text-align:center;">
+          <img src="" alt="Chữ ký Bên A" class="hd-signature-img" style="max-width:150px;">
+        </div>
+      </div>
+      <div>
+        <strong>ĐẠI DIỆN BÊN B</strong>
+        <small>(Ký, họ tên)</small>
+        <div class="signature-container" id="sig-hd-b" style="display:none; text-align:center;">
+          <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký" class="hd-signature-img">
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ============ HẾT TRANG 6C ============ -->
+</div> <!-- KẾT THÚC #pages -->
 
 
 <!-- ============ NÚT ĐIỀU KHIỂN ============ -->
@@ -603,6 +910,76 @@ window.addEventListener('DOMContentLoaded', fillPhieuThu);
     </div>
   </div>
 </div>
+
+<script>
+/* ---------- Tự động fill Phiếu Thu ---------- */
+function fillPhieuThu(){
+  const raw = localStorage.getItem('qmData');
+  if (!raw) return;
+  const d = JSON.parse(raw);
+
+  // --- thông tin khách hàng ---
+  document.querySelector('#phieuThuPage .fill-company').textContent = toTitleCase(d.company||'');
+  document.querySelector('#phieuThuPage .fill-address').textContent = d.address||'';
+  document.querySelectorAll('#phieuThuPage .fill-date').forEach(el=>el.textContent=today());
+
+  // --- tiền ---
+  const tong = d.products.reduce((s,it)=>s+(it.qty||0)*(it.price||0),0);
+  const vat  = Math.round(tong*0.08);
+  const total= tong + vat;
+  document.getElementById('pt-tien').textContent     = total.toLocaleString('vi-VN') + ' đồng';
+  document.getElementById('pt-tienchu').textContent  = numberToVietnameseWords(total,{currencyUnit:'đồng',capitalize:true});
+  document.getElementById('pt-tienchu2').textContent = numberToVietnameseWords(total,{currencyUnit:'đồng',capitalize:true});
+}
+
+/* ---------- Tự động fill Hợp Đồng ---------- */
+/* ---------- Tự động fill Hợp Đồng ---------- */
+function fillHopDong(){
+  const raw = localStorage.getItem('qmData');
+  if (!raw) return;
+  const d = JSON.parse(raw);
+
+  // Fill thông tin chung cho cả 3 trang hợp đồng
+  ['hopDongPage1', 'hopDongPage2', 'hopDongPage3'].forEach(id => {
+    const page = document.getElementById(id);
+    if (!page) return;
+    
+    page.querySelectorAll('.fill-caps').forEach(el=>el.textContent = toTitleCase(d.company||''));
+    page.querySelectorAll('.fill-address').forEach(el=>el.textContent = d.address||'');
+    page.querySelectorAll('.fill-tax').forEach(el=>el.textContent = d.tax||'');
+    page.querySelectorAll('.fill-date').forEach(el=>el.textContent = today());
+  });
+
+  // Render bảng sản phẩm chỉ ở trang 1
+  const tbody = document.getElementById('hd-rows');
+  tbody.innerHTML = '';
+  let sub = 0;
+  let idx = 1;
+  d.products.forEach(it => {
+    if (!it.name) return;
+    const thanhTien = (it.qty || 0) * (it.price || 0);
+    sub += thanhTien;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${idx++}</td>
+      <td style="text-align:left;">${it.name}</td>
+      <td>cái</td>
+      <td>${it.qty || 1}</td>
+      <td style="text-align:right; white-space:nowrap;">${(it.price || 0).toLocaleString('vi-VN')}</td>
+      <td style="text-align:right; white-space:nowrap;">${thanhTien.toLocaleString('vi-VN')}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const vat = Math.round(sub * 0.08);
+  const total = sub + vat;
+
+  document.getElementById('hd-subtotal').textContent = sub.toLocaleString('vi-VN');
+  document.getElementById('hd-vat').textContent = vat.toLocaleString('vi-VN');
+  document.getElementById('hd-total').textContent = total.toLocaleString('vi-VN');
+  document.getElementById('hd-bangchu').textContent = numberToVietnameseWords(total, {currencyUnit:'đồng', capitalize:true}) + './.';
+}
+</script>
 
 <script>
 /* ---------- Mở/tắt modal ---------- */
@@ -804,6 +1181,10 @@ function applyData(){
   renderRows('pxk-rows','pxk-vat','pxk-total');
   renderRows('bbb-rows','bbb-vat','bbb-total');
 
+  // Cập nhật lại Hợp đồng và Phiếu thu
+  fillHopDong();
+  fillPhieuThu();
+
   closeModal();
 }
 
@@ -838,6 +1219,9 @@ function toTitleCase(str) {
     .toLowerCase()
     .replace(/(?:^|\s)\S/g, ch => ch.toUpperCase());
 }
+
+
+
 </script>
 </body>
 </html>
