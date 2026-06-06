@@ -556,11 +556,10 @@ function handleWatermark(files){
         const wmHeight =
           watermarkImg.height * scale;
 
-        const x =
-          canvas.width - wmWidth - 14;
+        // Tính toán vị trí cách lề phải 30px và lề dưới 30px
+const x = canvas.width - wmWidth - 58;
 
-        const y =
-          canvas.height - wmHeight + 2;
+const y = canvas.height - wmHeight - 40;
 
         ctx.drawImage(
           watermarkImg,
@@ -720,4 +719,3 @@ function displayResult(
 
 </body>
 </html>
-
