@@ -194,13 +194,12 @@
         const phoneMockup = document.getElementById('phoneMockup');
 
         // Hàm load code vào iframe
-        function renderCode() {
-            const code = htmlInput.value;
-            const doc = outputFrame.contentDocument || outputFrame.contentWindow.document;
-            doc.open();
-            doc.write(code);
-            doc.close();
-        }
+        // Hàm load code vào iframe
+function renderCode() {
+    const code = htmlInput.value;
+    // Gán trực tiếp code vào thuộc tính srcdoc của iframe
+    outputFrame.srcdoc = code;
+}
 
         submitBtn.addEventListener('click', renderCode);
 
