@@ -41,8 +41,56 @@
 
         h2 {
             font-size: 18px;
-            margin-bottom: 15px;
             color: #d4d4d4;
+        }
+
+        /* --- THANH CÔNG CỤ (MỚI) --- */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            margin-top: 15px;
+        }
+
+        .toolbar input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #1e1e1e;
+            color: white;
+            outline: none;
+        }
+
+        .toolbar input:focus {
+            border-color: #007acc;
+        }
+
+        .toolbar button {
+            padding: 10px 15px;
+            font-size: 14px;
+            background-color: #4CAF50;
+        }
+
+        .toolbar button:hover {
+            background-color: #45a049;
+        }
+        
+        .header-right {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 20px 0;
+        }
+
+        #fullWidthBtn {
+            padding: 10px 20px;
+            font-size: 14px;
+            background-color: #f39c12;
+        }
+
+        #fullWidthBtn:hover {
+            background-color: #e67e22;
         }
 
         /* Khu vực nhập code */
@@ -94,10 +142,10 @@
             width: 100%;
         }
 
-        /* Kích thước CSS (Logical) giả lập điện thoại thực: 884 x 406 pixel */
+        /* Kích thước CSS (Logical) giả lập điện thoại thực */
         .phone-mockup {
             width: 884px;
-            height: 406px;
+            aspect-ratio: 16 / 9;
             background: #ffffff;
             border: 12px solid #000000;
             border-radius: 40px;
@@ -126,8 +174,75 @@
             width: 100%;
             height: 100%;
             border: none;
-            border-radius: 28px; /* Cập nhật lại góc bo iframe cho khớp viền */
+            border-radius: 28px;
             background-color: #ffffff;
+        }
+
+        /* --- CHẾ ĐỘ FULL WIDTH (MỚI) --- */
+        body.fullscreen-mode .left-panel {
+            display: none;
+        }
+
+        body.fullscreen-mode .right-panel {
+            width: 100%;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            background-color: #000; /* Nền đen để tạo viền khi bị rỗng */
+        }
+
+        body.fullscreen-mode .header-right {
+            display: none;
+        }
+
+        body.fullscreen-mode .phone-wrapper {
+            padding: 0;
+        }
+
+        body.fullscreen-mode .phone-mockup {
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            transform: none !important; /* Xóa scale cũ */
+            
+            /* Logic giữ đúng tỉ lệ 16:9 và tự động khít vào màn hình to nhất có thể */
+            width: 100vw;
+            height: calc(100vw * 9 / 16);
+            max-height: 100vh;
+            max-width: calc(100vh * 16 / 9);
+        }
+
+        body.fullscreen-mode .phone-mockup::before {
+            display: none; /* Ẩn Notch camera */
+        }
+
+        body.fullscreen-mode iframe {
+            border-radius: 0;
+        }
+
+        #exitFullWidthBtn {
+            display: none;
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            border-radius: 30px;
+            z-index: 1010;
+            backdrop-filter: blur(5px);
+        }
+
+        #exitFullWidthBtn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        body.fullscreen-mode #exitFullWidthBtn {
+            display: block;
         }
     </style>
 </head>
@@ -135,6 +250,13 @@
 
     <div class="left-panel">
         <h2>HTML / CSS / JS Code</h2>
+        
+        <div class="toolbar">
+            <input type="text" id="searchInput" placeholder="Tìm kiếm trong code...">
+            <button id="searchBtn">Tìm</button>
+            <button id="downloadBtn" title="Tải xuống thành file index.html">Tải Code</button>
+        </div>
+
         <textarea id="htmlInput"><!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -157,7 +279,7 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     h1 { 
-      font-size: 28px; /* Chữ 28px trên thiết bị di động sẽ to và rõ ràng */
+      font-size: 28px;
       color: #333; 
       margin-bottom: 10px;
     }
@@ -178,12 +300,16 @@
     </div>
 
     <div class="right-panel">
-        <h2 style="padding: 20px 20px 0;">Hiển thị (Logical Resolution 884x406 - Scale 96% chiều ngang)</h2>
+        <div class="header-right">
+            <h2>Hiển thị (Logical Resolution 884x406 - Scale 96%)</h2>
+            <button id="fullWidthBtn">Full Width</button>
+        </div>
         <div class="phone-wrapper" id="phoneWrapper">
             <div class="phone-mockup" id="phoneMockup">
                 <iframe id="outputFrame"></iframe>
             </div>
         </div>
+        <button id="exitFullWidthBtn">Thoát mở rộng</button>
     </div>
 
     <script>
@@ -194,28 +320,82 @@
         const phoneMockup = document.getElementById('phoneMockup');
 
         // Hàm load code vào iframe
-        // Hàm load code vào iframe
-function renderCode() {
-    const code = htmlInput.value;
-    // Gán trực tiếp code vào thuộc tính srcdoc của iframe
-    outputFrame.srcdoc = code;
-}
-
+        function renderCode() {
+            const code = htmlInput.value;
+            outputFrame.srcdoc = code;
+        }
         submitBtn.addEventListener('click', renderCode);
 
-        // Hàm scale để điện thoại chiếm đúng 96% chiều ngang của phần bên phải
+        // --- TÍNH NĂNG TÌM KIẾM ---
+        let lastSearchIndex = 0;
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            const term = document.getElementById('searchInput').value;
+            if (!term) return;
+            
+            const text = htmlInput.value;
+            const index = text.indexOf(term, lastSearchIndex);
+            
+            if (index !== -1) {
+                htmlInput.focus();
+                htmlInput.setSelectionRange(index, index + term.length);
+                lastSearchIndex = index + term.length; // Lưu lại vị trí để tìm tiếp
+            } else {
+                lastSearchIndex = 0; // Thử vòng lại từ đầu
+                const indexRestart = text.indexOf(term, lastSearchIndex);
+                if (indexRestart !== -1) {
+                    htmlInput.focus();
+                    htmlInput.setSelectionRange(indexRestart, indexRestart + term.length);
+                    lastSearchIndex = indexRestart + term.length;
+                } else {
+                    alert('Không tìm thấy: "' + term + '"');
+                }
+            }
+        });
+        // Reset index khi người dùng thay đổi nội dung tìm kiếm
+        document.getElementById('searchInput').addEventListener('input', () => lastSearchIndex = 0);
+
+        // --- TÍNH NĂNG TẢI FILE HTML ---
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            const code = htmlInput.value;
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'index.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // --- TÍNH NĂNG FULL WIDTH ---
+        const fullWidthBtn = document.getElementById('fullWidthBtn');
+        const exitFullWidthBtn = document.getElementById('exitFullWidthBtn');
+
+        fullWidthBtn.addEventListener('click', function() {
+            document.body.classList.add('fullscreen-mode');
+            phoneMockup.style.transform = 'none'; // Xóa inline transform của hàm scalePhone
+        });
+
+        exitFullWidthBtn.addEventListener('click', function() {
+            document.body.classList.remove('fullscreen-mode');
+            scalePhone(); // Kích hoạt lại việc scale khi về giao diện chia cột
+        });
+
+        // Hàm scale để điện thoại chiếm đúng 96% chiều ngang
         function scalePhone() {
-            // Chiều rộng LÝ THUYẾT (CSS pixels) của thiết bị
+            // Không tính toán scale nếu đang ở chế độ full-width
+            if (document.body.classList.contains('fullscreen-mode')) {
+                phoneMockup.style.transform = 'none';
+                return;
+            }
+
             const mockupWidth = 884; 
-            
-            // Chiều rộng của khu vực bên phải (wrapper)
             const wrapperWidth = phoneWrapper.clientWidth;
-            
-            // Tính toán tỷ lệ sao cho mockupWidth * scale = wrapperWidth * 0.96
             const targetWidth = wrapperWidth * 0.96;
             const scale = targetWidth / mockupWidth;
             
-            // Áp dụng scale
             phoneMockup.style.transform = `scale(${scale})`;
         }
 
@@ -224,8 +404,6 @@ function renderCode() {
 
         // Khởi tạo lần đầu
         scalePhone();
-        
-        // Render luôn đoạn code mặc định lúc mới mở trang
         renderCode();
     </script>
 </body>
