@@ -44,7 +44,7 @@
             color: #d4d4d4;
         }
 
-        /* --- THANH CÔNG CỤ (MỚI) --- */
+        /* --- THANH CÔNG CỤ --- */
         .toolbar {
             display: flex;
             gap: 10px;
@@ -70,6 +70,10 @@
             padding: 10px 15px;
             font-size: 14px;
             background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
         }
 
         .toolbar button:hover {
@@ -87,6 +91,10 @@
             padding: 10px 20px;
             font-size: 14px;
             background-color: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
         }
 
         #fullWidthBtn:hover {
@@ -115,7 +123,7 @@
         }
 
         /* Nút submit */
-        button {
+        #submitBtn {
             padding: 15px;
             font-size: 16px;
             font-weight: bold;
@@ -127,7 +135,7 @@
             transition: background-color 0.2s;
         }
 
-        button:hover {
+        #submitBtn:hover {
             background-color: #005f9e;
         }
 
@@ -178,7 +186,7 @@
             background-color: #ffffff;
         }
 
-        /* --- CHẾ ĐỘ FULL WIDTH (MỚI) --- */
+        /* --- CHẾ ĐỘ FULL WIDTH --- */
         body.fullscreen-mode .left-panel {
             display: none;
         }
@@ -190,7 +198,7 @@
             top: 0;
             left: 0;
             z-index: 1000;
-            background-color: #000; /* Nền đen để tạo viền khi bị rỗng */
+            background-color: #000; 
         }
 
         body.fullscreen-mode .header-right {
@@ -205,9 +213,7 @@
             border: none;
             border-radius: 0;
             box-shadow: none;
-            transform: none !important; /* Xóa scale cũ */
-            
-            /* Logic giữ đúng tỉ lệ 16:9 và tự động khít vào màn hình to nhất có thể */
+            transform: none !important; 
             width: 100vw;
             height: calc(100vw * 9 / 16);
             max-height: 100vh;
@@ -215,7 +221,7 @@
         }
 
         body.fullscreen-mode .phone-mockup::before {
-            display: none; /* Ẩn Notch camera */
+            display: none;
         }
 
         body.fullscreen-mode iframe {
@@ -235,6 +241,7 @@
             border-radius: 30px;
             z-index: 1010;
             backdrop-filter: blur(5px);
+            cursor: pointer;
         }
 
         #exitFullWidthBtn:hover {
@@ -252,7 +259,7 @@
         <h2>HTML / CSS / JS Code</h2>
         
         <div class="toolbar">
-            <input type="text" id="searchInput" placeholder="Tìm kiếm trong code...">
+            <input type="text" id="searchInput" placeholder="Tìm kiếm trong code (Enter)...">
             <button id="searchBtn">Tìm</button>
             <button id="downloadBtn" title="Tải xuống thành file index.html">Tải Code</button>
         </div>
@@ -319,39 +326,61 @@
         const phoneWrapper = document.getElementById('phoneWrapper');
         const phoneMockup = document.getElementById('phoneMockup');
 
-        // Hàm load code vào iframe
         function renderCode() {
             const code = htmlInput.value;
             outputFrame.srcdoc = code;
         }
         submitBtn.addEventListener('click', renderCode);
 
-        // --- TÍNH NĂNG TÌM KIẾM ---
+        // --- TÍNH NĂNG TÌM KIẾM CÓ TỰ ĐỘNG CUỘN ---
         let lastSearchIndex = 0;
-        document.getElementById('searchBtn').addEventListener('click', function() {
+
+        function performSearch() {
             const term = document.getElementById('searchInput').value;
             if (!term) return;
             
             const text = htmlInput.value;
-            const index = text.indexOf(term, lastSearchIndex);
+            let index = text.indexOf(term, lastSearchIndex);
+            
+            // Nếu không tìm thấy ở đoạn tiếp theo, vòng lại tìm từ đầu
+            if (index === -1) {
+                lastSearchIndex = 0;
+                index = text.indexOf(term, lastSearchIndex);
+            }
             
             if (index !== -1) {
+                // Focus và bôi đen chữ
                 htmlInput.focus();
                 htmlInput.setSelectionRange(index, index + term.length);
-                lastSearchIndex = index + term.length; // Lưu lại vị trí để tìm tiếp
+                lastSearchIndex = index + term.length;
+                
+                // === LOGIC TỰ ĐỘNG CUỘN (AUTO-SCROLL) ===
+                // Lấy đoạn text từ đầu đến vị trí tìm thấy
+                const textUpToIndex = text.substring(0, index);
+                // Đếm số lần xuống dòng (\n) để biết chữ đang ở dòng thứ mấy
+                const lineCount = textUpToIndex.split('\n').length;
+                
+                // Tính toán: font 14px * line-height 1.5 = 21px mỗi dòng
+                const lineHeight = 21; 
+                // Trừ đi khoảng 4 dòng để kết quả hiển thị ở giữa khung thay vì dính sát mép trên
+                htmlInput.scrollTop = (lineCount - 4) * lineHeight;
+
             } else {
-                lastSearchIndex = 0; // Thử vòng lại từ đầu
-                const indexRestart = text.indexOf(term, lastSearchIndex);
-                if (indexRestart !== -1) {
-                    htmlInput.focus();
-                    htmlInput.setSelectionRange(indexRestart, indexRestart + term.length);
-                    lastSearchIndex = indexRestart + term.length;
-                } else {
-                    alert('Không tìm thấy: "' + term + '"');
-                }
+                alert('Không tìm thấy: "' + term + '"');
+            }
+        }
+
+        // Bấm nút Tìm
+        document.getElementById('searchBtn').addEventListener('click', performSearch);
+        
+        // Hỗ trợ bấm phím Enter trong ô tìm kiếm
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
             }
         });
-        // Reset index khi người dùng thay đổi nội dung tìm kiếm
+
+        // Reset index khi người dùng gõ từ khóa mới
         document.getElementById('searchInput').addEventListener('input', () => lastSearchIndex = 0);
 
         // --- TÍNH NĂNG TẢI FILE HTML ---
@@ -375,17 +404,16 @@
 
         fullWidthBtn.addEventListener('click', function() {
             document.body.classList.add('fullscreen-mode');
-            phoneMockup.style.transform = 'none'; // Xóa inline transform của hàm scalePhone
+            phoneMockup.style.transform = 'none'; 
         });
 
         exitFullWidthBtn.addEventListener('click', function() {
             document.body.classList.remove('fullscreen-mode');
-            scalePhone(); // Kích hoạt lại việc scale khi về giao diện chia cột
+            scalePhone(); 
         });
 
         // Hàm scale để điện thoại chiếm đúng 96% chiều ngang
         function scalePhone() {
-            // Không tính toán scale nếu đang ở chế độ full-width
             if (document.body.classList.contains('fullscreen-mode')) {
                 phoneMockup.style.transform = 'none';
                 return;
@@ -399,10 +427,7 @@
             phoneMockup.style.transform = `scale(${scale})`;
         }
 
-        // Cập nhật khi thay đổi kích thước cửa sổ
         window.addEventListener('resize', scalePhone);
-
-        // Khởi tạo lần đầu
         scalePhone();
         renderCode();
     </script>
