@@ -119,7 +119,7 @@ img{
   background-size: 10px 10px; 
   background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
 }
-#bgGlobalStatus {
+#bgGlobalStatus, #enhanceGlobalStatus {
   margin-top: 10px;
   font-size: 14px;
   font-weight: bold;
@@ -159,6 +159,11 @@ img{
 <div id="bgGlobalStatus"></div>
 <div id="bgOutput" class="grid"></div>
 
+<h3>6. Cloudinary AI - Nâng Cao Chất Lượng Ảnh (X2 Size, Xuất JPG)</h3>
+<input type="file" id="enhanceInput" multiple accept="image/*">
+<div id="enhanceGlobalStatus"></div>
+<div id="enhanceOutput" class="grid"></div>
+
 
 <script>
 
@@ -188,6 +193,7 @@ const wmInput = document.getElementById('wmInput');
 const cropBottomInput = document.getElementById('cropBottomInput');
 const manualCropInput = document.getElementById('manualCropInput');
 const bgInput = document.getElementById('bgInput');
+const enhanceInput = document.getElementById('enhanceInput');
 
 const cropOutput = document.getElementById('cropOutput');
 const wmOutput = document.getElementById('wmOutput');
@@ -195,6 +201,8 @@ const cropBottomOutput = document.getElementById('cropBottomOutput');
 const manualCropOutput = document.getElementById('manualCropOutput');
 const bgOutput = document.getElementById('bgOutput');
 const bgGlobalStatus = document.getElementById('bgGlobalStatus');
+const enhanceOutput = document.getElementById('enhanceOutput');
+const enhanceGlobalStatus = document.getElementById('enhanceGlobalStatus');
 
 // ==========================
 // EVENTS
@@ -726,7 +734,7 @@ function handleCropBottom(files){
 }
 
 // ==========================
-// 4. MANUAL CROP TOOL (MỚI)
+// 4. MANUAL CROP TOOL
 // ==========================
 
 const cropperWorkspace = document.getElementById('cropperWorkspace');
@@ -747,12 +755,10 @@ manualCropInput.onchange = e => {
       cropperImage.src = event.target.result;
       cropperWorkspace.style.display = 'block';
 
-      // Hủy cropper cũ nếu tải ảnh mới
       if (cropperInstance) {
         cropperInstance.destroy();
       }
 
-      // Khởi tạo lại
       cropperInstance = new Cropper(cropperImage, {
         viewMode: 1,
         movable: true,
@@ -790,7 +796,7 @@ btnManualCrop.onclick = () => {
 };
 
 // ==========================
-// 5. TOOL XÓA NỀN AI (TÁCH RIÊNG HOÀN TOÀN)
+// 5. TOOL XÓA NỀN AI (GIỮ NGUYÊN)
 // ==========================
 
 const CLOUD_NAME = 'duf9cjv0m'; 
@@ -818,12 +824,10 @@ async function processBgBatch(files) {
   let completedCount = 0;
   bgGlobalStatus.innerText = `🚀 Đang tải lên & xử lý AI: 0/${fileArray.length} ảnh...`;
 
-  // Tạo khung chờ (Placeholder) cho toàn bộ ảnh để giữ giao diện chuẩn
   const placeholders = fileArray.map((file, index) => {
     return createBgPlaceholder(file.name, bgOutput);
   });
 
-  // Chia luồng 3 ảnh chạy cùng lúc
   const CONCURRENCY_LIMIT = 3; 
   for (let i = 0; i < fileArray.length; i += CONCURRENCY_LIMIT) {
     const chunk = fileArray.slice(i, i + CONCURRENCY_LIMIT);
@@ -837,7 +841,6 @@ async function processBgBatch(files) {
   bgGlobalStatus.innerHTML = `🎉 Hoàn thành tách nền ${fileArray.length} ảnh!`;
 }
 
-// Tạo giao diện chờ giống y hệt khung ảnh của tool cũ
 function createBgPlaceholder(filename, target) {
   const container = document.createElement('div');
   container.className = 'image-item';
@@ -856,7 +859,7 @@ function createBgPlaceholder(filename, target) {
   status.style.color = '#f0ad4e';
 
   const img = document.createElement('img');
-  img.style.display = 'none'; // Ẩn ảnh đi trong lúc tải
+  img.style.display = 'none'; 
 
   const btn = document.createElement('button');
   btn.className = 'download-btn';
@@ -877,7 +880,6 @@ function createBgPlaceholder(filename, target) {
   return { status, img, btn, wrapper, filename };
 }
 
-// Logic gửi API và lấy về dạng Blob để nút tải làm việc trơn tru
 async function processSingleBgFile(file, uiElements) {
   uiElements.status.textContent = '🚀 Up server...';
 
@@ -901,31 +903,159 @@ async function processSingleBgFile(file, uiElements) {
 
     uiElements.status.textContent = '🤖 AI Tách Nền...';
 
-    // Link ép chuẩn PNG
     const publicId = data.public_id;
     const pngResultUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/e_background_removal/f_png/${publicId}.png`;
 
-    // Fetch url về dưới dạng file Blob nội bộ để tránh lỗi bảo mật chéo (CORS) khi nhấn nút tải
     const imageResponse = await fetch(pngResultUrl);
     if (!imageResponse.ok) throw new Error("Lỗi máy chủ AI");
     
     const blob = await imageResponse.blob();
     const localUrl = URL.createObjectURL(blob);
 
-    // Render ảnh
     uiElements.img.src = localUrl;
     uiElements.img.onload = () => {
       uiElements.status.style.display = 'none';
       uiElements.img.style.display = 'block';
-      uiElements.wrapper.style.display = 'block'; // Trả lại block để ảnh tự full width
+      uiElements.wrapper.style.display = 'block'; 
       uiElements.btn.style.display = 'block';
     };
 
-    // Nút download đuôi PNG
     uiElements.btn.onclick = () => {
       const link = document.createElement('a');
       link.href = localUrl;
       link.download = uiElements.filename.replace(/\.[^/.]+$/, "") + ".png";
+      link.click();
+      uiElements.btn.classList.add('downloaded');
+      uiElements.btn.textContent = '✓';
+    };
+
+  } catch (error) {
+    uiElements.status.textContent = '❌ Lỗi AI';
+    uiElements.status.style.color = '#d9534f';
+    console.error(error);
+  }
+}
+
+// ==========================
+// 6. TOOL NÂNG CAO CHẤT LƯỢNG AI (MỚI)
+// ==========================
+
+enhanceInput.onchange = e => {
+  enhanceOutput.innerHTML = '';
+  enhanceGlobalStatus.innerHTML = '';
+  processEnhanceBatch(e.target.files);
+};
+
+async function processEnhanceBatch(files) {
+  const fileArray = Array.from(files);
+  if (fileArray.length === 0) return;
+
+  let completedCount = 0;
+  enhanceGlobalStatus.innerText = `🚀 Đang tải lên & xử lý AI nâng cấp: 0/${fileArray.length} ảnh...`;
+
+  const placeholders = fileArray.map((file, index) => {
+    return createEnhancePlaceholder(file.name, enhanceOutput);
+  });
+
+  const CONCURRENCY_LIMIT = 3; 
+  for (let i = 0; i < fileArray.length; i += CONCURRENCY_LIMIT) {
+    const chunk = fileArray.slice(i, i + CONCURRENCY_LIMIT);
+    await Promise.all(chunk.map(async (file, chunkIndex) => {
+      const actualIndex = i + chunkIndex;
+      await processSingleEnhanceFile(file, placeholders[actualIndex]);
+      completedCount++;
+      enhanceGlobalStatus.innerText = `🔄 Tiến độ AI nâng cấp: ${completedCount}/${fileArray.length} ảnh...`;
+    }));
+  }
+  enhanceGlobalStatus.innerHTML = `🎉 Hoàn thành nâng cấp chất lượng ${fileArray.length} ảnh!`;
+}
+
+function createEnhancePlaceholder(filename, target) {
+  const container = document.createElement('div');
+  container.className = 'image-item';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'image-wrapper'; // Không dùng caro vì xuất JPG không có nền suốt
+  wrapper.style.minHeight = '120px';
+  wrapper.style.display = 'flex';
+  wrapper.style.alignItems = 'center';
+  wrapper.style.justifyContent = 'center';
+
+  const status = document.createElement('div');
+  status.textContent = '⏳ Đang chờ...';
+  status.style.fontSize = '12px';
+  status.style.fontWeight = 'bold';
+  status.style.color = '#f0ad4e';
+
+  const img = document.createElement('img');
+  img.style.display = 'none';
+
+  const btn = document.createElement('button');
+  btn.className = 'download-btn';
+  btn.textContent = '↓';
+  btn.style.display = 'none';
+
+  const name = document.createElement('div');
+  name.className = 'filename';
+  name.textContent = filename;
+
+  wrapper.appendChild(status);
+  wrapper.appendChild(img);
+  wrapper.appendChild(btn);
+  container.appendChild(wrapper);
+  container.appendChild(name);
+  target.appendChild(container);
+
+  return { status, img, btn, wrapper, filename };
+}
+
+async function processSingleEnhanceFile(file, uiElements) {
+  uiElements.status.textContent = '🚀 Up server...';
+
+  try {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const signature = await generateSignature(timestamp, API_SECRET);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', API_KEY);
+    formData.append('timestamp', timestamp);
+    formData.append('signature', signature);
+
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+
+    uiElements.status.textContent = '🤖 AI Nâng Cấp...';
+
+    const publicId = data.public_id;
+    
+    // Sử dụng thuật toán AI e_upscale kết hợp c_scale,w_2.0 để x2 kích thước
+    // Ép chuẩn định dạng đầu ra f_jpg và giữ nguyên 100% chất lượng qua q_100
+    const jpgResultUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/e_upscale,c_scale,w_2.0/f_jpg,q_100/${publicId}.jpg`;
+
+    const imageResponse = await fetch(jpgResultUrl);
+    if (!imageResponse.ok) throw new Error("Lỗi máy chủ AI");
+    
+    const blob = await imageResponse.blob();
+    const localUrl = URL.createObjectURL(blob);
+
+    uiElements.img.src = localUrl;
+    uiElements.img.onload = () => {
+      uiElements.status.style.display = 'none';
+      uiElements.img.style.display = 'block';
+      uiElements.wrapper.style.display = 'block';
+      uiElements.btn.style.display = 'block';
+    };
+
+    uiElements.btn.onclick = () => {
+      const link = document.createElement('a');
+      link.href = localUrl;
+      link.download = uiElements.filename.replace(/\.[^/.]+$/, "") + "_upscale.jpg";
       link.click();
       uiElements.btn.classList.add('downloaded');
       uiElements.btn.textContent = '✓';
