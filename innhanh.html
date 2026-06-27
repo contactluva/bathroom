@@ -76,9 +76,14 @@ input[type=file] { display: none; }
         border: none;
     }
     
+    /* Lặp lại tiêu đề cột ở trang mới */
+    thead { display: table-header-group; }
+    
+    /* Ép Footer thành dòng thường để KHÔNG bị lặp lại ở cuối mỗi trang */
+    tfoot { display: table-row-group; }
+
     /* Tránh ngắt dòng lởm chởm trong bảng */
     tr { page-break-inside: avoid; }
-    thead { display: table-header-group; }
     
     @page { size: A4 portrait; margin: 0; }
     body { print-color-adjust: exact; }
