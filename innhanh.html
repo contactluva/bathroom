@@ -351,6 +351,14 @@ strong:has(+ .fill-company) {
 #phieuThuPage .pt-sign-table td {
   border: none !important;
 }
+
+  /* Ẩn nút Lưu Word khi in */
+#wordBtn, .word-export-btn { 
+  display: none !important; 
+}
+@media print {
+  #wordBtn { display: none !important; }
+}
 </style>
 </head>
 <body>
@@ -879,6 +887,8 @@ window.addEventListener('DOMContentLoaded',()=>{
 <button id="signatureBtn" class="btn">Chữ ký</button>
 <button id="printBtn" class="btn" onclick="window.print()">In PDF</button>
 
+  <button id="wordBtn" class="btn" style="right:15px;bottom:65px;background:#9C27B0" onclick="exportToWord()">📄 Lưu Word</button>
+
 <!-- ============ MODAL NHẬP LIỆU ============ -->
 <div class="modal" id="inputModal">
   <div class="modal-content">
@@ -1223,5 +1233,90 @@ function toTitleCase(str) {
 
 
 </script>
+<script>
+  /* ========== EXPORT TO WORD ========== */
+function exportToWord() {
+  // Lấy nội dung các trang cần xuất
+  const pages = document.getElementById('pages');
+  if (!pages) return alert('Không tìm thấy nội dung để xuất!');
+
+  // Clone nội dung để xử lý, không làm ảnh hưởng bản gốc
+  const clone = pages.cloneNode(true);
+  
+  // Xóa các phần không cần trong file Word
+  clone.querySelectorAll('.signature-container:not(.active), .upload-btn, .btn, .modal, [contenteditable]').forEach(el => {
+    el.removeAttribute('contenteditable');
+  });
+  
+  // Chuyển textarea thành span để giữ định dạng khi mở Word
+  clone.querySelectorAll('textarea').forEach(ta => {
+    const span = document.createElement('span');
+    span.innerHTML = ta.value.replace(/\n/g, '<br>');
+    span.style.display = 'block';
+    span.style.whiteSpace = 'pre-wrap';
+    ta.parentNode.replaceChild(span, ta);
+  });
+
+  // Xây dựng HTML chuẩn cho Word
+  const wordHTML = `
+    <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+          xmlns:w='urn:schemas-microsoft-com:office:word' 
+          xmlns='http://www.w3.org/TR/REC-html40'>
+    <head>
+      <meta charset='utf-8'>
+      <title>Báo giá - Hợp đồng</title>
+      <!--[if gte mso 9]>
+      <xml>
+        <w:WordDocument>
+          <w:View>Print</w:View>
+          <w:Zoom>100</w:Zoom>
+          <w:PaperSize w:width="595" w:height="842"/>
+          <w:DocPr>
+            <w:MarginTop w:val="720"/>
+            <w:MarginBottom w:val="720"/>
+            <w:MarginLeft w:val="1080"/>
+            <w:MarginRight w:val="1080"/>
+          </w:DocPr>
+        </w:WordDocument>
+      </xml>
+      <![endif]-->
+      <style>
+        @page { size: A4; margin: 18mm 12mm 10mm; }
+        body { font-family: "Times New Roman", Times, serif; font-size: 14px; line-height: 1.4; }
+        table { border-collapse: collapse; width: 100%; }
+        td, th { border: 1px solid #000; padding: 4px; text-align: center; vertical-align: middle; }
+        .page { 
+          width: 210mm; min-height: 297mm; padding: 18mm 12mm 10mm; 
+          page-break-after: always; box-sizing: border-box; 
+        }
+        .hd-page { font-family: "Times New Roman"; font-size: 14px; }
+        .no-border, .no-border td, .no-border th { border: none !important; }
+        img { max-width: 100px; max-height: 100px; }
+        .signature-container { display: block !important; }
+        .signature-container img { max-width: 200px; }
+      </style>
+    </head>
+    <body>${clone.innerHTML}</body>
+    </html>
+  `;
+
+  // Tạo Blob và trigger download
+  const blob = new Blob(['\ufeff', wordHTML], {
+    type: 'application/msword'
+  });
+  
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `BaoGia_HopDong_${new Date().toISOString().slice(0,10).replace(/\//g,'-')}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  // Thông báo thành công
+  alert('✅ Đã tải file Word! Mở bằng Microsoft Word để chỉnh sửa và in đúng khổ A4.');
+}
+  </script>
 </body>
 </html>
