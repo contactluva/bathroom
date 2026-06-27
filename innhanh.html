@@ -751,7 +751,9 @@ function applyData(){
   document.querySelectorAll('.fill-caps').forEach(el=>el.textContent = c);
   document.querySelectorAll('.fill-address').forEach(el=>el.textContent = a);
   document.querySelectorAll('.fill-tax').forEach(el=>el.textContent = t);
-  document.querySelectorAll('.fill-date').forEach(el=>el.textContent = today());
+const rawData = localStorage.getItem('qmData');
+const savedDate = (rawData ? JSON.parse(rawData).date : null) || '.... / .... / 2026';
+document.querySelectorAll('.fill-date').forEach(el=>el.textContent = savedDate);
 
   const items = [...document.querySelectorAll('.proItem')].map(it=>({
     name: it.querySelector('.pName').value.trim(),
@@ -806,7 +808,12 @@ function formatNum(v){ return v ? parseFloat(v).toLocaleString('vi-VN') : ''; }
 document.getElementById('signatureBtn').onclick = () => {
   document.querySelectorAll('.signature-container').forEach(el=>el.classList.toggle('active'));
 };
-window.onload = () => { document.querySelectorAll('.fill-date').forEach(el=>el.textContent = today()); };
+window.onload = () => { 
+  const raw = localStorage.getItem('qmData');
+  const d = raw ? JSON.parse(raw) : {};
+  const printDate = d.date || '.... / .... / 2026';
+  document.querySelectorAll('.fill-date').forEach(el=>el.textContent = printDate); 
+};
 
 function updateDNTP(){
   const tong = parseFloat(document.getElementById('bg-total').textContent.replace(/\D/g,'')) || 0;
