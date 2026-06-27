@@ -59,28 +59,14 @@ input[type=file]{display:none}
   display:flex;gap:10px;margin-top:36px;
 }
 .secondary-btns .btn {
-  flex: 1; /* Chia đều 3 cột */
-  padding: 12px 5px; /* Điều chỉnh padding cho màn hình nhỏ */
+  flex: 1; 
+  padding: 12px 5px; 
 }
-.btn-delete{
-  background:#0016;
-  padding: 6px;
-  font-size: 12px;
-}
-.btn-save{
-  background:#ff9500;
-   padding: 6px;
-  font-size: 12px;
-}
-.btn-restore{
-  background:#af52de;
-   padding: 6px;
-  font-size: 12px;
-}
+.btn-delete{ background:#0016; padding: 6px; font-size: 12px; }
+.btn-save{ background:#ff9500; padding: 6px; font-size: 12px; }
+.btn-restore{ background:#af52de; padding: 6px; font-size: 12px; }
 
-#okBtn{
-  background:#34c759;width:100%;margin-top:16px;
-}
+#okBtn{ background:#34c759;width:100%;margin-top:16px; }
 
 /* Thông báo nhỏ */
 .toast{
@@ -89,16 +75,22 @@ input[type=file]{display:none}
   font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;
 }
 .toast.show{opacity:1}
-
-/* Nhãn trạng thái restore */
-#restoreMsg{
-  text-align:center;font-size:13px;color:#888;margin-top:4px;
-}
+#restoreMsg{ text-align:center;font-size:13px;color:#888;margin-top:4px; }
 </style>
 </head>
 <body>
 <div class="container">
   <h3>Nhập thông tin</h3>
+
+  <div class="row dual" style="align-items: center; justify-content: flex-start; gap: 15px;">
+    <div style="width:auto; display:flex; align-items:center; gap:8px;">
+      <input type="checkbox" id="fAutoDate" style="width:18px;height:18px;" onchange="toggleDate()">
+      <label for="fAutoDate" style="margin:0;">Lấy ngày hiện tại</label>
+    </div>
+    <div style="flex:1;">
+      <input id="fDateStr" class="inp" value=".... / .... / 2026" style="text-align:center; color: #d9534f; font-weight: bold;">
+    </div>
+  </div>
 
   <div class="row"><input id="fCompany" class="inp" placeholder="Tên công ty"></div>
   <div class="row"><input id="fAddress" class="inp" placeholder="Địa chỉ"></div>
@@ -143,6 +135,24 @@ input[type=file]{display:none}
 <div id="toast" class="toast"></div>
 
 <script>
+/* ---------- Quản lý Ngày Tháng ---------- */
+function getToday(){
+  const d=new Date(), dd=String(d.getDate()).padStart(2,'0'), mm=String(d.getMonth()+1).padStart(2,'0'), y=d.getFullYear();
+  return `${dd}/${mm}/${y}`;
+}
+
+function toggleDate(){
+  const chk = document.getElementById('fAutoDate');
+  const inp = document.getElementById('fDateStr');
+  if(chk.checked){
+    inp.value = getToday();
+    inp.style.color = '#000'; // Đổi màu đen khi có ngày cụ thể
+  } else {
+    inp.value = '.... / .... / 2026';
+    inp.style.color = '#d9534f'; // Màu đỏ cho mẫu trống dễ nhìn
+  }
+}
+
 /* ---------- Tiện ích ---------- */
 function toast(msg){
   const t=document.getElementById('toast');
@@ -156,6 +166,8 @@ const ONE_WEEK=7*24*60*60*1000;
 /* ---------- Thu thập dữ liệu form ---------- */
 function collectFormData(){
   return {
+    isAutoDate: document.getElementById('fAutoDate').checked,
+    date: document.getElementById('fDateStr').value.trim(),
     company:document.getElementById('fCompany').value.trim(),
     address:document.getElementById('fAddress').value.trim(),
     tax:document.getElementById('fTax').value.trim(),
@@ -171,14 +183,18 @@ function collectFormData(){
 
 /* ---------- Đổ dữ liệu vào form ---------- */
 function populateForm(d){
+  document.getElementById('fAutoDate').checked = d.isAutoDate || false;
+  document.getElementById('fDateStr').value = d.date || '.... / .... / 2026';
+  document.getElementById('fDateStr').style.color = d.isAutoDate ? '#000' : '#d9534f';
+  
   document.getElementById('fCompany').value=d.company||'';
   document.getElementById('fAddress').value=d.address||'';
   document.getElementById('fTax').value=d.tax||'';
 
   const list=document.getElementById('proList');
-  list.innerHTML='';                       // xóa cũ
+  list.innerHTML='';                       
   if(!d.products||!d.products.length){
-    addPro();return;                       // tạo 1 ô trống nếu không có SP
+    addPro();return;                       
   }
   d.products.forEach(x=>{
     const el=document.createElement('div');el.className='proItem';
@@ -198,7 +214,6 @@ function populateForm(d){
       </div>`;
     list.appendChild(el);
 
-    // điền giá trị
     const last=list.lastElementChild;
     last.querySelector('.pName').value=x.name||'';
     last.querySelector('.pInfo').value=x.info||'';
@@ -212,15 +227,16 @@ function populateForm(d){
 function deleteState(){
   if(!confirm('Bạn có chắc chắn muốn xóa toàn bộ form và bản nháp?')) return;
   
-  // Xóa bản nháp trong LocalStorage
   localStorage.removeItem(DRAFT_KEY);
   
-  // Xóa trắng form trên giao diện
+  document.getElementById('fAutoDate').checked = false;
+  document.getElementById('fDateStr').value = '.... / .... / 2026';
+  document.getElementById('fDateStr').style.color = '#d9534f';
   document.getElementById('fCompany').value = '';
   document.getElementById('fAddress').value = '';
   document.getElementById('fTax').value = '';
   document.getElementById('proList').innerHTML = '';
-  addPro(); // Tạo lại một sản phẩm trống mới
+  addPro(); 
   
   document.getElementById('restoreMsg').textContent = '';
   toast('Đã xóa dữ liệu 🗑️');
@@ -289,10 +305,10 @@ function uploadImg(input){
   }
 }
 function saveAndGo(){
-  // Tự động lưu bản nháp khi bấm hoàn tất
   saveState(); 
   
   const data={
+    date: document.getElementById('fDateStr').value.trim(), // <--- Truyền ngày đã chọn qua đây
     company:document.getElementById('fCompany').value.trim(),
     address:document.getElementById('fAddress').value.trim(),
     tax:document.getElementById('fTax').value.trim(),
@@ -305,7 +321,7 @@ function saveAndGo(){
     })).filter(x=>x.name)
   };
   localStorage.setItem('qmData',JSON.stringify(data));
-  location.href='/innhanh.html';
+  location.href='/innhanh.html'; // Tùy chỉnh đường dẫn đến file in của bạn
 }
 </script>
 </body>
