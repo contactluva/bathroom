@@ -44,7 +44,7 @@ img.preview { max-width: 100px; max-height: 100px; display: block; margin: auto;
 #inputBtn { left: 15px; background: #2196F3; }
 #signatureBtn { left: 115px; background: #FF9800; }
 #printBtn { right: 15px; background: #4CAF50; }
-#wordBtn { right: 105px; background: #005A9E; }
+#wordBtn { right: 305px; background: #005A9E; }
 #okBtn { background: #4CAF50; color: #fff; padding: 6px 18px; border: none; margin-top: 10px; cursor: pointer; }
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.4); display: none; align-items: center; justify-content: center; z-index: 1001; }
 .modal-content { background: #fff; padding: 20px; border-radius: 4px; width: 500px; max-height: 90vh; overflow: auto; }
@@ -101,7 +101,15 @@ input[type=file] { display: none; }
 strong:has(+ .fill-company) { white-space: nowrap; margin-right: 0.4em; }
 
 /* Style hợp đồng */
-.hd-page { font-family: "Times New Roman", Times, serif; font-size: 14px; line-height: 1.6; padding: 20mm 20mm 15mm; }
+.hd-page { 
+    font-size: 14px; 
+    line-height: 1.6; 
+    padding: 20mm 20mm 15mm; 
+}
+/* Ép toàn bộ hợp đồng dùng font Arial */
+.hd-page, .hd-page * {
+    font-family: Arial, Helvetica, sans-serif !important;
+}
 .hd-header { text-align: center; margin-bottom: 20px; }
 .hd-header h2 { margin: 0 0 5px; font-size: 16px; text-transform: uppercase; }
 .hd-header h1 { margin: 0; font-size: 20px; text-transform: uppercase; }
