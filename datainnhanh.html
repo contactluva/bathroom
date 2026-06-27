@@ -54,22 +54,29 @@ input[type=file]{display:none}
 }
 #addBtn{background:var(--primary);}
 
-/* hàng nút phụ Save – Restore */
+/* Hàng nút phụ Delete – Save – Restore */
 .secondary-btns{
   display:flex;gap:10px;margin-top:16px;
 }
+.secondary-btns .btn {
+  flex: 1; /* Chia đều 3 cột */
+  padding: 12px 5px; /* Điều chỉnh padding cho màn hình nhỏ */
+}
+.btn-delete{
+  background:#ff3b30;
+}
 .btn-save{
-  background:#ff9500;width:50%;
+  background:#ff9500;
 }
 .btn-restore{
-  background:#af52de;width:50%;
+  background:#af52de;
 }
 
 #okBtn{
   background:#34c759;width:100%;margin-top:16px;
 }
 
-/* thông báo nhỏ */
+/* Thông báo nhỏ */
 .toast{
   position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
   background:#333;color:#fff;padding:10px 24px;border-radius:30px;
@@ -77,7 +84,7 @@ input[type=file]{display:none}
 }
 .toast.show{opacity:1}
 
-/* nhãn trạng thái restore */
+/* Nhãn trạng thái restore */
 #restoreMsg{
   text-align:center;font-size:13px;color:#888;margin-top:4px;
 }
@@ -116,15 +123,15 @@ input[type=file]{display:none}
   </div>
 
   <button id="addBtn" class="btn" onclick="addPro()">+ Thêm SP</button>
- <button id="okBtn" class="btn" onclick="saveAndGo()">Hoàn tất</button>
-  <!-- ====== Save & Restore ====== -->
+  <button id="okBtn" class="btn" onclick="saveAndGo()">Hoàn tất</button>
+  
   <div class="secondary-btns">
+    <button class="btn btn-delete" onclick="deleteState()">🗑️ Xóa</button>
     <button class="btn btn-save" onclick="saveState()">💾 Save</button>
     <button class="btn btn-restore" onclick="restoreState()">🔄 Restore</button>
   </div>
   <div id="restoreMsg"></div>
 
- 
 </div>
 
 <div id="toast" class="toast"></div>
@@ -165,7 +172,7 @@ function populateForm(d){
   const list=document.getElementById('proList');
   list.innerHTML='';                       // xóa cũ
   if(!d.products||!d.products.length){
-    addPro();return;                        // tạo 1 ô trống nếu không có SP
+    addPro();return;                       // tạo 1 ô trống nếu không có SP
   }
   d.products.forEach(x=>{
     const el=document.createElement('div');el.className='proItem';
@@ -193,6 +200,24 @@ function populateForm(d){
     last.querySelector('.pQty').value=x.qty||1;
     last.querySelector('.pPrice').value=x.price||'';
   });
+}
+
+/* ---------- Delete ---------- */
+function deleteState(){
+  if(!confirm('Bạn có chắc chắn muốn xóa toàn bộ form và bản nháp?')) return;
+  
+  // Xóa bản nháp trong LocalStorage
+  localStorage.removeItem(DRAFT_KEY);
+  
+  // Xóa trắng form trên giao diện
+  document.getElementById('fCompany').value = '';
+  document.getElementById('fAddress').value = '';
+  document.getElementById('fTax').value = '';
+  document.getElementById('proList').innerHTML = '';
+  addPro(); // Tạo lại một sản phẩm trống mới
+  
+  document.getElementById('restoreMsg').textContent = '';
+  toast('Đã xóa dữ liệu 🗑️');
 }
 
 /* ---------- Save ---------- */
@@ -258,6 +283,9 @@ function uploadImg(input){
   }
 }
 function saveAndGo(){
+  // Tự động lưu bản nháp khi bấm hoàn tất
+  saveState(); 
+  
   const data={
     company:document.getElementById('fCompany').value.trim(),
     address:document.getElementById('fAddress').value.trim(),
