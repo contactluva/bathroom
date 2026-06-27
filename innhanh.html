@@ -487,7 +487,7 @@ strong:has(+ .fill-company) { white-space: nowrap; margin-right: 0.4em; }
     <div class="hd-content">
       Trong quá trình thực hiện, nếu có các vấn đề phát sinh hai bên phải cùng nhau tìm biện pháp giải quyết trên tinh thần hợp tác, nếu cần sẽ làm thêm phụ bản kèm theo Hợp đồng.
     </div>
-  </div>
+
 
   <!-- Trang 6C: Hợp đồng 3 -->
   <div class="page hd-page" id="hopDongPage3">
@@ -596,7 +596,7 @@ function fillHopDong(){
   const a = document.getElementById('fAddress').value.trim();
   const t = document.getElementById('fTax').value.trim();
   
-  ['hopDongPage1', 'hopDongPage2', 'hopDongPage3'].forEach(id => {
+  ['hopDongPage1', 'hopDongPage3'].forEach(id => {
     const page = document.getElementById(id);
     if (!page) return;
     page.querySelectorAll('.fill-caps').forEach(el => el.textContent = c);
