@@ -112,23 +112,30 @@ textarea.product-info {
 }
 textarea.product-name:focus,
 textarea.product-info:focus,
+/* === GIỚI HẠN TỐI ĐA 12 DÒNG CHO TÊN & THÔNG TIN SP === */
 textarea.product-name,
 textarea.product-info {
     height: auto !important;
-    min-height: 98px !important;   /* ≈ 5 dòng (14px × 1.4 line-height × 5) */
-    max-height: 98px !important;   /* Giới hạn cứng 5 dòng */
-    overflow-y: auto;              /* Cuộn nếu nhập quá 5 dòng */
+    min-height: 40px;                /* Chiều cao khởi đầu (khoảng 2 dòng) */
+    max-height: 235px !important;    /* Tối đa 12 dòng (14px × 1.4 × 12 ≈ 235px) */
+    overflow-y: auto !important;     /* Cuộn dọc nếu nhập vượt 12 dòng */
     line-height: 1.4;
     white-space: pre-wrap;
+    word-break: break-word;
+    resize: none;
 }
 
-/* Khi in thì bỏ giới hạn để không bị cắt nội dung */
+/* === KHI IN / XUẤT PDF: BỎ GIỚI HẠN ĐỂ KHÔNG BỊ CẮT NỘI DUNG === */
 @media print {
     textarea.product-name,
     textarea.product-info {
         max-height: none !important;
         overflow: visible !important;
-        page-break-inside: avoid;
+        min-height: auto;
+        page-break-inside: avoid;    /* Tránh cắt ngang dòng khi in */
+    }
+    tr {
+        page-break-inside: avoid;    /* Tránh cắt bảng giữa chừng */
     }
 }
 /* ==== SỬA LỖI HIỂN THỊ ĐỦ 3 DÒNG THÔNG TIN SẢN PHẨM ==== */
