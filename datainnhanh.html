@@ -56,20 +56,26 @@ input[type=file]{display:none}
 
 /* Hàng nút phụ Delete – Save – Restore */
 .secondary-btns{
-  display:flex;gap:10px;margin-top:16px;
+  display:flex;gap:10px;margin-top:36px;
 }
 .secondary-btns .btn {
   flex: 1; /* Chia đều 3 cột */
   padding: 12px 5px; /* Điều chỉnh padding cho màn hình nhỏ */
 }
 .btn-delete{
-  background:#ff3b30;
+  background:#0016;
+  padding: 6px;
+  font-size: 12px;
 }
 .btn-save{
   background:#ff9500;
+   padding: 6px;
+  font-size: 12px;
 }
 .btn-restore{
   background:#af52de;
+   padding: 6px;
+  font-size: 12px;
 }
 
 #okBtn{
@@ -124,7 +130,7 @@ input[type=file]{display:none}
 
   <button id="addBtn" class="btn" onclick="addPro()">+ Thêm SP</button>
   <button id="okBtn" class="btn" onclick="saveAndGo()">Hoàn tất</button>
-  
+  <br>
   <div class="secondary-btns">
     <button class="btn btn-delete" onclick="deleteState()">🗑️ Xóa</button>
     <button class="btn btn-save" onclick="saveState()">💾 Save</button>
