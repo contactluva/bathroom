@@ -59,7 +59,9 @@ input[type=file] { display: none; }
 .signature-container.active { display: block; }
 .no-border, .no-border td, .no-border th { border: none !important; }
 
-/* In ấn hoàn hảo */
+/* =========================================
+   IN ẤN HOÀN HẢO - SỬA LỖI LỀ KHI NGẮT TRANG 
+   ========================================= */
 @media print {
     html, body { margin: 0 !important; padding: 0 !important; background: #fff; }
     .btn, .modal, #signatureBtn, .logo ~ br, .upload-btn { display: none !important; }
@@ -67,7 +69,8 @@ input[type=file] { display: none; }
     
     .page {
         margin: 0 !important;
-        padding: 15mm 12mm 10mm;
+        /* Xóa padding của thẻ .page để nhường việc căn lề cho @page */
+        padding: 0 !important; 
         height: auto !important;
         min-height: auto !important;
         overflow: visible !important;
@@ -85,7 +88,12 @@ input[type=file] { display: none; }
     /* Tránh ngắt dòng lởm chởm trong bảng */
     tr { page-break-inside: avoid; }
     
-    @page { size: A4 portrait; margin: 0; }
+    /* Đặt lề vật lý cho MỌI trang giấy khi in ra (sửa lỗi dính mép giấy) */
+    @page { 
+        size: A4 portrait; 
+        margin: 15mm 15mm 15mm 15mm; 
+    }
+    
     body { print-color-adjust: exact; }
 }
 
@@ -143,6 +151,7 @@ strong:has(+ .fill-company) { white-space: nowrap; margin-right: 0.4em; }
 <body>
 
 <div id="pages" contenteditable="true">
+  <!-- Trang 1: Báo giá -->
   <div class="page">
     <div class="logo" style="display:flex;align-items:center;margin-bottom:15px">
       <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/logo%20QM.webp" width="66" height="66" style="margin-right:10px">
@@ -198,6 +207,7 @@ strong:has(+ .fill-company) { white-space: nowrap; margin-right: 0.4em; }
     <div class="signature-container" id="sig1"><img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký" style="max-width:350px"></div>
   </div>
 
+  <!-- Trang 2: Phiếu xuất kho -->
   <div class="page">
     <div class="logo" style="display:flex;align-items:center;margin-bottom:15px">
       <img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/logo%20QM.webp" width="66" height="66" style="margin-right:10px">
@@ -232,6 +242,7 @@ strong:has(+ .fill-company) { white-space: nowrap; margin-right: 0.4em; }
     <div class="signature-container" id="sig2"><img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký" style="max-width:350px"></div>
   </div>
 
+  <!-- Trang 3: Biên bản bàn giao -->
   <div class="page">
     <table class="no-border" style="border:none;width:100%;margin-bottom:10px">
       <tr>
@@ -277,6 +288,7 @@ strong:has(+ .fill-company) { white-space: nowrap; margin-right: 0.4em; }
     <div class="signature-container" id="sig3"><img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký" style="max-width:350px"></div>
   </div>
 
+  <!-- Trang 4: Đề nghị thanh toán -->
   <div class="page">
     <table class="header-table no-border" style="width:100%;">
       <tr>
@@ -310,6 +322,7 @@ strong:has(+ .fill-company) { white-space: nowrap; margin-right: 0.4em; }
     <div class="signature-container" id="sig4"><img src="https://raw.githubusercontent.com/contactluva/bathroom/refs/heads/main/chu%20ky%20QM.PNG" alt="Chữ ký"></div>
   </div>
 
+  <!-- Trang 5: Phiếu thu -->
   <div class="page" id="phieuThuPage">
     <div class="pt-header">
       <div class="pt-company">
@@ -362,6 +375,7 @@ strong:has(+ .fill-company) { white-space: nowrap; margin-right: 0.4em; }
     </div>
   </div>
 
+  <!-- Trang 6A: Hợp đồng 1 -->
   <div class="page hd-page" id="hopDongPage1">
     <div class="hd-center">
       <div class="hd-quoc-hieu">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
@@ -421,6 +435,7 @@ strong:has(+ .fill-company) { white-space: nowrap; margin-right: 0.4em; }
     </div>
   </div>
 
+  <!-- Trang 6B: Hợp đồng 2 -->
   <div class="page hd-page" id="hopDongPage2">
     <ul>
       <li>Xuất xứ: Trung Quốc</li>
@@ -474,6 +489,7 @@ strong:has(+ .fill-company) { white-space: nowrap; margin-right: 0.4em; }
     </div>
   </div>
 
+  <!-- Trang 6C: Hợp đồng 3 -->
   <div class="page hd-page" id="hopDongPage3">
     <div class="hd-content">
        Nếu bên nào vi phạm điều khoản của Hợp đồng sẽ bị xử phạt theo Luật pháp hiện hành. Trường hợp hai bên tranh chấp không giải quyết được bằng thương lượng sẽ đưa ra Tòa án thành phố Hà Nội xét xử theo Pháp luật. Quyết định của Tòa án là quyết định cuối cùng mà hai bên phải thi hành, chi phí phát sinh do bên thua kiện phải chịu.
@@ -497,11 +513,13 @@ strong:has(+ .fill-company) { white-space: nowrap; margin-right: 0.4em; }
   </div>
 </div>
 
+<!-- Nút điều khiển -->
 <button id="inputBtn" class="btn">Nhập liệu</button>
 <button id="signatureBtn" class="btn">Chữ ký</button>
 <button id="wordBtn" class="btn">Lưu Word</button>
 <button id="printBtn" class="btn" onclick="window.print()">In PDF</button>
 
+<!-- Modal -->
 <div class="modal" id="inputModal">
   <div class="modal-content">
     <h3>Nhập thông tin</h3>
