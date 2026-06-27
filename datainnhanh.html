@@ -6,7 +6,7 @@
 <title>Nhập liệu – Quang Minh</title>
 <style>
 :root{
-  --bg:#f2f2f7;          /* nền iOS */
+  --bg:#f2f2f7;
   --card:#ffffff;
   --primary:#007aff;
   --radius:12px;
@@ -17,36 +17,28 @@ body{margin:0;background:var(--bg);font-size:16px;color:#000}
 .container{max-width:600px;margin:auto;padding:16px}
 h3{margin:0 0 16px;font-weight:600;font-size:20px}
 
-/* field chung: trắng – bo tròn – đổ bóng */
 .inp{
-  width:100%;
-  border:none;
-  outline:none;
-  padding:8px 16px;
-  background:var(--card);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  font-size:15px;
+  width:100%;border:none;outline:none;padding:8px 16px;
+  background:var(--card);border-radius:var(--radius);
+  box-shadow:var(--shadow);font-size:15px;
 }
 .row{margin-bottom:12px}
 .row input,.row textarea{resize:none}
 .row textarea{height:80px}
 
-/* card sản phẩm */
 .proItem{
-  background:#ffffff21;
+  background:#ffffff;
   border-radius:var(--radius);
   box-shadow:var(--shadow);
-  padding:16px;
-  margin-bottom:16px;
-}
-.proItem hr{display:none}   /* bỏ đường kẻ cũ */
-
-input.pImg.inp {
-    width: 60%;
+  padding:16px;margin-bottom:16px;
 }
 
-/* nút + upload */
+.dual{
+  display:flex;justify-content:space-between;
+}
+.dual>div{width:48%}
+.dual label{font-weight:600;font-size:14px;margin-bottom:4px;display:block}
+
 .upload-btn{
   width:32px;height:32px;border-radius:50%;
   background:var(--primary);color:#fff;
@@ -55,20 +47,40 @@ input.pImg.inp {
 }
 input[type=file]{display:none}
 
-/* 2 ô Số lượng – Đơn giá cùng hàng */
-.dual{
-  display:flex;justify-content:space-between;
-}
-.dual>div{width:48%}
-.dual label{font-weight:600;font-size:14px;margin-bottom:4px;display:block}
-
-/* nút hành động */
+/* ---------- BUTTONS ---------- */
 .btn{
   padding:12px 20px;border:none;border-radius:var(--radius);
   font-size:16px;font-weight:500;color:#fff;cursor:pointer;
 }
 #addBtn{background:var(--primary);}
-#okBtn{background:#34c759;width:100%; margin-top: 30px;}
+
+/* hàng nút phụ Save – Restore */
+.secondary-btns{
+  display:flex;gap:10px;margin-top:16px;
+}
+.btn-save{
+  background:#ff9500;width:50%;
+}
+.btn-restore{
+  background:#af52de;width:50%;
+}
+
+#okBtn{
+  background:#34c759;width:100%;margin-top:16px;
+}
+
+/* thông báo nhỏ */
+.toast{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+  background:#333;color:#fff;padding:10px 24px;border-radius:30px;
+  font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.toast.show{opacity:1}
+
+/* nhãn trạng thái restore */
+#restoreMsg{
+  text-align:center;font-size:13px;color:#888;margin-top:4px;
+}
 </style>
 </head>
 <body>
@@ -104,12 +116,117 @@ input[type=file]{display:none}
   </div>
 
   <button id="addBtn" class="btn" onclick="addPro()">+ Thêm SP</button>
-  <div style="margin-top:16px">
-    <button id="okBtn" class="btn" onclick="saveAndGo()">Hoàn tất</button>
+
+  <!-- ====== Save & Restore ====== -->
+  <div class="secondary-btns">
+    <button class="btn btn-save" onclick="saveState()">💾 Save</button>
+    <button class="btn btn-restore" onclick="restoreState()">🔄 Restore</button>
   </div>
+  <div id="restoreMsg"></div>
+
+  <button id="okBtn" class="btn" onclick="saveAndGo()">Hoàn tất</button>
 </div>
 
+<div id="toast" class="toast"></div>
+
 <script>
+/* ---------- Tiện ích ---------- */
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+const DRAFT_KEY='qmDataDraft';
+const ONE_WEEK=7*24*60*60*1000;
+
+/* ---------- Thu thập dữ liệu form ---------- */
+function collectFormData(){
+  return {
+    company:document.getElementById('fCompany').value.trim(),
+    address:document.getElementById('fAddress').value.trim(),
+    tax:document.getElementById('fTax').value.trim(),
+    products:[...document.querySelectorAll('.proItem')].map(p=>({
+      name:p.querySelector('.pName').value.trim(),
+      info:p.querySelector('.pInfo').value.trim(),
+      img:p.querySelector('.pImg').value.trim(),
+      qty:p.querySelector('.pQty').value,
+      price:p.querySelector('.pPrice').value
+    }))
+  };
+}
+
+/* ---------- Đổ dữ liệu vào form ---------- */
+function populateForm(d){
+  document.getElementById('fCompany').value=d.company||'';
+  document.getElementById('fAddress').value=d.address||'';
+  document.getElementById('fTax').value=d.tax||'';
+
+  const list=document.getElementById('proList');
+  list.innerHTML='';                       // xóa cũ
+  if(!d.products||!d.products.length){
+    addPro();return;                        // tạo 1 ô trống nếu không có SP
+  }
+  d.products.forEach(x=>{
+    const el=document.createElement('div');el.className='proItem';
+    el.innerHTML=`
+      <div class="row"><input class="pName inp" placeholder="Tên sản phẩm"></div>
+      <div class="row"><textarea class="pInfo inp" rows="3">• Giới hạn cân:
+• Bước nhảy: d=
+• Bảo hành 1 năm</textarea></div>
+      <div class="row">
+        <input type="text" class="pImg inp" placeholder="Link ảnh">
+        <label class="upload-btn" onclick="this.nextElementSibling.click()">+</label>
+        <input type="file" accept="image/*" onchange="uploadImg(this)">
+      </div>
+      <div class="dual">
+        <div><label>Số lượng</label><input type="number" class="pQty inp" value="1"></div>
+        <div><label>Đơn giá</label><input type="text" class="pPrice inp" placeholder="đ" oninput="formatPriceModal(this)"></div>
+      </div>`;
+    list.appendChild(el);
+
+    // điền giá trị
+    const last=list.lastElementChild;
+    last.querySelector('.pName').value=x.name||'';
+    last.querySelector('.pInfo').value=x.info||'';
+    last.querySelector('.pImg').value=x.img||'';
+    last.querySelector('.pQty').value=x.qty||1;
+    last.querySelector('.pPrice').value=x.price||'';
+  });
+}
+
+/* ---------- Save ---------- */
+function saveState(){
+  const payload={
+    data:collectFormData(),
+    ts:Date.now()
+  };
+  localStorage.setItem(DRAFT_KEY,JSON.stringify(payload));
+  toast('Đã lưu bản nháp ✓');
+}
+
+/* ---------- Restore ---------- */
+function restoreState(){
+  const raw=localStorage.getItem(DRAFT_KEY);
+  const msg=document.getElementById('restoreMsg');
+  if(!raw){msg.textContent='Không có bản nháp nào.';return;}
+
+  const saved=JSON.parse(raw);
+  const age=Date.now()-saved.ts;
+  if(age>ONE_WEEK){
+    localStorage.removeItem(DRAFT_KEY);
+    msg.textContent='Bản nháp đã hết hạn (1 tuần).';
+    toast('Bản nháp đã hết hạn');
+    return;
+  }
+
+  populateForm(saved.data);
+  const date=new Date(saved.ts);
+  msg.textContent='Đã khôi phục lúc '+date.toLocaleString('vi-VN');
+  toast('Đã khôi phục bản nháp ✓');
+}
+
+/* ---------- Các hàm cũ ---------- */
 function addPro(){
   const d=document.createElement('div');d.className='proItem';
   d.innerHTML=`
@@ -123,14 +240,8 @@ function addPro(){
       <input type="file" accept="image/*" onchange="uploadImg(this)">
     </div>
     <div class="dual">
-      <div>
-        <label>Số lượng</label>
-        <input type="number" class="pQty inp" value="1">
-      </div>
-      <div>
-        <label>Đơn giá</label>
-        <input type="text" class="pPrice inp" placeholder="đ" oninput="formatPriceModal(this)">
-      </div>
+      <div><label>Số lượng</label><input type="number" class="pQty inp" value="1"></div>
+      <div><label>Đơn giá</label><input type="text" class="pPrice inp" placeholder="đ" oninput="formatPriceModal(this)"></div>
     </div>`;
   document.getElementById('proList').appendChild(d);
 }
