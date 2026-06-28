@@ -224,24 +224,31 @@ function populateForm(d){
 }
 
 /* ---------- Delete ---------- */
+/* ---------- Delete (Chỉ xóa form, không xóa bản nháp) ---------- */
 function deleteState(){
-  if(!confirm('Bạn có chắc chắn muốn xóa toàn bộ form và bản nháp?')) return;
+  // Thay đổi câu hỏi xác nhận
+  if(!confirm('Bạn có chắc chắn muốn xóa toàn bộ dữ liệu đang nhập trên màn hình?')) return;
   
-  localStorage.removeItem(DRAFT_KEY);
-  
+  // Đã bỏ dòng: localStorage.removeItem(DRAFT_KEY);
+
+  // Trả các trường ngày tháng về mặc định
   document.getElementById('fAutoDate').checked = false;
   document.getElementById('fDateStr').value = '.... / .... / 2026';
   document.getElementById('fDateStr').style.color = '#d9534f';
+  
+  // Làm trắng các ô text thông tin chung
   document.getElementById('fCompany').value = '';
   document.getElementById('fAddress').value = '';
   document.getElementById('fTax').value = '';
+  
+  // Xóa toàn bộ danh sách sản phẩm hiện tại và tạo lại 1 ô sản phẩm trống mặc định
   document.getElementById('proList').innerHTML = '';
   addPro(); 
   
+  // Cập nhật thông báo
   document.getElementById('restoreMsg').textContent = '';
-  toast('Đã xóa dữ liệu 🗑️');
+  toast('Đã xóa!');
 }
-
 /* ---------- Save ---------- */
 function saveState(){
   const payload={
