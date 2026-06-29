@@ -1074,6 +1074,10 @@ function createEnhancePlaceholder(filename, target) {
 // 6. TOOL NÂNG CAO CHẤT LƯỢNG AI (Cloudinary Upscale -> Browser Resize)
 // ==========================
 
+// =========================================================================
+// 6. TOOL NÂNG CAO CHẤT LƯỢNG AI (ĐÃ SỬA: Bỏ e_gen_restore & Bỏ Canvas)
+// =========================================================================
+
 async function processSingleEnhanceFile(file, uiElements) {
   uiElements.status.textContent = '🚀 Up server...';
 
@@ -1096,69 +1100,34 @@ async function processSingleEnhanceFile(file, uiElements) {
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
 
-    // Cập nhật trạng thái
-    uiElements.status.textContent = '🤖 AI Upscale & Xóa Logo...';
+    uiElements.status.textContent = '🤖 AI đang Upscale...';
     const publicId = data.public_id;
     
-    // 2. Lấy link ảnh đã được AI Upscale VÀ Generative Restore (để xóa logo ở góc)
-    const aiUpscaledUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/e_upscale,e_gen_restore/f_jpg,q_100/${publicId}.jpg`;
+    // 2. Lấy link ảnh trực tiếp từ Cloudinary AI
+    // Đã xóa tham số e_gen_restore gây gai ảnh.
+    // Dùng c_scale,w_3840 ngay trên URL để Server tự resize chất lượng cao nhất
+    const aiUpscaledUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/e_upscale/c_scale,w_3840/q_100,f_jpg/${publicId}.jpg`;
 
     const imageResponse = await fetch(aiUpscaledUrl);
     if (!imageResponse.ok) throw new Error("Lỗi máy chủ AI");
     
+    // 3. Chuyển thẳng thành Blob tải về (Tuyệt đối không qua Canvas trình duyệt)
     const blob = await imageResponse.blob();
-    const objectUrl = URL.createObjectURL(blob);
+    const finalUrl = URL.createObjectURL(blob);
 
-    // 3. Dùng trình duyệt (Canvas) để Resize ảnh
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = objectUrl;
+    uiElements.img.src = finalUrl;
+    uiElements.status.style.display = 'none';
+    uiElements.img.style.display = 'block';
+    uiElements.wrapper.style.display = 'block';
+    uiElements.btn.style.display = 'block';
 
-    img.onload = () => {
-      uiElements.status.textContent = '🖥️ Trình duyệt đang resize...';
-
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
-      // Đặt bề ngang mục tiêu (ví dụ: 3840px)
-      const targetWidth = 3840;
-      
-      // Tính toán tỷ lệ để giữ nguyên Aspect Ratio
-      const scale = targetWidth / img.width;
-      const targetHeight = Math.floor(img.height * scale);
-
-      canvas.width = targetWidth;
-      canvas.height = targetHeight;
-
-      // Vẽ ảnh đã upscale lên canvas với kích thước mới
-      ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-
-      // Xuất ảnh từ Canvas ra Blob (Định dạng JPG, chất lượng 85%)
-      canvas.toBlob((resizedBlob) => {
-        const finalUrl = URL.createObjectURL(resizedBlob);
-
-        uiElements.img.src = finalUrl;
-        uiElements.status.style.display = 'none';
-        uiElements.img.style.display = 'block';
-        uiElements.wrapper.style.display = 'block';
-        uiElements.btn.style.display = 'block';
-
-        uiElements.btn.onclick = () => {
-          const link = document.createElement('a');
-          link.href = finalUrl;
-          link.download = uiElements.filename.replace(/\.[^/.]+$/, "") + "_upscale_clean.jpg";
-          link.click();
-          uiElements.btn.classList.add('downloaded');
-          uiElements.btn.textContent = '✓';
-        };
-
-        // Dọn dẹp bộ nhớ
-        URL.revokeObjectURL(objectUrl);
-      }, 'image/jpeg', 0.85);
-    };
-
-    img.onerror = () => {
-      throw new Error("Lỗi tải ảnh vào Canvas");
+    uiElements.btn.onclick = () => {
+      const link = document.createElement('a');
+      link.href = finalUrl;
+      link.download = uiElements.filename.replace(/\.[^/.]+$/, "") + "_ai_enhanced.jpg";
+      link.click();
+      uiElements.btn.classList.add('downloaded');
+      uiElements.btn.textContent = '✓';
     };
 
   } catch (error) {
