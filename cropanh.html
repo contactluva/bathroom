@@ -132,19 +132,19 @@ img{
 
 <h2>Batch Tool Pro</h2>
 
-<h3>1. Crop Tool (Auto 80%)</h3>
+<h3>1. Crop Tool (Auto 80% + Upscale 1.6x)</h3>
 <input type="file" id="cropInput" multiple accept="image/*">
 <div id="cropOutput" class="grid"></div>
 
-<h3>2. Watermark Tool</h3>
+<h3>2. Watermark Tool (+ Upscale 1.6x)</h3>
 <input type="file" id="wmInput" multiple accept="image/*">
 <div id="wmOutput" class="grid"></div>
 
-<h3>3. Crop Bottom 15%</h3>
+<h3>3. Crop Bottom 15% (+ Upscale 1.6x)</h3>
 <input type="file" id="cropBottomInput" multiple accept="image/*">
 <div id="cropBottomOutput" class="grid"></div>
 
-<h3>4. Manual Crop Tool (Kéo thả, Resize)</h3>
+<h3>4. Manual Crop Tool (Kéo thả, Resize + Upscale 1.6x)</h3>
 <input type="file" id="manualCropInput" accept="image/*">
 <div id="cropperWorkspace" class="cropper-workspace">
   <div class="cropper-img-container">
@@ -154,18 +154,35 @@ img{
 </div>
 <div id="manualCropOutput" class="grid"></div>
 
-<h3>5. Cloudinary AI - Remove Background (Xuất PNG)</h3>
+<h3>5. Cloudinary AI - Remove Background (Xuất PNG + Upscale 1.6x)</h3>
 <input type="file" id="bgInput" multiple accept="image/*">
 <div id="bgGlobalStatus"></div>
 <div id="bgOutput" class="grid"></div>
 
-<h3>6. Cloudinary AI - Nâng Cao Chất Lượng Ảnh (X2 Size, Xuất JPG)</h3>
+<h3>6. Cloudinary AI - Nâng Cao Chất Lượng Ảnh (X2 Size, Xuất JPG - Gốc)</h3>
 <input type="file" id="enhanceInput" multiple accept="image/*">
 <div id="enhanceGlobalStatus"></div>
 <div id="enhanceOutput" class="grid"></div>
 
 
 <script>
+
+// ==========================
+// HÀM UPSCALE CHUNG QUA BROWSER (MỚI)
+// ==========================
+function upscaleCanvas(sourceCanvas, scaleMultiplier) {
+  const targetCanvas = document.createElement('canvas');
+  targetCanvas.width = sourceCanvas.width * scaleMultiplier;
+  targetCanvas.height = sourceCanvas.height * scaleMultiplier;
+  const ctx = targetCanvas.getContext('2d');
+  
+  // Tăng chất lượng nội suy khi phóng to
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  
+  ctx.drawImage(sourceCanvas, 0, 0, targetCanvas.width, targetCanvas.height);
+  return targetCanvas;
+}
 
 // ==========================
 // WATERMARK
@@ -589,9 +606,12 @@ function handleCrop(files){
           cropW,
           cropH
         );
+        
+        // UPSCALING 1.6x TRƯỚC KHI EXPORT
+        const upscaledCanvas = upscaleCanvas(canvas, 1.6);
 
         exportImage(
-          canvas,
+          upscaledCanvas,
           file.name,
           cropOutput
         );
@@ -659,9 +679,12 @@ function handleWatermark(files){
           canvas.width,
           canvas.height
         );
+        
+        // UPSCALING 1.6x TRƯỚC KHI EXPORT
+        const upscaledCanvas = upscaleCanvas(canvas, 1.6);
 
         exportImage(
-          canvas,
+          upscaledCanvas,
           file.name,
           wmOutput
         );
@@ -720,9 +743,12 @@ function handleCropBottom(files){
           canvas.width,
           canvas.height
         );
+        
+        // UPSCALING 1.6x TRƯỚC KHI EXPORT
+        const upscaledCanvas = upscaleCanvas(canvas, 1.6);
 
         exportImage(
-          canvas,
+          upscaledCanvas,
           file.name,
           cropBottomOutput
         );
@@ -787,16 +813,19 @@ btnManualCrop.onclick = () => {
     canvas.width,
     canvas.height
   );
+  
+  // UPSCALING 1.6x TRƯỚC KHI EXPORT
+  const upscaledCanvas = upscaleCanvas(canvas, 1.6);
 
   exportImage(
-    canvas,
+    upscaledCanvas,
     currentManualFile,
     manualCropOutput
   );
 };
 
 // ==========================
-// 5. TOOL XÓA NỀN AI (GIỮ NGUYÊN)
+// 5. TOOL XÓA NỀN AI
 // ==========================
 
 const CLOUD_NAME = 'duf9cjv0m'; 
@@ -910,27 +939,55 @@ async function processSingleBgFile(file, uiElements) {
     if (!imageResponse.ok) throw new Error("Lỗi máy chủ AI");
     
     const blob = await imageResponse.blob();
-    const localUrl = URL.createObjectURL(blob);
+    const originalUrl = URL.createObjectURL(blob);
 
-    uiElements.img.src = localUrl;
-    uiElements.img.onload = () => {
-      uiElements.status.style.display = 'none';
-      uiElements.img.style.display = 'block';
-      uiElements.wrapper.style.display = 'block'; 
-      uiElements.btn.style.display = 'block';
+    // ==========================
+    // THÊM: DÙNG TRÌNH DUYỆT ĐỂ UPSCALE 1.6X CHO PNG
+    // ==========================
+    const imgObj = new Image();
+    imgObj.crossOrigin = "anonymous";
+    imgObj.src = originalUrl;
+
+    imgObj.onload = () => {
+      uiElements.status.textContent = '🖥️ Đang Upscale 1.6x...';
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = imgObj.width * 1.6;
+      canvas.height = imgObj.height * 1.6;
+      
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(imgObj, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob((scaledBlob) => {
+        const scaledUrl = URL.createObjectURL(scaledBlob);
+        
+        uiElements.img.src = scaledUrl;
+        uiElements.status.style.display = 'none';
+        uiElements.img.style.display = 'block';
+        uiElements.wrapper.style.display = 'block'; 
+        uiElements.btn.style.display = 'block';
+
+        uiElements.btn.onclick = () => {
+          const link = document.createElement('a');
+          link.href = scaledUrl;
+          link.download = uiElements.filename.replace(/\.[^/.]+$/, "") + "_rmbg_upscaled.png";
+          link.click();
+          uiElements.btn.classList.add('downloaded');
+          uiElements.btn.textContent = '✓';
+        };
+
+        URL.revokeObjectURL(originalUrl); // Dọn dẹp bộ nhớ URL cũ
+      }, 'image/png');
     };
-
-    uiElements.btn.onclick = () => {
-      const link = document.createElement('a');
-      link.href = localUrl;
-      link.download = uiElements.filename.replace(/\.[^/.]+$/, "") + ".png";
-      link.click();
-      uiElements.btn.classList.add('downloaded');
-      uiElements.btn.textContent = '✓';
+    
+    imgObj.onerror = () => {
+      throw new Error("Lỗi tải ảnh vào Canvas để Upscale");
     };
 
   } catch (error) {
-    uiElements.status.textContent = '❌ Lỗi AI';
+    uiElements.status.textContent = '❌ Lỗi xử lý';
     uiElements.status.style.color = '#d9534f';
     console.error(error);
   }
@@ -1110,7 +1167,7 @@ async function processSingleEnhanceFile(file, uiElements) {
   }
 }
 // ==========================
-// UI & DOWNLOAD CHO CÁC TOOL CŨ (GIỮ NGUYÊN)
+// UI & DOWNLOAD CHO CÁC TOOL CŨ
 // ==========================
 
 function displayResult(
