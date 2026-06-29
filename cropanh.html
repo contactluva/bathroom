@@ -1096,11 +1096,12 @@ async function processSingleEnhanceFile(file, uiElements) {
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
 
-    uiElements.status.textContent = '🤖 AI đang Upscale...';
+    // Cập nhật trạng thái
+    uiElements.status.textContent = '🤖 AI Upscale & Xóa Logo...';
     const publicId = data.public_id;
     
-    // 2. Lấy link ảnh đã được AI Upscale (Giữ nguyên chất lượng q_100 để trình duyệt xử lý tiếp)
-    const aiUpscaledUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/e_upscale/f_jpg,q_100/${publicId}.jpg`;
+    // 2. Lấy link ảnh đã được AI Upscale VÀ Generative Restore (để xóa logo ở góc)
+    const aiUpscaledUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/e_upscale,e_gen_restore/f_jpg,q_100/${publicId}.jpg`;
 
     const imageResponse = await fetch(aiUpscaledUrl);
     if (!imageResponse.ok) throw new Error("Lỗi máy chủ AI");
@@ -1145,7 +1146,7 @@ async function processSingleEnhanceFile(file, uiElements) {
         uiElements.btn.onclick = () => {
           const link = document.createElement('a');
           link.href = finalUrl;
-          link.download = uiElements.filename.replace(/\.[^/.]+$/, "") + "_upscale_resized.jpg";
+          link.download = uiElements.filename.replace(/\.[^/.]+$/, "") + "_upscale_clean.jpg";
           link.click();
           uiElements.btn.classList.add('downloaded');
           uiElements.btn.textContent = '✓';
