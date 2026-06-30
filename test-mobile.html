@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Tester - Phone Landscape Simulator</title>
+    <title>HTML Tester - Phone Simulator</title>
     <style>
         * {
             box-sizing: border-box;
@@ -87,6 +87,25 @@
             padding: 20px 20px 0;
         }
 
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        #rotateBtn {
+            padding: 10px 20px;
+            font-size: 14px;
+            background-color: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        #rotateBtn:hover {
+            background-color: #8e44ad;
+        }
+
         #fullWidthBtn {
             padding: 10px 20px;
             font-size: 14px;
@@ -146,14 +165,14 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            padding: 20px 0;
+            padding: 20px; /* Thêm padding để an toàn, không bị lẹm viền */
             width: 100%;
         }
 
         /* Kích thước CSS (Logical) giả lập điện thoại thực */
         .phone-mockup {
             width: 884px;
-            aspect-ratio: 16 / 9;
+            height: 497px; /* 16:9 base height */
             background: #ffffff;
             border: 12px solid #000000;
             border-radius: 40px;
@@ -161,9 +180,17 @@
             position: relative;
             transform-origin: center center;
             flex-shrink: 0;
+            transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                        height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
-        /* Notch / Camera giả lập */
+        /* Chế độ xoay dọc (Portrait) */
+        .phone-mockup.portrait {
+            width: 497px;
+            height: 884px;
+        }
+
+        /* Notch / Camera giả lập mặc định (Ngang) */
         .phone-mockup::before {
             content: '';
             position: absolute;
@@ -173,9 +200,19 @@
             width: 15px;
             height: 80px;
             background: #000;
-            border-top-right-radius: 10px;
-            border-bottom-right-radius: 10px;
+            border-radius: 0 10px 10px 0;
             z-index: 10;
+            transition: all 0.4s ease;
+        }
+
+        /* Notch xoay dọc (Dọc) */
+        .phone-mockup.portrait::before {
+            left: 50%;
+            top: -12px;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 15px;
+            border-radius: 0 0 10px 10px;
         }
 
         iframe {
@@ -218,6 +255,14 @@
             height: calc(100vw * 9 / 16);
             max-height: 100vh;
             max-width: calc(100vh * 16 / 9);
+        }
+
+        /* Sửa lại tỉ lệ cho Fullscreen khi đang xoay dọc */
+        body.fullscreen-mode .phone-mockup.portrait {
+            width: 100vw;
+            height: calc(100vw * 16 / 9);
+            max-height: 100vh;
+            max-width: calc(100vh * 9 / 16);
         }
 
         body.fullscreen-mode .phone-mockup::before {
@@ -308,8 +353,11 @@
 
     <div class="right-panel">
         <div class="header-right">
-            <h2>Hiển thị (Logical Resolution 884x406 - Scale 96%)</h2>
-            <button id="fullWidthBtn">Full Width</button>
+            <h2 id="viewTitle">Hiển thị (Ngang 16:9 - Scale)</h2>
+            <div class="header-buttons">
+                <button id="rotateBtn">Xoay dọc</button>
+                <button id="fullWidthBtn">Full Width</button>
+            </div>
         </div>
         <div class="phone-wrapper" id="phoneWrapper">
             <div class="phone-mockup" id="phoneMockup">
@@ -325,6 +373,7 @@
         const outputFrame = document.getElementById('outputFrame');
         const phoneWrapper = document.getElementById('phoneWrapper');
         const phoneMockup = document.getElementById('phoneMockup');
+        const viewTitle = document.getElementById('viewTitle');
 
         function renderCode() {
             const code = htmlInput.value;
@@ -355,14 +404,11 @@
                 lastSearchIndex = index + term.length;
                 
                 // === LOGIC TỰ ĐỘNG CUỘN (AUTO-SCROLL) ===
-                // Lấy đoạn text từ đầu đến vị trí tìm thấy
                 const textUpToIndex = text.substring(0, index);
-                // Đếm số lần xuống dòng (\n) để biết chữ đang ở dòng thứ mấy
                 const lineCount = textUpToIndex.split('\n').length;
                 
                 // Tính toán: font 14px * line-height 1.5 = 21px mỗi dòng
                 const lineHeight = 21; 
-                // Trừ đi khoảng 4 dòng để kết quả hiển thị ở giữa khung thay vì dính sát mép trên
                 htmlInput.scrollTop = (lineCount - 4) * lineHeight;
 
             } else {
@@ -370,17 +416,12 @@
             }
         }
 
-        // Bấm nút Tìm
         document.getElementById('searchBtn').addEventListener('click', performSearch);
-        
-        // Hỗ trợ bấm phím Enter trong ô tìm kiếm
         document.getElementById('searchInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 performSearch();
             }
         });
-
-        // Reset index khi người dùng gõ từ khóa mới
         document.getElementById('searchInput').addEventListener('input', () => lastSearchIndex = 0);
 
         // --- TÍNH NĂNG TẢI FILE HTML ---
@@ -398,6 +439,25 @@
             URL.revokeObjectURL(url);
         });
 
+        // --- TÍNH NĂNG XOAY ĐIỆN THOẠI ---
+        const rotateBtn = document.getElementById('rotateBtn');
+        let isPortrait = false;
+
+        rotateBtn.addEventListener('click', function() {
+            isPortrait = !isPortrait;
+            
+            if (isPortrait) {
+                phoneMockup.classList.add('portrait');
+                rotateBtn.textContent = 'Xoay ngang';
+            } else {
+                phoneMockup.classList.remove('portrait');
+                rotateBtn.textContent = 'Xoay dọc';
+            }
+            
+            // Đợi CSS transition nhận diện rồi update scale mượt mà
+            setTimeout(scalePhone, 50); 
+        });
+
         // --- TÍNH NĂNG FULL WIDTH ---
         const fullWidthBtn = document.getElementById('fullWidthBtn');
         const exitFullWidthBtn = document.getElementById('exitFullWidthBtn');
@@ -412,19 +472,35 @@
             scalePhone(); 
         });
 
-        // Hàm scale để điện thoại chiếm đúng 96% chiều ngang
+        // Hàm scale để điện thoại vừa khít cả ngang và dọc (90% diện tích trống)
         function scalePhone() {
             if (document.body.classList.contains('fullscreen-mode')) {
                 phoneMockup.style.transform = 'none';
                 return;
             }
 
-            const mockupWidth = 884; 
+            // Kích thước chuẩn ban đầu của điện thoại giả lập
+            const mockupWidth = isPortrait ? 497 : 884;
+            const mockupHeight = isPortrait ? 884 : 497;
+
+            // Kích thước vùng chứa bên ngoài
             const wrapperWidth = phoneWrapper.clientWidth;
-            const targetWidth = wrapperWidth * 0.96;
-            const scale = targetWidth / mockupWidth;
+            const wrapperHeight = phoneWrapper.clientHeight;
+
+            // Tính toán Scale sao cho nhét vừa cả chiều rộng (width) và chiều cao (height)
+            // Lấy 92% thay vì 96% để có khoảng đệm đẹp mắt khi xoay dọc trên màn nhỏ
+            const scaleX = (wrapperWidth * 0.92) / mockupWidth;
+            const scaleY = (wrapperHeight * 0.92) / mockupHeight;
+
+            // Dùng Math.min để đảm bảo lấy Scale nhỏ hơn => Không bao giờ bị cắt viền (overflow)
+            const scale = Math.min(scaleX, scaleY);
             
             phoneMockup.style.transform = `scale(${scale})`;
+            
+            // Update tiêu đề cho rõ ràng
+            const percentScale = Math.round(scale * 100);
+            const ratioText = isPortrait ? 'Dọc 9:16' : 'Ngang 16:9';
+            viewTitle.textContent = `Hiển thị (${ratioText} - Scale ${percentScale}%)`;
         }
 
         window.addEventListener('resize', scalePhone);
