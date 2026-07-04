@@ -132,9 +132,14 @@ img{
 
 <h2>Batch Tool Pro</h2>
 
-<h3>1. Crop Tool (Auto 80% + Upscale 1.6x)</h3>
-<input type="file" id="cropInput" multiple accept="image/*">
-<div id="cropOutput" class="grid"></div>
+<h3>1. Resize Tool (Nhập chiều ngang, giữ nguyên tỉ lệ)</h3>
+<div style="margin-bottom: 10px;">
+  <label style="font-weight: bold;">Chiều ngang mục tiêu (px): </label>
+  <input type="number" id="resizeWidth" value="1080" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 100px;">
+</div>
+<input type="file" id="resizeInput" multiple accept="image/*">
+<button id="btnResize" class="action-btn" style="margin-top: 10px;">Bắt đầu Resize</button>
+<div id="resizeOutput" class="grid"></div>
 
 <h3>2. Watermark Tool (+ Upscale 1.6x)</h3>
 <input type="file" id="wmInput" multiple accept="image/*">
@@ -205,14 +210,16 @@ wm.onload = () => {
 // INPUTS
 // ==========================
 
-const cropInput = document.getElementById('cropInput');
+const resizeInput = document.getElementById('resizeInput');
+const resizeWidth = document.getElementById('resizeWidth');
+const btnResize = document.getElementById('btnResize');
 const wmInput = document.getElementById('wmInput');
 const cropBottomInput = document.getElementById('cropBottomInput');
 const manualCropInput = document.getElementById('manualCropInput');
 const bgInput = document.getElementById('bgInput');
 const enhanceInput = document.getElementById('enhanceInput');
 
-const cropOutput = document.getElementById('cropOutput');
+const resizeOutput = document.getElementById('resizeOutput');
 const wmOutput = document.getElementById('wmOutput');
 const cropBottomOutput = document.getElementById('cropBottomOutput');
 const manualCropOutput = document.getElementById('manualCropOutput');
@@ -225,9 +232,21 @@ const enhanceGlobalStatus = document.getElementById('enhanceGlobalStatus');
 // EVENTS
 // ==========================
 
-cropInput.onchange = e => {
-  cropOutput.innerHTML = '';
-  handleCrop(e.target.files);
+btnResize.onclick = () => {
+  const files = resizeInput.files;
+  const targetW = parseInt(resizeWidth.value);
+
+  if (!files.length) {
+    alert("Vui lòng chọn ít nhất một ảnh!");
+    return;
+  }
+  if (!targetW || targetW <= 0) {
+    alert("Vui lòng nhập chiều ngang hợp lệ!");
+    return;
+  }
+
+  resizeOutput.innerHTML = '';
+  handleResize(files, targetW);
 };
 
 wmInput.onchange = e => {
@@ -548,73 +567,40 @@ function dataURLtoBlob(dataURL){
 }
 
 // ==========================
-// CROP TOOL (AUTO)
+// 1. RESIZE TOOL (MỚI)
 // ==========================
 
-function handleCrop(files){
-
+function handleResize(files, targetW){
   Array.from(files).forEach(file=>{
-
     const reader = new FileReader();
 
     reader.onload = e => {
-
       const img = new Image();
-
       img.src = e.target.result;
 
       img.onload = ()=>{
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
 
-        const canvas =
-          document.createElement('canvas');
+        // Tính toán chiều cao mới dựa trên tỉ lệ gốc
+        const ratio = img.height / img.width;
+        const targetH = Math.floor(targetW * ratio);
 
-        const ctx =
-          canvas.getContext('2d');
+        canvas.width = targetW;
+        canvas.height = targetH;
 
-        const cropScale = 0.8;
+        // Bật chống răng cưa để ảnh đẹp hơn khi resize
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
 
-        const cropW =
-          Math.floor(img.width * cropScale);
+        // Vẽ ảnh với kích thước mới
+        ctx.drawImage(img, 0, 0, targetW, targetH);
 
-        const cropH =
-          Math.floor(img.height * cropScale);
-
-        const sx =
-          Math.floor((img.width-cropW)/2);
-
-        const sy =
-          Math.floor((img.height-cropH)/2);
-
-        canvas.width = cropW;
-        canvas.height = cropH;
-
-        ctx.drawImage(
-          img,
-          sx,
-          sy,
-          cropW,
-          cropH,
-          0,
-          0,
-          cropW,
-          cropH
-        );
-
-        applyEffects(
-          canvas,
-          ctx,
-          cropW,
-          cropH
-        );
+        // Áp dụng bộ lọc nhiễu và watermark ẩn (giữ nguyên logic gốc)
+        applyEffects(canvas, ctx, targetW, targetH);
         
-        // UPSCALING 1.6x TRƯỚC KHI EXPORT
-        const upscaledCanvas = upscaleCanvas(canvas, 1.6);
-
-        exportImage(
-          upscaledCanvas,
-          file.name,
-          cropOutput
-        );
+        // Xuất ảnh giả lập metadata iPhone 14
+        exportImage(canvas, file.name, resizeOutput);
       };
     };
 
@@ -942,7 +928,7 @@ async function processSingleBgFile(file, uiElements) {
     const originalUrl = URL.createObjectURL(blob);
 
     // ==========================
-    // THÊM: DÙNG TRÌNH DUYỆT ĐỂ UPSCALE 1.6X CHO PNG
+    // DÙNG TRÌNH DUYỆT ĐỂ UPSCALE 1.6X CHO PNG
     // ==========================
     const imgObj = new Image();
     imgObj.crossOrigin = "anonymous";
@@ -994,7 +980,7 @@ async function processSingleBgFile(file, uiElements) {
 }
 
 // ==========================
-// 6. TOOL NÂNG CAO CHẤT LƯỢNG AI (MỚI)
+// 6. TOOL NÂNG CAO CHẤT LƯỢNG AI
 // ==========================
 
 enhanceInput.onchange = e => {
@@ -1032,7 +1018,7 @@ function createEnhancePlaceholder(filename, target) {
   container.className = 'image-item';
 
   const wrapper = document.createElement('div');
-  wrapper.className = 'image-wrapper'; // Không dùng caro vì xuất JPG không có nền suốt
+  wrapper.className = 'image-wrapper';
   wrapper.style.minHeight = '120px';
   wrapper.style.display = 'flex';
   wrapper.style.alignItems = 'center';
@@ -1066,18 +1052,6 @@ function createEnhancePlaceholder(filename, target) {
   return { status, img, btn, wrapper, filename };
 }
 
-// ==========================
-// 6. TOOL NÂNG CAO CHẤT LƯỢNG AI (ĐÃ ĐƯỢC TỐI ƯU 3840px & JPG LOSSLESS)
-// ==========================
-
-// ==========================
-// 6. TOOL NÂNG CAO CHẤT LƯỢNG AI (Cloudinary Upscale -> Browser Resize)
-// ==========================
-
-// =========================================================================
-// 6. TOOL NÂNG CAO CHẤT LƯỢNG AI (ĐÃ SỬA: Bỏ e_gen_restore & Bỏ Canvas)
-// =========================================================================
-
 async function processSingleEnhanceFile(file, uiElements) {
   uiElements.status.textContent = '🚀 Up server...';
 
@@ -1104,14 +1078,12 @@ async function processSingleEnhanceFile(file, uiElements) {
     const publicId = data.public_id;
     
     // 2. Lấy link ảnh trực tiếp từ Cloudinary AI
-    // Đã xóa tham số e_gen_restore gây gai ảnh.
-    // Dùng c_scale,w_3840 ngay trên URL để Server tự resize chất lượng cao nhất
     const aiUpscaledUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/e_upscale/c_scale,w_3840/q_100,f_jpg/${publicId}.jpg`;
 
     const imageResponse = await fetch(aiUpscaledUrl);
     if (!imageResponse.ok) throw new Error("Lỗi máy chủ AI");
     
-    // 3. Chuyển thẳng thành Blob tải về (Tuyệt đối không qua Canvas trình duyệt)
+    // 3. Chuyển thẳng thành Blob tải về
     const blob = await imageResponse.blob();
     const finalUrl = URL.createObjectURL(blob);
 
@@ -1136,6 +1108,7 @@ async function processSingleEnhanceFile(file, uiElements) {
     console.error(error);
   }
 }
+
 // ==========================
 // UI & DOWNLOAD CHO CÁC TOOL CŨ
 // ==========================
