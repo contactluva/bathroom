@@ -132,7 +132,7 @@ img{
 
 <h2>Batch Tool Pro</h2>
 
-<h3>1. Resize Tool (Nhập chiều ngang, giữ nguyên tỉ lệ)</h3>
+<h3>1. Resize Tool (Nhập chiều ngang, giữ nguyên tỉ lệ & giữ nguyên định dạng gốc)</h3>
 <div style="margin-bottom: 10px;">
   <label style="font-weight: bold;">Chiều ngang mục tiêu (px): </label>
   <input type="number" id="resizeWidth" value="1080" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 100px;">
@@ -173,7 +173,7 @@ img{
 <script>
 
 // ==========================
-// HÀM UPSCALE CHUNG QUA BROWSER (MỚI)
+// HÀM UPSCALE CHUNG QUA BROWSER
 // ==========================
 function upscaleCanvas(sourceCanvas, scaleMultiplier) {
   const targetCanvas = document.createElement('canvas');
@@ -445,98 +445,107 @@ async function sha256(message){
 }
 
 // ==========================
-// EXPORT WITH FAKE IPHONE 14
+// EXPORT WITH FAKE IPHONE 14 & FORMAT PRESERVATION
 // ==========================
 
 async function exportImage(
   canvas,
   filename,
-  target
+  target,
+  mimeType = 'image/jpeg' // Mặc định là image/jpeg
 ){
+  // Xác định định dạng xuất ra
+  let outputType = mimeType;
+  if (outputType !== 'image/png' && outputType !== 'image/jpeg') {
+    // Nếu mimeType lạ, kiểm tra đuôi file gốc
+    outputType = filename.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+  }
 
   canvas.toBlob(async blob=>{
+    if (outputType === 'image/png') {
+      // Nếu là PNG: Xuất blob trực tiếp, không nhúng metadata EXIF JPEG để tránh lỗi định dạng
+      const url = URL.createObjectURL(blob);
+      displayResult(url, filename, target);
+    } else {
+      // Nếu là JPEG/JPG: Tiến hành nhúng EXIF iPhone 14 Pro Max như cũ
+      const reader = new FileReader();
 
-    const reader = new FileReader();
+      reader.onload = async function(){
 
-    reader.onload = async function(){
+        let jpegData = reader.result;
 
-      let jpegData = reader.result;
+        const zeroth = {};
+        const exif = {};
+        const gps = {};
 
-      const zeroth = {};
-      const exif = {};
-      const gps = {};
+        const hash =
+          await sha256(filename + Date.now());
 
-      const hash =
-        await sha256(filename + Date.now());
+        zeroth[piexif.ImageIFD.Make] = "Apple";
 
-      // ==========================
-      // FAKE IPHONE 14 EXIF
-      // ==========================
+        zeroth[piexif.ImageIFD.Model] =
+          "iPhone 14 Pro Max";
 
-      zeroth[piexif.ImageIFD.Make] = "Apple";
+        zeroth[piexif.ImageIFD.Software] =
+          "17.5.1";
 
-      zeroth[piexif.ImageIFD.Model] =
-        "iPhone 14 Pro Max";
+        zeroth[piexif.ImageIFD.Artist] =
+          "Apple iPhone";
 
-      zeroth[piexif.ImageIFD.Software] =
-        "17.5.1";
+        zeroth[piexif.ImageIFD.ImageDescription] =
+          "DCIM/100APPLE asset:" + hash;
 
-      zeroth[piexif.ImageIFD.Artist] =
-        "Apple iPhone";
+        exif[piexif.ExifIFD.DateTimeOriginal] =
+          new Date()
+          .toISOString()
+          .replace('T',' ')
+          .substring(0,19);
 
-      zeroth[piexif.ImageIFD.ImageDescription] =
-        "DCIM/100APPLE asset:" + hash;
+        exif[piexif.ExifIFD.LensMake] =
+          "Apple";
 
-      exif[piexif.ExifIFD.DateTimeOriginal] =
-        new Date()
-        .toISOString()
-        .replace('T',' ')
-        .substring(0,19);
+        exif[piexif.ExifIFD.LensModel] =
+          "iPhone 14 Pro Max back triple camera 6.86mm f/1.78";
 
-      exif[piexif.ExifIFD.LensMake] =
-        "Apple";
+        exif[piexif.ExifIFD.FNumber] =
+          [178,100];
 
-      exif[piexif.ExifIFD.LensModel] =
-        "iPhone 14 Pro Max back triple camera 6.86mm f/1.78";
+        exif[piexif.ExifIFD.ISOSpeedRatings] =
+          32 + Math.floor(Math.random()*80);
 
-      exif[piexif.ExifIFD.FNumber] =
-        [178,100];
+        exif[piexif.ExifIFD.FocalLength] =
+          [686,100];
 
-      exif[piexif.ExifIFD.ISOSpeedRatings] =
-        32 + Math.floor(Math.random()*80);
+        exif[piexif.ExifIFD.ExposureTime] =
+          [1,120];
 
-      exif[piexif.ExifIFD.FocalLength] =
-        [686,100];
+        const exifObj = {
+          "0th":zeroth,
+          "Exif":exif,
+          "GPS":gps
+        };
 
-      exif[piexif.ExifIFD.ExposureTime] =
-        [1,120];
+        const exifBytes =
+          piexif.dump(exifObj);
 
-      const exifObj = {
-        "0th":zeroth,
-        "Exif":exif,
-        "GPS":gps
+        jpegData =
+          piexif.insert(exifBytes,jpegData);
+
+        const finalBlob =
+          dataURLtoBlob(jpegData);
+
+        const url =
+          URL.createObjectURL(finalBlob);
+
+        displayResult(url,filename,target);
       };
 
-      const exifBytes =
-        piexif.dump(exifObj);
-
-      jpegData =
-        piexif.insert(exifBytes,jpegData);
-
-      const finalBlob =
-        dataURLtoBlob(jpegData);
-
-      const url =
-        URL.createObjectURL(finalBlob);
-
-      displayResult(url,filename,target);
-    };
-
-    reader.readAsDataURL(blob);
-
+      reader.readAsDataURL(blob);
+    }
   },
-  'image/jpeg',
-  0.90 + Math.random() * 0.05);
+  outputType,
+  outputType === 'image/jpeg' ? (0.90 + Math.random() * 0.05) : undefined
+  );
 }
 
 // ==========================
@@ -567,7 +576,7 @@ function dataURLtoBlob(dataURL){
 }
 
 // ==========================
-// 1. RESIZE TOOL (MỚI)
+// 1. RESIZE TOOL (GIỮ ĐỊNH DẠNG PNG/JPG GỐC)
 // ==========================
 
 function handleResize(files, targetW){
@@ -599,8 +608,8 @@ function handleResize(files, targetW){
         // Áp dụng bộ lọc nhiễu và watermark ẩn (giữ nguyên logic gốc)
         applyEffects(canvas, ctx, targetW, targetH);
         
-        // Xuất ảnh giả lập metadata iPhone 14
-        exportImage(canvas, file.name, resizeOutput);
+        // Xuất ảnh truyền thêm file.type để nhận diện PNG hay JPG
+        exportImage(canvas, file.name, resizeOutput, file.type);
       };
     };
 
@@ -955,10 +964,11 @@ async function processSingleBgFile(file, uiElements) {
         uiElements.wrapper.style.display = 'block'; 
         uiElements.btn.style.display = 'block';
 
+        // TẢI FILE: GIỮ NGUYÊN TÊN FILE GỐC (Hạn chế đổi đuôi cứng nhắc)
         uiElements.btn.onclick = () => {
           const link = document.createElement('a');
           link.href = scaledUrl;
-          link.download = uiElements.filename.replace(/\.[^/.]+$/, "") + "_rmbg_upscaled.png";
+          link.download = uiElements.filename; // Giữ nguyên tên file gốc
           link.click();
           uiElements.btn.classList.add('downloaded');
           uiElements.btn.textContent = '✓';
@@ -1093,10 +1103,11 @@ async function processSingleEnhanceFile(file, uiElements) {
     uiElements.wrapper.style.display = 'block';
     uiElements.btn.style.display = 'block';
 
+    // TẢI FILE: GIỮ NGUYÊN TÊN FILE GỐC
     uiElements.btn.onclick = () => {
       const link = document.createElement('a');
       link.href = finalUrl;
-      link.download = uiElements.filename.replace(/\.[^/.]+$/, "") + "_ai_enhanced.jpg";
+      link.download = uiElements.filename; // Giữ nguyên tên file gốc
       link.click();
       uiElements.btn.classList.add('downloaded');
       uiElements.btn.textContent = '✓';
@@ -1110,7 +1121,7 @@ async function processSingleEnhanceFile(file, uiElements) {
 }
 
 // ==========================
-// UI & DOWNLOAD CHO CÁC TOOL CŨ
+// UI & DOWNLOAD CHO CÁC TOOL CŨ (GIỮ NGUYÊN TÊN FILE GỐC)
 // ==========================
 
 function displayResult(
@@ -1141,6 +1152,7 @@ function displayResult(
 
   btn.textContent = '↓';
 
+  // TẢI FILE: GIỮ NGUYÊN TÊN FILE GỐC VÀ ĐUÔI GỐC
   btn.onclick = ()=>{
 
     const link =
@@ -1148,9 +1160,7 @@ function displayResult(
 
     link.href = url;
 
-    link.download =
-      filename.replace(/\.[^/.]+$/,"")
-      + ".jpg";
+    link.download = filename; // Lưu chuẩn xác tên file gốc lúc tải lên
 
     link.click();
 
