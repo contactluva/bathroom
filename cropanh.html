@@ -1110,15 +1110,28 @@ async function processSingleEnhanceFile(file, uiElements) {
     uiElements.wrapper.style.display = 'block';
     uiElements.btn.style.display = 'block';
 
-    // TẢI FILE: GIỮ NGUYÊN TÊN FILE GỐC
-    uiElements.btn.onclick = () => {
-      const link = document.createElement('a');
-      link.href = finalUrl;
-      link.download = uiElements.filename; // Giữ nguyên tên file gốc
-      link.click();
-      uiElements.btn.classList.add('downloaded');
-      uiElements.btn.textContent = '✓';
-    };
+           // TẢI FILE: ĐỔI ĐUÔI THÀNH .PNG ĐỂ ĐÚNG VỚI ĐỊNH DẠNG DỮ LIỆU
+        uiElements.btn.onclick = () => {
+          const link = document.createElement('a');
+          link.href = scaledUrl;
+          
+          // Xử lý tên file: thay thế đuôi cũ bằng .png
+          let finalFilename = uiElements.filename;
+          const lastDotIndex = finalFilename.lastIndexOf('.');
+          
+          if (lastDotIndex !== -1) {
+            // Nếu có đuôi file (ví dụ: .jpg, .jpeg), cắt bỏ và thay bằng .png
+            finalFilename = finalFilename.substring(0, lastDotIndex) + '.png';
+          } else {
+            // Nếu file gốc không có đuôi, thêm .png vào
+            finalFilename += '.png';
+          }
+          
+          link.download = finalFilename; 
+          link.click();
+          uiElements.btn.classList.add('downloaded');
+          uiElements.btn.textContent = '✓';
+        };
 
   } catch (error) {
     uiElements.status.textContent = '❌ Lỗi xử lý';
