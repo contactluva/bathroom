@@ -308,6 +308,8 @@ function addNoise(ctx,w,h){
   const data = imgData.data;
 
   for(let i=0;i<data.length;i+=4){
+    // Nếu pixel trong suốt (kênh Alpha = 0), bỏ qua không thêm nhiễu để bảo toàn độ trong suốt
+    if(data[i+3] === 0) continue;
 
     const n = (Math.random() - 0.5) * 6;
 
@@ -448,17 +450,22 @@ async function sha256(message){
 // EXPORT WITH FAKE IPHONE 14 & FORMAT PRESERVATION
 // ==========================
 
+// ==========================
+// EXPORT WITH FAKE IPHONE 14 & FORMAT PRESERVATION
+// ==========================
+
 async function exportImage(
   canvas,
   filename,
   target,
-  mimeType = 'image/jpeg' // Mặc định là image/jpeg
+  mimeType = 'image/jpeg' // Mặc định là image/jpeg nếu không truyền vào
 ){
-  // Xác định định dạng xuất ra
-  let outputType = mimeType;
-  if (outputType !== 'image/png' && outputType !== 'image/jpeg') {
-    // Nếu mimeType lạ, kiểm tra đuôi file gốc
-    outputType = filename.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+  // XÁC ĐỊNH ĐỊNH DẠNG XUẤT RA:
+  // Chỉ xuất PNG nếu mimeType truyền vào chính xác là 'image/png' (áp dụng riêng cho tính năng 1).
+  // Các tính năng còn lại không truyền mimeType sẽ tự động đưa về 'image/jpeg'.
+  let outputType = 'image/jpeg';
+  if (mimeType === 'image/png') {
+    outputType = 'image/png';
   }
 
   canvas.toBlob(async blob=>{
