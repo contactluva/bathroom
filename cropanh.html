@@ -308,8 +308,6 @@ function addNoise(ctx,w,h){
   const data = imgData.data;
 
   for(let i=0;i<data.length;i+=4){
-    // Nếu pixel trong suốt (kênh Alpha = 0), bỏ qua không thêm nhiễu để bảo toàn độ trong suốt
-    if(data[i+3] === 0) continue;
 
     const n = (Math.random() - 0.5) * 6;
 
@@ -450,22 +448,17 @@ async function sha256(message){
 // EXPORT WITH FAKE IPHONE 14 & FORMAT PRESERVATION
 // ==========================
 
-// ==========================
-// EXPORT WITH FAKE IPHONE 14 & FORMAT PRESERVATION
-// ==========================
-
 async function exportImage(
   canvas,
   filename,
   target,
-  mimeType = 'image/jpeg' // Mặc định là image/jpeg nếu không truyền vào
+  mimeType = 'image/jpeg' // Mặc định là image/jpeg
 ){
-  // XÁC ĐỊNH ĐỊNH DẠNG XUẤT RA:
-  // Chỉ xuất PNG nếu mimeType truyền vào chính xác là 'image/png' (áp dụng riêng cho tính năng 1).
-  // Các tính năng còn lại không truyền mimeType sẽ tự động đưa về 'image/jpeg'.
-  let outputType = 'image/jpeg';
-  if (mimeType === 'image/png') {
-    outputType = 'image/png';
+  // Xác định định dạng xuất ra
+  let outputType = mimeType;
+  if (outputType !== 'image/png' && outputType !== 'image/jpeg') {
+    // Nếu mimeType lạ, kiểm tra đuôi file gốc
+    outputType = filename.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
   }
 
   canvas.toBlob(async blob=>{
@@ -872,6 +865,7 @@ async function processBgBatch(files) {
   bgGlobalStatus.innerHTML = `🎉 Hoàn thành tách nền ${fileArray.length} ảnh!`;
 }
 
+// ĐÃ SỬA: Thêm nameElement vào object trả về để có thể cập nhật tên file hiển thị
 function createBgPlaceholder(filename, target) {
   const container = document.createElement('div');
   container.className = 'image-item';
@@ -908,7 +902,7 @@ function createBgPlaceholder(filename, target) {
   container.appendChild(name);
   target.appendChild(container);
 
-  return { status, img, btn, wrapper, filename };
+  return { status, img, btn, wrapper, filename, nameElement: name };
 }
 
 async function processSingleBgFile(file, uiElements) {
@@ -971,15 +965,35 @@ async function processSingleBgFile(file, uiElements) {
         uiElements.wrapper.style.display = 'block'; 
         uiElements.btn.style.display = 'block';
 
-        // TẢI FILE: GIỮ NGUYÊN TÊN FILE GỐC (Hạn chế đổi đuôi cứng nhắc)
+        // ĐÃ SỬA: ÉP ĐUÔI .PNG ĐỂ TRÌNH DUYỆT LƯU ĐÚNG ĐỊNH DẠNG
         uiElements.btn.onclick = () => {
           const link = document.createElement('a');
           link.href = scaledUrl;
-          link.download = uiElements.filename; // Giữ nguyên tên file gốc
+          
+          // Chuẩn hóa tên file về đuôi .png
+          let downloadName = uiElements.filename;
+          const lastDot = downloadName.lastIndexOf('.');
+          if (lastDot !== -1) {
+            downloadName = downloadName.substring(0, lastDot) + '.png';
+          } else {
+            downloadName = downloadName + '.png';
+          }
+          
+          link.download = downloadName;
           link.click();
           uiElements.btn.classList.add('downloaded');
           uiElements.btn.textContent = '✓';
         };
+
+        // ĐÃ SỬA: Cập nhật lại tên hiển thị dưới ảnh cho đúng định dạng PNG
+        let displayName = uiElements.filename;
+        const lastDotName = displayName.lastIndexOf('.');
+        if (lastDotName !== -1) {
+          displayName = displayName.substring(0, lastDotName) + '.png';
+        } else {
+          displayName = displayName + '.png';
+        }
+        uiElements.nameElement.textContent = displayName;
 
         URL.revokeObjectURL(originalUrl); // Dọn dẹp bộ nhớ URL cũ
       }, 'image/png');
@@ -1110,28 +1124,15 @@ async function processSingleEnhanceFile(file, uiElements) {
     uiElements.wrapper.style.display = 'block';
     uiElements.btn.style.display = 'block';
 
-           // TẢI FILE: ĐỔI ĐUÔI THÀNH .PNG ĐỂ ĐÚNG VỚI ĐỊNH DẠNG DỮ LIỆU
-        uiElements.btn.onclick = () => {
-          const link = document.createElement('a');
-          link.href = scaledUrl;
-          
-          // Xử lý tên file: thay thế đuôi cũ bằng .png
-          let finalFilename = uiElements.filename;
-          const lastDotIndex = finalFilename.lastIndexOf('.');
-          
-          if (lastDotIndex !== -1) {
-            // Nếu có đuôi file (ví dụ: .jpg, .jpeg), cắt bỏ và thay bằng .png
-            finalFilename = finalFilename.substring(0, lastDotIndex) + '.png';
-          } else {
-            // Nếu file gốc không có đuôi, thêm .png vào
-            finalFilename += '.png';
-          }
-          
-          link.download = finalFilename; 
-          link.click();
-          uiElements.btn.classList.add('downloaded');
-          uiElements.btn.textContent = '✓';
-        };
+    // TẢI FILE: GIỮ NGUYÊN TÊN FILE GỐC
+    uiElements.btn.onclick = () => {
+      const link = document.createElement('a');
+      link.href = finalUrl;
+      link.download = uiElements.filename; // Giữ nguyên tên file gốc
+      link.click();
+      uiElements.btn.classList.add('downloaded');
+      uiElements.btn.textContent = '✓';
+    };
 
   } catch (error) {
     uiElements.status.textContent = '❌ Lỗi xử lý';
