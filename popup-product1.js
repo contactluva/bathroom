@@ -307,7 +307,7 @@ span#totalSpanx1.loading {
 
 .address-input-groupx1 .mic-iconx1 {
     position: absolute;
-    right: 8px;
+    right: -5px;
     top: 50%;
     transform: translateY(-50%);
     background: #28a745;
