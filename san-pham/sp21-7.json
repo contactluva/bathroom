@@ -1,3 +1,21 @@
+{
+  "thong_tin_cua_hang": {
+    "dia_chi": {
+      "HN": "180/22 Đình Thôn, Mỹ Đình (Đối diện SVĐ Mỹ Đình)",
+      "HCM": "Số 2 Bình Phú, Tam Phú, Thủ Đức"
+    },
+    "hotline": "0973.648.294",
+    "gio_lam_viec": "T2-CN: 8h30 - 20h30",
+    "chinh_sach": [
+      "Bảo hành 1 năm",
+      "Thanh toán khi nhận hàng (COD)",
+      "Miễn phí vận chuyển",
+      "Đổi trả 10 ngày",
+      "Xuất hóa đơn VAT",
+      "Hà Nội giao trong 1h, tỉnh khác giao trong 1-3 ngày"
+    ]
+  },
+  "san_pham":
 [
     {
         "id": 7522,
@@ -525,3 +543,5 @@
         "description": "Mã sản phẩm TS205 Giới hạn cân tối đa = 5kg, tối thiểu = 0,1g Bước nhảy (độ chia) d = 0,1g Đơn vị cân g, ml, ct, gn ... Nguồn 2 pin AAA Chức năng Đếm giây, trừ bì, đổi đơn vị Bảo hành 12 tháng &nbsp; Cân điện tử TS205 dùng cho nhu cầu pha chế, đếm thời gian pha, rất cần thiết cho người dùng để pha cà phê pour-over và espresso. Ưu điểm Độ chính xác cao ( độ chia 0.1g) Màn hình hiển thị LCD đèn nền xanh, số lớn dễ đọc. Quy 0  bao bì Các đơn vị đo: g, kg, t1, ct, oz, dwt, ozt (xem ý nghĩa của các đơn vị này) Cân được tối đa 5kg Tính năng Màn hình đếm giây Đế cao su chống nóng và chống nước Cân đạt độ chính xác cấp II theo tiêu chuẩn OIML. Tốc độ xử lý nhanh Thiết kế chống bụi, cũng như sự ảnh hưởng của môi trường Màn hình hiển thị LCD số lớn, dễ đọc.. Thiết kế gọn nhẹ, có thể bỏ túi Có nút bật tắt đèn LCD Các chế độ lựa chọn Cân trừ bì (quy về 0) Chế độ thông báo tình trạng ổn định của cân. Cân có chức năng báo hiệu gần hết Pin. Chế độ tắt cân tự động (Automatic shut-off) giúp tiết kiệm năng lượng Pin. Thông số kỹ thuật Phương thức định lượng : cảm biến từ (load cell) Kích thước đĩa cân : 14.5 x 14.5 cm Kích thước cân: dài x rộng x dày (22 X 17 X 3.5CM ) Nguồn điện sử dụng : 2 Pin AAA."
     }
 ]
+
+}
