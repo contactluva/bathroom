@@ -723,7 +723,7 @@ function handleWatermark(files){
 }
 
 // ==========================
-// CROP BOTTOM TOOL
+// CROP BOTTOM TOOL (ĐÃ SỬA)
 // ==========================
 
 function handleCropBottom(files){
@@ -746,22 +746,23 @@ function handleCropBottom(files){
         const ctx =
           canvas.getContext('2d');
 
-        const newH =
-          img.height * 0.86;
+        // Bỏ đi 15% phía dưới tức là giữ lại 85% chiều cao gốc
+        const newH = img.height * 0.85;
 
         canvas.width = img.width;
         canvas.height = newH;
 
+        // Vẽ phần Top 85% của ảnh gốc vào Canvas 85% để crop 15% đáy thay vì bóp méo
         ctx.drawImage(
           img,
           0,
           0,
           img.width,
-          img.height, // Giữ nguyên chiều cao gốc khi lấy mẫu
+          newH, // Lấy đúng chiều cao từ ảnh gốc
           0,
           0,
           img.width,
-          newH
+          newH  // Vẽ đúng tỉ lệ mới vào canvas
         );
 
         applyEffects(
@@ -1273,7 +1274,7 @@ async function processSingleSubImage(subCanvas, uiElements) {
 }
 
 // ==========================
-// HÀM UI CHUNG: TẠO PLACEHOLDER & HIỂN THỊ KẾT QUẢcuối
+// HÀM UI CHUNG: TẠO PLACEHOLDER & HIỂN THỊ KẾT QUẢ
 // ==========================
 
 // Tạo khung trống hiển thị trạng thái đang xử lý
