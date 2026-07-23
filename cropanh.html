@@ -1120,10 +1120,8 @@ async function processSingleEnhanceFile(file, uiElements) {
 
 function generateSubFilename(originalFilename, index) {
   const dotIndex = originalFilename.lastIndexOf('.');
-  if (dotIndex === -1) return `${originalFilename}_${index}.jpg`;
-  const name = originalFilename.substring(0, dotIndex);
-  const ext = originalFilename.substring(dotIndex);
-  return `${name}_${index}${ext}`;
+  const name = dotIndex === -1 ? originalFilename : originalFilename.substring(0, dotIndex);
+  return `${name}_${index}.jpg`; // Cố định đuôi file luôn là .jpg
 }
 
 async function handleAutoCrop3x2(files) {
