@@ -118,6 +118,40 @@
             z-index: 10;
         }
 
+        /* Tùy chỉnh chọn FPS phong cách iOS */
+        .fps-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .ios-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: #fff;
+            border: 1px solid #d1d1d6;
+            border-radius: 12px;
+            padding: 10px 36px 10px 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #007aff;
+            cursor: pointer;
+            outline: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23007aff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            transition: all 0.2s ease;
+        }
+
+        .ios-select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #f2f2f7;
+        }
+
         /* Nút bấm phong cách iOS */
         .ios-btn {
             border: none;
@@ -174,7 +208,7 @@
         <div class="intro" id="intro">
             <h1>Screen Recorder</h1>
             <p class="features">
-                Ghi hình 1080p (40 FPS) không kèm âm thanh để tối ưu hiệu năng.
+                Ghi hình 1080p không kèm âm thanh để tối ưu hiệu năng.
             </p>
         </div>
 
@@ -187,6 +221,16 @@
         </div>
 
         <div class="controls">
+            <!-- Thêm bộ chọn FPS -->
+            <div class="fps-container">
+                <label for="fpsSelect">Chất lượng (FPS):</label>
+                <select id="fpsSelect" class="ios-select">
+                    <option value="30">30 FPS</option>
+                    <option value="40">40 FPS</option>
+                    <option value="50">50 FPS</option>
+                </select>
+            </div>
+
             <button id="recordBtn" class="ios-btn">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"/>
@@ -214,6 +258,7 @@
         const intro = document.getElementById('intro');
         const previewContainer = document.getElementById('previewContainer');
         const recordingIndicator = document.querySelector('.recording-indicator');
+        const fpsSelect = document.getElementById('fpsSelect'); // Lấy element bộ chọn FPS
 
         let mediaRecorder;
         let recordedChunks = [];
@@ -221,6 +266,9 @@
 
         const updateRecordingState = (recording) => {
             isRecording = recording;
+            
+            // Khóa bộ chọn FPS khi đang ghi hình
+            fpsSelect.disabled = recording;
             
             // Cập nhật giao diện nút Ghi hình
             if (recording) {
@@ -265,28 +313,29 @@
             recordedChunks = [];
             downloadBtn.classList.remove('visible');
             
+            // Lấy giá trị FPS người dùng đã chọn
+            const selectedFps = parseInt(fpsSelect.value, 10);
+            
             try {
-                // Đã loại bỏ hoàn toàn phần Audio, chỉ yêu cầu Video
                 const screenStream = await navigator.mediaDevices.getDisplayMedia({
-    video: {
-        displaySurface: 'monitor',
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        // Sử dụng 'max' để tạo giới hạn trần, buộc trình duyệt không được vượt qua
-        frameRate: { max: 30 }, 
-        cursor: 'always'
-    }
-});
+                    video: {
+                        displaySurface: 'monitor',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 },
+                        // Áp dụng FPS đã chọn
+                        frameRate: { ideal: selectedFps, max: selectedFps }, 
+                        cursor: 'always'
+                    }
+                });
 
                 preview.srcObject = screenStream;
                 preview.muted = true;
                 preview.controls = false;
 
-                // Khởi tạo MediaRecorder không có cấu hình audioBitsPerSecond
                 mediaRecorder = new MediaRecorder(screenStream, {
-    mimeType: 'video/webm', /* Bỏ ;codecs=vp9 để trình duyệt tự tối ưu phần cứng */
-    videoBitsPerSecond: 5000000 
-});
+                    mimeType: 'video/webm', 
+                    videoBitsPerSecond: 5000000 
+                });
 
                 mediaRecorder.ondataavailable = e => {
                     if (e.data.size > 0) {
@@ -330,15 +379,14 @@
             const blob = new Blob(recordedChunks, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
             
-            // Đã fix lỗi download: Tạo thẻ <a> và append vào document body
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            a.download = `screen-recording-1080p-${new Date().toISOString()}.webm`;
+            a.download = `screen-recording-1080p-${fpsSelect.value}fps-${new Date().toISOString()}.webm`;
             
-            document.body.appendChild(a); // Bước quan trọng để trình duyệt cho phép tải
+            document.body.appendChild(a); 
             a.click();
-            document.body.removeChild(a); // Dọn dẹp DOM sau khi click
+            document.body.removeChild(a); 
             
             URL.revokeObjectURL(url);
         };
