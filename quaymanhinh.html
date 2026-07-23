@@ -1,276 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Free Screen Recorder</title>
-    <meta name="description" content="Free Full HD screen recorder. Record your screen in high quality directly from your browser.">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body {
-            background-color: #f2f2f7; /* Màu nền xám nhạt đặc trưng của iOS */
-            color: #1c1c1e;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            padding: 20px;
-        }
-
-        .intro {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .intro.hidden {
-            display: none;
-        }
-
-        h1 {
-            font-size: 36px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: 12px;
-        }
-
-        .features {
-            font-size: 17px;
-            color: #8e8e93;
-            max-width: 480px;
-            line-height: 1.5;
-            margin: 0 auto;
-        }
-
-        .preview-container {
-            background: #000;
-            border-radius: 20px;
-            overflow: hidden;
-            width: 100%;
-            max-width: 1000px;
-            aspect-ratio: 16/9;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            margin-bottom: 30px;
-        }
-
-        .preview-container.active {
-            display: flex;
-        }
-
-        #preview {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .recording-indicator {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px); /* Hiệu ứng kính mờ iOS */
-            -webkit-backdrop-filter: blur(10px);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 999px;
-            font-size: 15px;
-            font-weight: 500;
-            display: none;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .recording-indicator.active {
-            display: flex;
-        }
-
-        .recording-dot {
-            width: 10px;
-            height: 10px;
-            background: #ff3b30;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        .controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            z-index: 10;
-        }
-
-        /* Tùy chỉnh chọn FPS phong cách iOS */
-        .fps-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 10px;
-        }
-
-        .ios-select {
-            appearance: none;
-            -webkit-appearance: none;
-            background-color: #fff;
-            border: 1px solid #d1d1d6;
-            border-radius: 12px;
-            padding: 10px 36px 10px 16px;
-            font-size: 16px;
-            font-weight: 600;
-            color: #007aff;
-            cursor: pointer;
-            outline: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23007aff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            transition: all 0.2s ease;
-        }
-
-        .ios-select:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background-color: #f2f2f7;
-        }
-
-        /* Nút bấm phong cách iOS */
-        .ios-btn {
-            border: none;
-            border-radius: 999px; /* Bo tròn hoàn toàn */
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            padding: 18px 40px;
-            color: #fff;
-            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-            min-width: 240px;
-        }
-
-        .ios-btn:active {
-            transform: scale(0.94); /* Hiệu ứng lún xuống khi bấm */
-            opacity: 0.9;
-        }
-
-        /* Nút Ghi hình */
-        #recordBtn {
-            background: #ff3b30; /* System Red */
-            box-shadow: 0 8px 24px rgba(255, 59, 48, 0.3);
-        }
-
-        #recordBtn.recording {
-            background: #8e8e93; /* System Gray khi đang ghi */
-            box-shadow: 0 8px 24px rgba(142, 142, 147, 0.3);
-        }
-
-        /* Nút Tải xuống */
-        #downloadBtn {
-            background: #007aff; /* System Blue */
-            box-shadow: 0 8px 24px rgba(0, 122, 255, 0.3);
-            display: none;
-        }
-
-        #downloadBtn.visible {
-            display: flex;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="intro" id="intro">
-            <h1>Screen Recorder</h1>
-            <p class="features">
-                Ghi hình 1080p không kèm âm thanh để tối ưu hiệu năng.
-            </p>
-        </div>
-
-        <div class="preview-container" id="previewContainer">
-            <video id="preview" autoplay muted></video>
-            <div class="recording-indicator">
-                <div class="recording-dot"></div>
-                Đang ghi hình
-            </div>
-        </div>
-
-        <div class="controls">
-            <!-- Thêm bộ chọn FPS -->
-            <div class="fps-container">
-                <label for="fpsSelect">Chất lượng (FPS):</label>
-                <select id="fpsSelect" class="ios-select">
-                    <option value="30">30 FPS</option>
-                    <option value="40">40 FPS</option>
-                    <option value="50">50 FPS</option>
-                </select>
-            </div>
-
-            <button id="recordBtn" class="ios-btn">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <circle cx="12" cy="12" r="4" fill="currentColor"/>
-                </svg>
-                <span>Bắt đầu ghi</span>
-            </button>
-
-            <button id="downloadBtn" class="ios-btn">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Lưu Video
-            </button>
-        </div>
-    </div>
-
-    <script>
+<script>
         const preview = document.getElementById('preview');
         const recordBtn = document.getElementById('recordBtn');
-        const recordBtnText = recordBtn.querySelector('span');
         const downloadBtn = document.getElementById('downloadBtn');
         const intro = document.getElementById('intro');
         const previewContainer = document.getElementById('previewContainer');
         const recordingIndicator = document.querySelector('.recording-indicator');
-        const fpsSelect = document.getElementById('fpsSelect'); // Lấy element bộ chọn FPS
+        const fpsSelect = document.getElementById('fpsSelect');
 
         let mediaRecorder;
         let recordedChunks = [];
         let isRecording = false;
+        let screenStream = null;
+
+        // TỐI ƯU CHO INTEL QUICK SYNC (CORE i7 Gen 10)
+        const getBestMimeType = () => {
+            const types = [
+                'video/webm;codecs="h264"', // Ưu tiên số 1: Tận dụng tuyệt đối phần cứng Intel
+                'video/webm;codecs=avc1',   // Một định dạng H.264 khác
+                'video/webm;codecs="vp8"',  // Phương án dự phòng (nhẹ hơn VP9)
+                'video/webm'                // Mặc định
+            ];
+            for (let type of types) {
+                if (MediaRecorder.isTypeSupported(type)) {
+                    console.log("Card Intel UHD đang dùng codec:", type);
+                    return type;
+                }
+            }
+            return '';
+        };
 
         const updateRecordingState = (recording) => {
             isRecording = recording;
-            
-            // Khóa bộ chọn FPS khi đang ghi hình
             fpsSelect.disabled = recording;
             
-            // Cập nhật giao diện nút Ghi hình
             if (recording) {
                 recordBtn.classList.add('recording');
                 recordBtn.innerHTML = `
@@ -312,17 +74,15 @@
 
             recordedChunks = [];
             downloadBtn.classList.remove('visible');
-            
-            // Lấy giá trị FPS người dùng đã chọn
             const selectedFps = parseInt(fpsSelect.value, 10);
             
             try {
-                const screenStream = await navigator.mediaDevices.getDisplayMedia({
+                // Tối ưu cho Latitude 5310: Bỏ ép cứng độ phân giải để tránh xung đột với Windows Display Scaling
+                screenStream = await navigator.mediaDevices.getDisplayMedia({
                     video: {
                         displaySurface: 'monitor',
-                        width: { ideal: 1920 },
+                        width: { ideal: 1920 }, // Chỉ dùng ideal, không dùng max để trình duyệt tự tương thích
                         height: { ideal: 1080 },
-                        // Áp dụng FPS đã chọn
                         frameRate: { ideal: selectedFps, max: selectedFps }, 
                         cursor: 'always'
                     }
@@ -332,35 +92,40 @@
                 preview.muted = true;
                 preview.controls = false;
 
+                // Tinh chỉnh Bitrate phù hợp với i7 Gen 10U
+                // Không để quá cao (gây thắt nút cổ chai ổ cứng/RAM) nhưng đủ sắc nét
+                const dynamicBitrate = selectedFps === 50 ? 4500000 : 3000000; 
+
                 mediaRecorder = new MediaRecorder(screenStream, {
-                    mimeType: 'video/webm', 
-                    videoBitsPerSecond: 5000000 
+                    mimeType: getBestMimeType(), 
+                    videoBitsPerSecond: dynamicBitrate 
                 });
 
                 mediaRecorder.ondataavailable = e => {
-                    if (e.data.size > 0) {
+                    if (e.data && e.data.size > 0) {
                         recordedChunks.push(e.data);
                     }
                 };
 
-                mediaRecorder.onstop = async () => {
-                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
                     preview.srcObject = null;
                     preview.src = URL.createObjectURL(blob);
                     preview.controls = true;
                     downloadBtn.classList.add('visible');
                 };
 
-                mediaRecorder.start(1000);
+                // Thu gom dữ liệu mỗi 2 giây (2000ms) để giải phóng RAM cho laptop thay vì dồn cục
+                mediaRecorder.start(2000); 
+                
                 updateRecordingState(true);
 
-                // Dừng ghi hình nếu người dùng bấm "Stop sharing" trên thanh công cụ của trình duyệt
                 screenStream.getVideoTracks()[0].onended = () => {
-                    stopRecording();
+                    if (isRecording) stopRecording();
                 };
 
             } catch (err) {
-                console.error('Recording error:', err);
+                console.error('Lỗi khi bắt đầu ghi hình:', err);
                 updateRecordingState(false);
             }
         };
@@ -368,7 +133,9 @@
         function stopRecording() {
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 mediaRecorder.stop();
-                preview.srcObject?.getTracks().forEach(track => track.stop());
+                if (screenStream) {
+                    screenStream.getTracks().forEach(track => track.stop());
+                }
                 updateRecordingState(false);
             }
         }
@@ -376,20 +143,21 @@
         downloadBtn.onclick = () => {
             if (recordedChunks.length === 0) return;
             
-            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
             const url = URL.createObjectURL(blob);
             
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            a.download = `screen-recording-1080p-${fpsSelect.value}fps-${new Date().toISOString()}.webm`;
+            // Xác định đuôi file MP4 hoặc WEBM dựa trên codec trình duyệt lấy được
+            const extension = mediaRecorder.mimeType.includes('h264') ? 'mp4' : 'webm';
+            a.download = `latitude-record-${fpsSelect.value}fps.${extension}`;
             
             document.body.appendChild(a); 
             a.click();
-            document.body.removeChild(a); 
-            
-            URL.revokeObjectURL(url);
+            setTimeout(() => {
+                document.body.removeChild(a); 
+                URL.revokeObjectURL(url);
+            }, 100);
         };
     </script>
-</body>
-</html>
