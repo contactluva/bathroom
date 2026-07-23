@@ -169,7 +169,7 @@ img{
 <div id="enhanceGlobalStatus"></div>
 <div id="enhanceOutput" class="grid"></div>
 
-<h3>7. Auto Crop 3x2 (8:9) & AI Enhance & Resize 1200px</h3>
+<h3>7. Auto Crop 3x2 (8:9) & AI & Resize 1200px</h3>
 <input type="file" id="autoCropInput" accept="image/*">
 <div id="autoCropGlobalStatus"></div>
 <div id="autoCropOutput" class="grid"></div>
@@ -186,28 +186,9 @@ function upscaleCanvas(sourceCanvas, scaleMultiplier) {
   targetCanvas.height = sourceCanvas.height * scaleMultiplier;
   const ctx = targetCanvas.getContext('2d');
   
-  // Tăng chất lượng nội suy khi phóng to
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   
-  ctx.drawImage(sourceCanvas, 0, 0, targetCanvas.width, targetCanvas.height);
-  return targetCanvas;
-}
-
-// ==========================
-// HÀM RESIZE XUỐNG CHIỀU RỘNG CỐ ĐỊNH CHUNG
-// ==========================
-function resizeCanvasToWidth(sourceCanvas, targetWidth) {
-  if (sourceCanvas.width <= targetWidth) return sourceCanvas; // Không resize nếu ảnh nhỏ hơn
-
-  const targetCanvas = document.createElement('canvas');
-  const ratio = sourceCanvas.height / sourceCanvas.width;
-  targetCanvas.width = targetWidth;
-  targetCanvas.height = Math.floor(targetWidth * ratio);
-  
-  const ctx = targetCanvas.getContext('2d');
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(sourceCanvas, 0, 0, targetCanvas.width, targetCanvas.height);
   return targetCanvas;
 }
@@ -340,6 +321,7 @@ function addNoise(ctx,w,h){
   const data = imgData.data;
 
   for(let i=0;i<data.length;i+=4){
+    if(data[i+3] === 0) continue;
 
     const n = (Math.random() - 0.5) * 6;
 
@@ -484,22 +466,18 @@ async function exportImage(
   canvas,
   filename,
   target,
-  mimeType = 'image/jpeg' // Mặc định là image/jpeg
+  mimeType = 'image/jpeg'
 ){
-  // Xác định định dạng xuất ra
-  let outputType = mimeType;
-  if (outputType !== 'image/png' && outputType !== 'image/jpeg') {
-    // Nếu mimeType lạ, kiểm tra đuôi file gốc
-    outputType = filename.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+  let outputType = 'image/jpeg';
+  if (mimeType === 'image/png') {
+    outputType = 'image/png';
   }
 
   canvas.toBlob(async blob=>{
     if (outputType === 'image/png') {
-      // Nếu là PNG: Xuất blob trực tiếp, không nhúng metadata EXIF JPEG để tránh lỗi định dạng
       const url = URL.createObjectURL(blob);
       displayResult(url, filename, target);
     } else {
-      // Nếu là JPEG/JPG: Tiến hành nhúng EXIF iPhone 14 Pro Max như cũ
       const reader = new FileReader();
 
       reader.onload = async function(){
@@ -623,24 +601,19 @@ function handleResize(files, targetW){
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
-        // Tính toán chiều cao mới dựa trên tỉ lệ gốc
         const ratio = img.height / img.width;
         const targetH = Math.floor(targetW * ratio);
 
         canvas.width = targetW;
         canvas.height = targetH;
 
-        // Bật chống răng cưa để ảnh đẹp hơn khi resize
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
-        // Vẽ ảnh với kích thước mới
         ctx.drawImage(img, 0, 0, targetW, targetH);
 
-        // Áp dụng bộ lọc nhiễu và watermark ẩn (giữ nguyên logic gốc)
         applyEffects(canvas, ctx, targetW, targetH);
         
-        // Xuất ảnh truyền thêm file.type để nhận diện PNG hay JPG
         exportImage(canvas, file.name, resizeOutput, file.type);
       };
     };
@@ -706,8 +679,7 @@ function handleWatermark(files){
           canvas.width,
           canvas.height
         );
-        
-        // UPSCALING 1.6x TRƯỚC KHI EXPORT
+
         const upscaledCanvas = upscaleCanvas(canvas, 1.6);
 
         exportImage(
@@ -723,7 +695,7 @@ function handleWatermark(files){
 }
 
 // ==========================
-// CROP BOTTOM TOOL (ĐÃ SỬA)
+// CROP BOTTOM TOOL
 // ==========================
 
 function handleCropBottom(files){
@@ -746,23 +718,22 @@ function handleCropBottom(files){
         const ctx =
           canvas.getContext('2d');
 
-        // Bỏ đi 15% phía dưới tức là giữ lại 85% chiều cao gốc
-        const newH = img.height * 0.85;
+        const newH =
+          img.height * 0.86;
 
         canvas.width = img.width;
         canvas.height = newH;
 
-        // Vẽ phần Top 85% của ảnh gốc vào Canvas 85% để crop 15% đáy thay vì bóp méo
         ctx.drawImage(
           img,
           0,
           0,
           img.width,
-          newH, // Lấy đúng chiều cao từ ảnh gốc
+          newH,
           0,
           0,
           img.width,
-          newH  // Vẽ đúng tỉ lệ mới vào canvas
+          newH
         );
 
         applyEffects(
@@ -771,8 +742,7 @@ function handleCropBottom(files){
           canvas.width,
           canvas.height
         );
-        
-        // UPSCALING 1.6x TRƯỚC KHI EXPORT
+
         const upscaledCanvas = upscaleCanvas(canvas, 1.6);
 
         exportImage(
@@ -841,8 +811,7 @@ btnManualCrop.onclick = () => {
     canvas.width,
     canvas.height
   );
-  
-  // UPSCALING 1.6x TRƯỚC KHI EXPORT
+
   const upscaledCanvas = upscaleCanvas(canvas, 1.6);
 
   exportImage(
@@ -853,12 +822,18 @@ btnManualCrop.onclick = () => {
 };
 
 // ==========================
-// CONFIG CLOUDINARY CHUNG
+// 5. TOOL XÓA NỀN AI
 // ==========================
 
-const CLOUD_NAME = 'duf9cjv0m'; 
-const API_KEY = '866242738975685'; 
-const API_SECRET = 'FVIOIfvEr_99LhwBRNF0vNvIk08'; 
+const CLOUD_NAME = 'tithcxtr'; 
+const API_KEY = '933177239613247'; 
+const API_SECRET = 'LLR--9wP1iuD3BqRFkWZeG5Wb-0'; 
+
+bgInput.onchange = e => {
+  bgOutput.innerHTML = '';
+  bgGlobalStatus.innerHTML = '';
+  processBgBatch(e.target.files);
+};
 
 async function generateSignature(timestamp, secret) {
   const text = `timestamp=${timestamp}${secret}`;
@@ -867,16 +842,6 @@ async function generateSignature(timestamp, secret) {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
-
-// ==========================
-// 5. TOOL XÓA NỀN AI
-// ==========================
-
-bgInput.onchange = e => {
-  bgOutput.innerHTML = '';
-  bgGlobalStatus.innerHTML = '';
-  processBgBatch(e.target.files);
-};
 
 async function processBgBatch(files) {
   const fileArray = Array.from(files);
@@ -902,7 +867,6 @@ async function processBgBatch(files) {
   bgGlobalStatus.innerHTML = `🎉 Hoàn thành tách nền ${fileArray.length} ảnh!`;
 }
 
-// ĐÃ SỬA: Thêm nameElement vào object trả về để có thể cập nhật tên file hiển thị
 function createBgPlaceholder(filename, target) {
   const container = document.createElement('div');
   container.className = 'image-item';
@@ -939,7 +903,7 @@ function createBgPlaceholder(filename, target) {
   container.appendChild(name);
   target.appendChild(container);
 
-  return { status, img, btn, wrapper, filename, nameElement: name };
+  return { status, img, btn, wrapper, filename };
 }
 
 async function processSingleBgFile(file, uiElements) {
@@ -974,9 +938,6 @@ async function processSingleBgFile(file, uiElements) {
     const blob = await imageResponse.blob();
     const originalUrl = URL.createObjectURL(blob);
 
-    // ==========================
-    // DÙNG TRÌNH DUYỆT ĐỂ UPSCALE 1.6X CHO PNG
-    // ==========================
     const imgObj = new Image();
     imgObj.crossOrigin = "anonymous";
     imgObj.src = originalUrl;
@@ -1002,37 +963,16 @@ async function processSingleBgFile(file, uiElements) {
         uiElements.wrapper.style.display = 'block'; 
         uiElements.btn.style.display = 'block';
 
-        // ĐÃ SỬA: ÉP ĐUÔI .PNG ĐỂ TRÌNH DUYỆT LƯU ĐÚNG ĐỊNH DẠNG
         uiElements.btn.onclick = () => {
           const link = document.createElement('a');
           link.href = scaledUrl;
-          
-          // Chuẩn hóa tên file về đuôi .png
-          let downloadName = uiElements.filename;
-          const lastDot = downloadName.lastIndexOf('.');
-          if (lastDot !== -1) {
-            downloadName = downloadName.substring(0, lastDot) + '.png';
-          } else {
-            downloadName = downloadName + '.png';
-          }
-          
-          link.download = downloadName;
+          link.download = uiElements.filename;
           link.click();
           uiElements.btn.classList.add('downloaded');
           uiElements.btn.textContent = '✓';
         };
 
-        // ĐÃ SỬA: Cập nhật lại tên hiển thị dưới ảnh cho đúng định dạng PNG
-        let displayName = uiElements.filename;
-        const lastDotName = displayName.lastIndexOf('.');
-        if (lastDotName !== -1) {
-          displayName = displayName.substring(0, lastDotName) + '.png';
-        } else {
-          displayName = displayName + '.png';
-        }
-        uiElements.nameElement.textContent = displayName;
-
-        URL.revokeObjectURL(originalUrl); // Dọn dẹp bộ nhớ URL cũ
+        URL.revokeObjectURL(originalUrl);
       }, 'image/png');
     };
     
@@ -1065,7 +1005,7 @@ async function processEnhanceBatch(files) {
   enhanceGlobalStatus.innerText = `🚀 Đang tải lên & xử lý AI nâng cấp: 0/${fileArray.length} ảnh...`;
 
   const placeholders = fileArray.map((file, index) => {
-    return createPlaceholder(file.name, enhanceOutput); // Dùng hàm tạo placeholder chung
+    return createEnhancePlaceholder(file.name, enhanceOutput);
   });
 
   const CONCURRENCY_LIMIT = 3; 
@@ -1081,204 +1021,7 @@ async function processEnhanceBatch(files) {
   enhanceGlobalStatus.innerHTML = `🎉 Hoàn thành nâng cấp chất lượng ${fileArray.length} ảnh!`;
 }
 
-async function processSingleEnhanceFile(file, uiElements) {
-  uiElements.status.textContent = '🚀 Up server...';
-
-  try {
-    const timestamp = Math.floor(Date.now() / 1000);
-    const signature = await generateSignature(timestamp, API_SECRET);
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('api_key', API_KEY);
-    formData.append('timestamp', timestamp);
-    formData.append('signature', signature);
-
-    // 1. Upload ảnh gốc lên Cloudinary
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-      method: 'POST',
-      body: formData
-    });
-
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-
-    uiElements.status.textContent = '🤖 AI đang Upscale...';
-    const publicId = data.public_id;
-    
-    // 2. Lấy link ảnh trực tiếp từ Cloudinary AI (e_upscale, q_100 để chất lượng tối đa)
-    const aiUpscaledUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/e_upscale/q_100,f_jpg/${publicId}.jpg`;
-
-    const imageResponse = await fetch(aiUpscaledUrl);
-    if (!imageResponse.ok) throw new Error("Lỗi máy chủ AI");
-    
-    // 3. Chuyển thẳng thành Blob tải về (Không resize, x2 size AI)
-    const blob = await imageResponse.blob();
-    const finalUrl = URL.createObjectURL(blob);
-
-    // Hiển thị kết quả
-    displayFinalResultInPlaceholder(uiElements, finalUrl, uiElements.filename);
-
-  } catch (error) {
-    uiElements.status.textContent = '❌ Lỗi xử lý';
-    uiElements.status.style.color = '#d9534f';
-    console.error(error);
-  }
-}
-
-// ==========================
-// 7. TOOL AUTO CROP 3X2 (8:9) & AI & RESIZE 1200PX
-// ==========================
-
-async function handleAutoCrop3x2(files) {
-  if (files.length === 0) return;
-  const file = files[0]; // Chỉ xử lý 1 file ảnh 8:9
-
-  autoCropGlobalStatus.innerText = "🚀 Đang đọc file ảnh gốc...";
-  
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.src = e.target.result;
-    img.onload = async function() {
-      autoCropGlobalStatus.innerText = "✂️ Đang cắt thành 6 ảnh...";
-      
-      const subImages = cutImage3x2(img);
-      const total = subImages.length;
-      let completed = 0;
-      
-      autoCropGlobalStatus.innerText = `🚀 Đang tải lên server & xử lý AI: 0/${total} ảnh...`;
-      
-      // Tạo placeholder cho 6 ảnh
-      const placeholders = subImages.map((_, index) => {
-        const subFilename = generateSubFilename(file.name, index + 1);
-        return createPlaceholder(subFilename, autoCropOutput);
-      });
-
-      // Xử lý song song tối đa 3 ảnh (giới hạn Cloudinary free)
-      const CONCURRENCY_LIMIT = 3;
-      for (let i = 0; i < subImages.length; i += CONCURRENCY_LIMIT) {
-        const chunk = subImages.slice(i, i + CONCURRENCY_LIMIT);
-        const chunkPlaceholders = placeholders.slice(i, i + CONCURRENCY_LIMIT);
-        
-        await Promise.all(chunk.map((canvas, chunkIndex) => {
-          return processSingleSubImage(canvas, chunkPlaceholders[chunkIndex]).then(() => {
-            completed++;
-            autoCropGlobalStatus.innerText = `🔄 Tiến độ AI & Resize: ${completed}/${total} ảnh...`;
-          });
-        }));
-      }
-      
-      autoCropGlobalStatus.innerHTML = `🎉 Hoàn thành xử lý cả 6 ảnh (đã cắt, nâng cấp AI & resize 1200px)!`;
-    };
-  };
-  reader.readAsDataURL(file);
-}
-
-// Hàm cắt ảnh 3 hàng 2 cột
-function cutImage3x2(img) {
-  const canvases = [];
-  const rows = 3;
-  const cols = 2;
-  const subW = img.width / cols;
-  const subH = img.height / rows;
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const canvas = document.createElement('canvas');
-      canvas.width = subW;
-      canvas.height = subH;
-      const ctx = canvas.getContext('2d');
-      // Tắt smoothing khi cắt để giữ nguyên pixel ảnh cắt
-      ctx.imageSmoothingEnabled = false;
-      
-      ctx.drawImage(
-        img,
-        c * subW, r * subH, subW, subH, // Source
-        0, 0, subW, subH // Destination
-      );
-      canvases.push(canvas);
-    }
-  }
-  return canvases;
-}
-
-// Hàm tạo tên file con (ví dụ: gock.jpg -> gock_crop1.jpg)
-function generateSubFilename(originalName, index) {
-  const lastDot = originalName.lastIndexOf('.');
-  if (lastDot === -1) return `${originalName}_crop${index}.jpg`; // Ép .jpg
-  const base = originalName.substring(0, lastDot);
-  // Không lấy đuôi gốc, vì AI Enhance tool xuất ra JPG, ta đồng nhất luôn
-  return `${base}_crop${index}.jpg`; 
-}
-
-// Xử lý 1 ảnh đã cắt: Blob -> AI Enhance (Cloudinary) -> ImageObj -> Resize 1200px (Canvas) -> Hiển thị
-async function processSingleSubImage(subCanvas, uiElements) {
-  uiElements.status.textContent = '🚀 Up server...';
-
-  try {
-    // 1. Chuyển canvas thành Blob JPG để upload
-    const blob = await new Promise(resolve => subCanvas.toBlob(resolve, 'image/jpeg', 0.95));
-    
-    const timestamp = Math.floor(Date.now() / 1000);
-    const signature = await generateSignature(timestamp, API_SECRET);
-
-    const formData = new FormData();
-    formData.append('file', blob);
-    formData.append('api_key', API_KEY);
-    formData.append('timestamp', timestamp);
-    formData.append('signature', signature);
-
-    // 2. Upload mảnh đã cắt lên Cloudinary
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-      method: 'POST',
-      body: formData
-    });
-
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-
-    uiElements.status.textContent = '🤖 AI đang x2...';
-    const publicId = data.public_id;
-    
-    // 3. Lấy link ảnh AI nâng cấp x2 (e_upscale)
-    const aiUpscaledUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/e_upscale/q_100,f_jpg/${publicId}.jpg`;
-
-    // 4. Tải ảnh AI nâng cấp về làm Image Object trong browser
-    const aiImg = new Image();
-    aiImg.crossOrigin = "anonymous"; // Quan trọng để canvas vẽ được
-    aiImg.src = aiUpscaledUrl;
-
-    await new Promise((resolve, reject) => {
-      aiImg.onload = resolve;
-      aiImg.onerror = reject;
-    });
-
-    uiElements.status.textContent = '🖥️ Resize 1200px...';
-    
-    // 5. Dùng canvas trình duyệt resize ảnh AI (đang rất to) xuống 1200px
-    const finalCanvas = resizeCanvasToWidth(aiImg, 1200);
-    
-    // 6. Chuyển thành Blob final để hiển thị/tải về
-    const finalBlob = await new Promise(resolve => finalCanvas.toBlob(resolve, 'image/jpeg', 0.90));
-    const finalUrl = URL.createObjectURL(finalBlob);
-
-    // 7. Hiển thị kết quả trong placeholder
-    displayFinalResultInPlaceholder(uiElements, finalUrl, uiElements.filename);
-
-  } catch (error) {
-    uiElements.status.textContent = '❌ Lỗi xử lý';
-    uiElements.status.style.color = '#d9534f';
-    console.error(error);
-  }
-}
-
-// ==========================
-// HÀM UI CHUNG: TẠO PLACEHOLDER & HIỂN THỊ KẾT QUẢ
-// ==========================
-
-// Tạo khung trống hiển thị trạng thái đang xử lý
-function createPlaceholder(filename, targetContainer) {
+function createEnhancePlaceholder(filename, target) {
   const container = document.createElement('div');
   container.className = 'image-item';
 
@@ -1312,32 +1055,203 @@ function createPlaceholder(filename, targetContainer) {
   wrapper.appendChild(btn);
   container.appendChild(wrapper);
   container.appendChild(name);
-  targetContainer.appendChild(container);
+  target.appendChild(container);
 
   return { status, img, btn, wrapper, filename };
 }
 
-// Cập nhật placeholder bằng ảnh kết quả cuối cùng
-function displayFinalResultInPlaceholder(uiElements, finalUrl, downloadName) {
-  uiElements.img.src = finalUrl;
-  uiElements.status.style.display = 'none';
-  uiElements.img.style.display = 'block';
-  uiElements.wrapper.style.display = 'block';
-  uiElements.btn.style.display = 'block';
+async function processSingleEnhanceFile(file, uiElements) {
+  uiElements.status.textContent = '🚀 Up server...';
 
-  // Thiết lập sự kiện tải file
-  uiElements.btn.onclick = () => {
-    const link = document.createElement('a');
-    link.href = finalUrl;
-    link.download = downloadName; 
-    link.click();
-    uiElements.btn.classList.add('downloaded');
-    uiElements.btn.textContent = '✓';
-  };
+  try {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const signature = await generateSignature(timestamp, API_SECRET);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', API_KEY);
+    formData.append('timestamp', timestamp);
+    formData.append('signature', signature);
+
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+
+    uiElements.status.textContent = '🤖 AI đang Upscale...';
+    const publicId = data.public_id;
+    
+    const aiUpscaledUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/e_upscale/c_scale,w_3840/q_100,f_jpg/${publicId}.jpg`;
+
+    const imageResponse = await fetch(aiUpscaledUrl);
+    if (!imageResponse.ok) throw new Error("Lỗi máy chủ AI");
+    
+    const blob = await imageResponse.blob();
+    const finalUrl = URL.createObjectURL(blob);
+
+    uiElements.img.src = finalUrl;
+    uiElements.status.style.display = 'none';
+    uiElements.img.style.display = 'block';
+    uiElements.wrapper.style.display = 'block';
+    uiElements.btn.style.display = 'block';
+
+    uiElements.btn.onclick = () => {
+      const link = document.createElement('a');
+      link.href = finalUrl;
+      link.download = uiElements.filename;
+      link.click();
+      uiElements.btn.classList.add('downloaded');
+      uiElements.btn.textContent = '✓';
+    };
+
+  } catch (error) {
+    uiElements.status.textContent = '❌ Lỗi xử lý';
+    uiElements.status.style.color = '#d9534f';
+    console.error(error);
+  }
 }
 
 // ==========================
-// UI & DOWNLOAD CHO CÁC TOOL CŨ 1,2,3,4 (SỬ DỤNG HÀM RIÊNG ĐỂ GIỮ NGUYÊN LOGIC CŨ)
+// 7. TOOL AUTO CROP 3X2 (8:9) & AI & RESIZE 1200PX
+// ==========================
+
+function generateSubFilename(originalFilename, index) {
+  const dotIndex = originalFilename.lastIndexOf('.');
+  if (dotIndex === -1) return `${originalFilename}_${index}.jpg`;
+  const name = originalFilename.substring(0, dotIndex);
+  const ext = originalFilename.substring(dotIndex);
+  return `${name}_${index}${ext}`;
+}
+
+async function handleAutoCrop3x2(files) {
+  if (!files || files.length === 0) return;
+  const file = files[0];
+
+  autoCropGlobalStatus.innerText = "🚀 Đang đọc file ảnh gốc...";
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.src = e.target.result;
+    img.onload = async function() {
+      autoCropGlobalStatus.innerText = "✂️ Đang cắt thành 6 ảnh...";
+      
+      const subImages = cutImage3x2(img);
+      const total = subImages.length;
+      let completed = 0;
+      
+      autoCropGlobalStatus.innerText = `🚀 Đang tải lên server & xử lý AI: 0/${total} ảnh...`;
+      
+      const placeholders = subImages.map((_, index) => {
+        const subFilename = generateSubFilename(file.name, index + 1);
+        return createEnhancePlaceholder(subFilename, autoCropOutput);
+      });
+
+      const CONCURRENCY_LIMIT = 3;
+      for (let i = 0; i < subImages.length; i += CONCURRENCY_LIMIT) {
+        const chunk = subImages.slice(i, i + CONCURRENCY_LIMIT);
+        const chunkPlaceholders = placeholders.slice(i, i + CONCURRENCY_LIMIT);
+        
+        await Promise.all(chunk.map((canvas, chunkIndex) => {
+          return processSingleSubImage(canvas, chunkPlaceholders[chunkIndex]).then(() => {
+            completed++;
+            autoCropGlobalStatus.innerText = `🔄 Tiến độ AI & Resize: ${completed}/${total} ảnh...`;
+          });
+        }));
+      }
+      
+      autoCropGlobalStatus.innerHTML = `🎉 Hoàn thành xử lý cả 6 ảnh (đã cắt, nâng cấp AI & resize 1200px)!`;
+    };
+  };
+  reader.readAsDataURL(file);
+}
+
+function cutImage3x2(img) {
+  const canvases = [];
+  const rows = 3;
+  const cols = 2;
+  const subW = img.width / cols;
+  const subH = img.height / rows;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const canvas = document.createElement('canvas');
+      canvas.width = subW;
+      canvas.height = subH;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      
+      ctx.drawImage(
+        img,
+        c * subW, r * subH, subW, subH,
+        0, 0, subW, subH
+      );
+      canvases.push(canvas);
+    }
+  }
+  return canvases;
+}
+
+async function processSingleSubImage(canvas, uiElements) {
+  uiElements.status.textContent = '🚀 Up server...';
+
+  try {
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+    const timestamp = Math.floor(Date.now() / 1000);
+    const signature = await generateSignature(timestamp, API_SECRET);
+
+    const formData = new FormData();
+    formData.append('file', blob, 'sub_image.jpg');
+    formData.append('api_key', API_KEY);
+    formData.append('timestamp', timestamp);
+    formData.append('signature', signature);
+
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+
+    uiElements.status.textContent = '🤖 AI & Resize 1200px...';
+    const publicId = data.public_id;
+    
+    const aiProcessedUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/e_upscale/c_scale,w_1200/q_100,f_jpg/${publicId}.jpg`;
+
+    const imageResponse = await fetch(aiProcessedUrl);
+    if (!imageResponse.ok) throw new Error("Lỗi máy chủ AI");
+
+    const finalBlob = await imageResponse.blob();
+    const finalUrl = URL.createObjectURL(finalBlob);
+
+    uiElements.img.src = finalUrl;
+    uiElements.status.style.display = 'none';
+    uiElements.img.style.display = 'block';
+    uiElements.wrapper.style.display = 'block';
+    uiElements.btn.style.display = 'block';
+
+    uiElements.btn.onclick = () => {
+      const link = document.createElement('a');
+      link.href = finalUrl;
+      link.download = uiElements.filename;
+      link.click();
+      uiElements.btn.classList.add('downloaded');
+      uiElements.btn.textContent = '✓';
+    };
+
+  } catch (error) {
+    uiElements.status.textContent = '❌ Lỗi xử lý';
+    uiElements.status.style.color = '#d9534f';
+    console.error(error);
+  }
+}
+
+// ==========================
+// UI & DOWNLOAD CHO CÁC TOOL CŨ (GIỮ NGUYÊN TÊN FILE GỐC)
 // ==========================
 
 function displayResult(
@@ -1368,7 +1282,6 @@ function displayResult(
 
   btn.textContent = '↓';
 
-  // TẢI FILE: GIỮ NGUYÊN TÊN FILE GỐC VÀ ĐUÔI GỐC
   btn.onclick = ()=>{
 
     const link =
@@ -1376,7 +1289,7 @@ function displayResult(
 
     link.href = url;
 
-    link.download = filename; // Lưu chuẩn xác tên file gốc lúc tải lên
+    link.download = filename;
 
     link.click();
 
