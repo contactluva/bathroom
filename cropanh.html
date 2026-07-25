@@ -125,11 +125,40 @@ img{
   font-weight: bold;
   color: #0275d8;
 }
+
+/* Nút nổi góc trên bên phải */
+.batch-download-float {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.batch-download-float:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+}
 </style>
 </head>
 
 <body>
-
+<button id="btnDownloadAll" class="batch-download-float">
+  📥 Tải tất cả ảnh về Thư mục
+</button>
 <h2>Batch Tool Pro</h2>
 
 <h3>1. Resize Tool (Nhập chiều ngang, giữ nguyên tỉ lệ & giữ nguyên định dạng gốc)</h3>
@@ -1311,6 +1340,79 @@ function displayResult(
 
   target.appendChild(container);
 }
+
+// ==========================
+// TÍNH NĂNG TẢI TẤT CẢ VỀ THƯ MỤC
+// ==========================
+
+document.getElementById('btnDownloadAll').onclick = async () => {
+  // 1. Lấy danh sách tất cả các nút download đang hiển thị trên giao diện
+  const downloadBtns = Array.from(document.querySelectorAll('.download-btn'))
+    .filter(btn => btn.style.display !== 'none' && btn.parentElement);
+
+  if (downloadBtns.length === 0) {
+    alert("Chưa có ảnh nào được hoàn thành để tải về!");
+    return;
+  }
+
+  // 2. Kiểm tra trình duyệt có hỗ trợ File System Access API không
+  if ('showDirectoryPicker' in window) {
+    try {
+      // Yêu cầu người dùng chọn thư mục lưu
+      const dirHandle = await window.showDirectoryPicker({
+        mode: 'readwrite'
+      });
+
+      let savedCount = 0;
+
+      for (const btn of downloadBtns) {
+        const wrapper = btn.parentElement;
+        const img = wrapper.querySelector('img');
+        const filenameDiv = wrapper.parentElement.querySelector('.filename');
+
+        if (!img || !img.src) continue;
+
+        // Lấy tên file gốc hoặc mặc định
+        const filename = filenameDiv ? filenameDiv.innerText : `processed_image_${Date.now()}.jpg`;
+
+        try {
+          // Fetch dữ liệu ảnh từ Blob/URL
+          const res = await fetch(img.src);
+          const blob = await res.blob();
+
+          // Tạo file trong thư mục đã chọn
+          const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+
+          // Cập nhật trạng thái nút bấm đơn lẻ
+          btn.classList.add('downloaded');
+          btn.textContent = '✓';
+          savedCount++;
+        } catch (err) {
+          console.error(`Lỗi khi lưu file ${filename}:`, err);
+        }
+      }
+
+      alert(`🎉 Đã lưu thành công ${savedCount}/${downloadBtns.length} ảnh vào thư mục!`);
+
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        alert("Lỗi truy cập thư mục: " + err.message);
+      }
+    }
+  } else {
+    // Phương án dự phòng (Fallback) dành cho trình duyệt không hỗ trợ File System Access API (Firefox/Safari)
+    alert("Trình duyệt không hỗ trợ chọn thư mục trực tiếp. Hệ thống sẽ tự động kích hoạt tải từng file...");
+    
+    downloadBtns.forEach((btn, index) => {
+      setTimeout(() => {
+        btn.click();
+      }, index * 200); // Đặt trễ 200ms để tránh trình duyệt chặn popup tải nhiều file cùng lúc
+    });
+  }
+};
 
 </script>
 
