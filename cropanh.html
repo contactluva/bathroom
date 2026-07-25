@@ -198,7 +198,13 @@ img{
 <div id="enhanceGlobalStatus"></div>
 <div id="enhanceOutput" class="grid"></div>
 
-<h3>7. Auto Crop 3x2 (8:9) & AI & Resize 1200px</h3>
+<h3>7. Auto Crop Lưới Tùy Chỉnh & AI & Resize 1200px</h3>
+<div style="margin-bottom: 10px;">
+  <label style="font-weight: bold;">Số hàng: </label>
+  <input type="number" id="autoCropRows" value="3" min="1" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 80px;">
+  <label style="font-weight: bold; margin-left: 15px;">Số cột: </label>
+  <input type="number" id="autoCropCols" value="2" min="1" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 80px;">
+</div>
 <input type="file" id="autoCropInput" accept="image/*">
 <div id="autoCropGlobalStatus"></div>
 <div id="autoCropOutput" class="grid"></div>
@@ -298,7 +304,7 @@ cropBottomInput.onchange = e => {
 autoCropInput.onchange = e => {
   autoCropOutput.innerHTML = '';
   autoCropGlobalStatus.innerHTML = '';
-  handleAutoCrop3x2(e.target.files);
+  handleAutoCropGrid(e.target.files);
 };
 
 // ==========================
@@ -1144,7 +1150,7 @@ async function processSingleEnhanceFile(file, uiElements) {
 }
 
 // ==========================
-// 7. TOOL AUTO CROP 3X2 (8:9) & AI & RESIZE 1200PX
+// 7. TOOL AUTO CROP LƯỚI TÙY CHỈNH & AI & RESIZE 1200PX
 // ==========================
 
 function generateSubFilename(originalFilename, index) {
@@ -1153,9 +1159,17 @@ function generateSubFilename(originalFilename, index) {
   return `${name}_${index}.jpg`; // Cố định đuôi file luôn là .jpg
 }
 
-async function handleAutoCrop3x2(files) {
+async function handleAutoCropGrid(files) {
   if (!files || files.length === 0) return;
   const file = files[0];
+
+  const rows = parseInt(document.getElementById('autoCropRows').value) || 3;
+  const cols = parseInt(document.getElementById('autoCropCols').value) || 2;
+
+  if (rows < 1 || cols < 1) {
+    alert("Số hàng và số cột phải lớn hơn hoặc bằng 1!");
+    return;
+  }
 
   autoCropGlobalStatus.innerText = "🚀 Đang đọc file ảnh gốc...";
   
@@ -1164,9 +1178,9 @@ async function handleAutoCrop3x2(files) {
     const img = new Image();
     img.src = e.target.result;
     img.onload = async function() {
-      autoCropGlobalStatus.innerText = "✂️ Đang cắt thành 6 ảnh...";
+      autoCropGlobalStatus.innerText = `✂️ Đang cắt thành lưới ${rows}x${cols}...`;
       
-      const subImages = cutImage3x2(img);
+      const subImages = cutImageGrid(img, rows, cols);
       const total = subImages.length;
       let completed = 0;
       
@@ -1190,31 +1204,29 @@ async function handleAutoCrop3x2(files) {
         }));
       }
       
-      autoCropGlobalStatus.innerHTML = `🎉 Hoàn thành xử lý cả 6 ảnh (đã cắt, nâng cấp AI & resize 1200px)!`;
+      autoCropGlobalStatus.innerHTML = `🎉 Hoàn thành xử lý cả ${total} ảnh (đã cắt, nâng cấp AI & resize 1200px)!`;
     };
   };
   reader.readAsDataURL(file);
 }
 
-function cutImage3x2(img) {
+function cutImageGrid(img, rows, cols) {
   const canvases = [];
-  const rows = 3;
-  const cols = 2;
   const subW = img.width / cols;
   const subH = img.height / rows;
 
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const canvas = document.createElement('canvas');
-      canvas.width = subW;
-      canvas.height = subH;
+      canvas.width = Math.floor(subW);
+      canvas.height = Math.floor(subH);
       const ctx = canvas.getContext('2d');
       ctx.imageSmoothingEnabled = false;
       
       ctx.drawImage(
         img,
         c * subW, r * subH, subW, subH,
-        0, 0, subW, subH
+        0, 0, canvas.width, canvas.height
       );
       canvases.push(canvas);
     }
