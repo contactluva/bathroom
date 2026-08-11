@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi Video Shorts Lên Telegram</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 { margin-top: 0; color: #2c3e50; }
+        .row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        .row input[type="file"] { flex: 1; }
+        .row input[type="text"] {
+            flex: 2;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn-add {
+            background: #3498db; color: white; border: none;
+            padding: 8px 15px; border-radius: 4px; cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .btn-remove {
+            background: #e74c3c; color: white; border: none;
+            padding: 8px 12px; border-radius: 4px; cursor: pointer;
+        }
+        textarea {
+            width: 100%; height: 120px;
+            padding: 12px; box-sizing: border-box;
+            border: 1px solid #ccc; border-radius: 4px;
+            resize: vertical; font-family: inherit;
+        }
+        .char-counter {
+            text-align: right; font-size: 0.85em; color: #666;
+            margin-bottom: 20px;
+        }
+        .btn-submit {
+            background: #2ecc71; color: white; border: none;
+            padding: 12px 20px; border-radius: 4px; font-size: 16px;
+            cursor: pointer; width: 100%; font-weight: bold;
+        }
+        .btn-submit:disabled { background: #95a5a6; cursor: not-allowed; }
+        #status { margin-top: 15px; font-weight: bold; text-align: center; }
+        .success { color: #2ecc71; }
+        .error { color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Gửi Lệnh Sản Xuất Video</h2>
+    
+    <div id="video-container">
+        <!-- Hàng nhập video đầu tiên -->
+        <div class="row">
+            <input type="file" accept="video/mp4" class="video-file">
+            <input type="text" class="video-caption" placeholder="Chú thích (caption) cho video này...">
+            <button class="btn-remove" onclick="this.parentElement.remove()">Xóa</button>
+        </div>
+    </div>
+
+    <button class="btn-add" onclick="addRow()">+ Thêm Video (Tối đa 10)</button>
+
+    <div>
+        <label><b>Kịch bản thoại (Giới hạn ~30s / 700 ký tự):</b></label>
+        <textarea id="voice-text" maxlength="700" oninput="updateCounter()" placeholder="Nhập kịch bản lồng tiếng tại đây..."></textarea>
+        <div class="char-counter"><span id="char-count">0</span> / 700</div>
+    </div>
+
+    <button id="btn-submit" class="btn-submit" onclick="submitToTelegram()">GỬI LÊN TELEGRAM</button>
+    <div id="status"></div>
+</div>
+
+<script>
+    const BOT_TOKEN = '5420705842:AAFI_x963vfDFdimnGWyMrg8Ys-_LAkstw0';
+    const CHAT_ID = '-5534880712';
+
+    function updateCounter() {
+        const textLength = document.getElementById('voice-text').value.length;
+        document.getElementById('char-count').innerText = textLength;
+    }
+
+    function addRow() {
+        const container = document.getElementById('video-container');
+        if (container.children.length >= 10) {
+            alert("Bạn chỉ nên gửi tối đa 10 file mỗi lần!");
+            return;
+        }
+        
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+            <input type="file" accept="video/mp4" class="video-file">
+            <input type="text" class="video-caption" placeholder="Chú thích (caption) cho video này...">
+            <button class="btn-remove" onclick="this.parentElement.remove()">Xóa</button>
+        `;
+        container.appendChild(row);
+    }
+
+    async function submitToTelegram() {
+        const submitBtn = document.getElementById('btn-submit');
+        const statusDiv = document.getElementById('status');
+        const voiceText = document.getElementById('voice-text').value.trim();
+        const rows = document.querySelectorAll('.row');
+
+        if (!voiceText) {
+            alert("Vui lòng nhập kịch bản thoại!");
+            return;
+        }
+
+        // Lọc ra các video hợp lệ
+        const validRows = [];
+        for (let i = 0; i < rows.length; i++) {
+            const fileInput = rows[i].querySelector('.video-file');
+            if (fileInput.files.length > 0) {
+                validRows.push({
+                    file: fileInput.files[0],
+                    caption: rows[i].querySelector('.video-caption').value.trim()
+                });
+            }
+        }
+
+        if (validRows.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 video MP4!");
+            return;
+        }
+
+        // Kiểm tra dung lượng từng file (< 50MB)
+        for (let item of validRows) {
+            if (item.file.size > 49.5 * 1024 * 1024) {
+                alert(`File "${item.file.name}" vượt quá 50MB. Vui lòng nén file trước khi gửi!`);
+                return;
+            }
+        }
+
+        submitBtn.disabled = true;
+        statusDiv.innerHTML = "";
+
+        // Tạo 1 ID duy nhất cho toàn bộ batch này để Python nhận diện
+        const projectId = `#JOB_${Date.now()}`;
+
+        try {
+            // BƯỚC 1: Gửi Kịch bản thoại riêng lẻ trước
+            submitBtn.innerText = "Đang gửi kịch bản thoại...";
+            const textResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: `📝 [KỊCH BẢN THOẠI] - ${projectId}\n\n${voiceText}`
+                })
+            });
+            if (!textResponse.ok) throw new Error("Không thể gửi kịch bản thoại");
+
+            // BƯỚC 2: Gửi lần lượt từng video
+            for (let i = 0; i < validRows.length; i++) {
+                submitBtn.innerText = `Đang gửi video ${i + 1}/${validRows.length}... (Vui lòng không đóng trang)`;
+                
+                const formData = new FormData();
+                formData.append('chat_id', CHAT_ID);
+                formData.append('video', validRows[i].file);
+                
+                // Đính kèm ID dự án vào caption để Python biết nó thuộc về kịch bản nào
+                let videoCaption = `🎬 [CAPTION ${i + 1}/${validRows.length}] - ${projectId}\n${validRows[i].caption}`;
+                formData.append('caption', videoCaption);
+
+                const videoResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVideo`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await videoResponse.json();
+                if (!result.ok) {
+                    throw new Error(`Lỗi ở video ${i + 1}: ${result.description}`);
+                }
+            }
+
+            statusDiv.innerHTML = `<span class="success">✅ Đã gửi thành công ${validRows.length} video và kịch bản lên Group! (${projectId})</span>`;
+            
+        } catch (error) {
+            statusDiv.innerHTML = `<span class="error">❌ Quá trình bị gián đoạn: ${error.message}</span>`;
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "GỬI LÊN TELEGRAM";
+        }
+    }
+</script>
+
+</body>
+</html>
