@@ -783,11 +783,15 @@ function handleCropBottom(files){
 
         const upscaledCanvas = upscaleCanvas(canvas, 1.6);
 
-        exportImage(
-          upscaledCanvas,
-          file.name,
-          cropBottomOutput
-        );
+        // Đổi tên file đuôi .png/.webp thành .jpg và ép kiểu mime
+const jpgName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+
+exportImage(
+  upscaledCanvas,
+  jpgName,
+  cropBottomOutput,
+  'image/jpeg' // <--- Tham số thứ 4 này sẽ ép xuất ra JPG
+);
       };
     };
 
