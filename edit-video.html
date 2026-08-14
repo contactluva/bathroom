@@ -143,7 +143,7 @@
             font-size: 16px;
             font-family: inherit;
             resize: none;
-            min-height: 90px; /* Chiều cao mặc định */
+            min-height: 90px; 
             outline: none;
             color: #333;
             box-sizing: border-box;
@@ -152,7 +152,6 @@
             padding: 10px;
         }
 
-        /* THÊM CLASS NÀY ĐỂ TĂNG CHIỀU CAO GẤP ĐÔI CHO KHACH HANG */
         textarea.textarea-large {
             min-height: 320px;
         }
@@ -200,6 +199,7 @@
         .btn-submit:disabled {
             background-color: #b0c4de;
             cursor: not-allowed;
+            opacity: 0.7;
         }
 
         #status {
@@ -255,7 +255,6 @@
                 <label for="khachHang">Khách hàng mục tiêu</label>
                 <button class="btn-clear" onclick="clearField('khachHang')">×</button>
             </div>
-            <!-- ĐÃ THÊM CLASS textarea-large VÀO ĐÂY -->
             <textarea id="khachHang" class="textarea-large" placeholder="Nhập đối tượng khách hàng...">Cân WHB 28 này độ chính xác đến 0,1 gram dùng cho:Pha chế, nấu ăn tại nhà hoặc cửa hàng: giúp cân nguyên liệu quán cafe, mẻ bánh một lần cực tiện.Cân đồ khô, yến sào rõ ràng: Tránh thất thoát, kiểm tra trọng lượng minh bạch, tạo uy tín với khách.Định lượng thực phẩm ăn chế độ nhanh gọn: Chia khẩu phần ăn theo tuần cho gia đình hoặc khách đặt hàng.Cân gia vị, thuốc bắc chính xác: Đong đếm nhanh các mẻ thảo dược lớn, tiết kiệm thời gian chia lẻ. Pin sạc, chống nước, độ chính xác cao</textarea>
         </div>
     </div>
@@ -265,10 +264,13 @@
 </div>
 
 <script>
-    // ⚠️ CẤU HÌNH TELEGRAM
-    const BOT_TOKEN = '5420705842:AAFI_x963vfDFdimnGWyMrg8Ys-_LAkstw0';
-    const CHAT_ID = '-5534880712';
+    // ⚙️ CẤU HÌNH TELEGRAM MỚI
+    const BOT_TOKEN = '5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA';
+    const CHAT_ID = '-702616123';
     const TMPFILES_API = 'https://tmpfiles.org/api/v1/upload';
+
+    // 🔒 BIẾN KHÓA CHỐNG GỬI TRÙNG LẶP
+    let isProcessing = false;
 
     // --- HÀM XÓA NỘI DUNG INPUT ---
     function clearField(id) {
@@ -276,9 +278,7 @@
         document.getElementById(id).focus();
     }
 
-    // --- XỬ LÝ GIAO DIỆN VIDEO (LOGIC MỚI) ---
-    
-    // Hàm xử lý khi chọn file: Tự động thêm dòng mới nếu dòng hiện tại có file
+    // --- XỬ LÝ GIAO DIỆN VIDEO ---
     function handleFileSelect(input) {
         if (input.files && input.files.length > 0) {
             addVideoRow();
@@ -287,12 +287,10 @@
 
     function addVideoRow() {
         const container = document.getElementById('video-container');
-        // Giới hạn tối đa 10 file để tránh lỗi
         if (container.children.length >= 10) return;
 
         const row = document.createElement('div');
         row.className = 'video-row';
-        // Gán sự kiện onchange vào input mới tạo
         row.innerHTML = `
             <input type="file" accept="video/mp4" class="video-file" onchange="handleFileSelect(this)">
             <button class="btn-remove" onclick="removeRow(this)">×</button>
@@ -302,22 +300,23 @@
 
     function removeRow(btn) {
         const container = document.getElementById('video-container');
-        // Luôn giữ ít nhất 1 dòng (dù trống)
         if (container.children.length > 1) {
             btn.parentElement.remove();
         } else {
-            // Nếu là dòng duy nhất, chỉ xóa file đã chọn (reset input)
             const input = container.querySelector('input[type="file"]');
             if(input) input.value = '';
         }
     }
 
-    // --- XỬ LÝ LOGIC CHÍNH (GIỮ NGUYÊN) ---
+    // --- XỬ LÝ LOGIC CHÍNH ---
     async function processAndSend() {
+        // 🛡️ CHẶN NGAY LẬP TỨC NẾU ĐANG XỬ LÝ
+        if (isProcessing) return;
+
         const submitBtn = document.getElementById('btn-submit');
         const statusDiv = document.getElementById('status');
         
-        // 1. Lấy dữ liệu từ các ô nhập liệu
+        // 1. Lấy dữ liệu
         const chuDe = document.getElementById('chuDe').value.trim();
         const mucTieu = document.getElementById('mucTieu').value.trim();
         const khachHang = document.getElementById('khachHang').value.trim();
@@ -328,6 +327,7 @@
             if (input.files.length > 0) validFiles.push(input.files[0]);
         });
 
+        // Validate cơ bản
         if (validFiles.length === 0) {
             statusDiv.innerHTML = '<span class="error">❌ Vui lòng chọn ít nhất 1 video!</span>';
             return;
@@ -337,11 +337,15 @@
             return;
         }
 
+        // 🔒 BẬT TRẠNG THÁI ĐANG XỬ LÝ
+        isProcessing = true;
         submitBtn.disabled = true;
+        submitBtn.innerText = "⏳ ĐANG XỬ LÝ...";
         statusDiv.className = 'processing';
+        statusDiv.innerText = "🔄 Đang chuẩn bị dữ liệu...";
 
         try {
-            // 2. Upload từng video lên tmpfiles.org
+            // 2. Upload video lên tmpfiles.org
             const videoUrls = [];
             for (let i = 0; i < validFiles.length; i++) {
                 statusDiv.innerText = `⏳ Đang upload video ${i + 1}/${validFiles.length}...`;
@@ -361,7 +365,7 @@
                 videoUrls.push(directUrl);
             }
 
-            // 3. Tạo object JSON tổng hợp
+            // 3. Tạo JSON
             const jsonData = {
                 chu_de_video: chuDe,
                 muc_tieu: mucTieu,
@@ -369,17 +373,20 @@
                 video_urls: videoUrls
             };
 
-            // 4. Gửi file mo_ta.json lên Telegram
+            // 4. Gửi lên Telegram
             statusDiv.innerText = '📤 Đang gửi dữ liệu lên Telegram...';
             
             const jsonString = JSON.stringify(jsonData, null, 4);
             const blob = new Blob([jsonString], { type: 'application/json' });
             const FILE_NAME = 'mo_ta.json';
 
+            // 📝 TỰ ĐỘNG TẠO CAPTION THEO CHỦ ĐỀ
+            const captionText = `Video ${chuDe || '(Không có chủ đề)'} đang được xử lý, vui lòng đợi, đừng gửi thêm`;
+
             const tgFormData = new FormData();
             tgFormData.append('chat_id', CHAT_ID);
             tgFormData.append('document', blob, FILE_NAME);
-            tgFormData.append('caption', `📦 File mô tả sản xuất\n🎬 Số video: ${videoUrls.length}\n📝 Chủ đề: ${chuDe || '(trống)'}`);
+            tgFormData.append('caption', captionText);
 
             const tgResponse = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
                 method: 'POST',
@@ -392,11 +399,24 @@
             }
 
             statusDiv.innerHTML = `<span class="success">✅ Đã gửi thành công!</span>`;
+            submitBtn.innerText = "GỬI THÀNH CÔNG";
 
         } catch (error) {
             statusDiv.innerHTML = `<span class="error">❌ Lỗi: ${error.message}</span>`;
+            submitBtn.innerText = "LÀM VIDEO"; // Reset lại tên nút nếu lỗi
         } finally {
+            // 🔓 MỞ KHÓA SAU KHI HOÀN TẤT (THÀNH CÔNG HOẶC LỖI)
+            // Lưu ý: Nếu muốn khóa vĩnh viễn sau khi gửi thành công thì bỏ dòng isProcessing = false ở dưới
+            // và chỉ mở khóa trong catch. Tuy nhiên tốt nhất vẫn nên mở khóa để người dùng có thể gửi tiếp nếu cần.
+            isProcessing = false; 
             submitBtn.disabled = false;
+            
+            // Reset lại tên nút sau 3 giây nếu thành công
+            if(submitBtn.innerText === "GỬI THÀNH CÔNG") {
+                setTimeout(() => {
+                    submitBtn.innerText = "LÀM VIDEO";
+                }, 3000);
+            }
         }
     }
 </script>
