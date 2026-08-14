@@ -2,134 +2,255 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gửi Video & JSON Lên Telegram</title>
     <style>
+        :root {
+            --ios-bg: #f2f2f7;
+            --ios-card: #ffffff;
+            --ios-blue: #007aff;
+            --ios-red: #ff3b30;
+            --ios-green: #34c759;
+            --ios-gray: #8e8e93;
+            --ios-separator: #c6c6c8;
+            --radius: 12px;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--ios-bg);
+            color: #000;
+            margin: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
             min-height: 100vh;
-            margin: 0;
-            padding: 30px 10px;
+            box-sizing: border-box;
         }
+
         .container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 600px;
+            max-width: 500px;
         }
-        h2 { text-align: center; color: #2c3e50; margin-top: 0; margin-bottom: 25px; }
-        
-        /* Style cho phần thêm video */
-        .video-section { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+
+        h2 {
+            text-align: center;
+            font-weight: 600;
+            font-size: 24px;
+            margin-bottom: 25px;
+            color: #000;
+        }
+
+        /* Card Style */
+        .card {
+            background: var(--ios-card);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .section-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: var(--ios-gray);
+            margin-bottom: 10px;
+            margin-left: 5px;
+            font-weight: 600;
+        }
+
+        /* Video Upload Area */
+        .video-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
         .video-row {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            background: #f8f9fa;
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #e9ecef;
+            background: #f9f9f9;
+            border: 1px dashed var(--ios-separator);
+            border-radius: 10px;
+            padding: 10px;
+            transition: all 0.2s;
         }
-        .video-row input[type="file"] { flex: 1; font-size: 14px; }
-        .btn-remove {
-            background: #e74c3c; color: white; border: none;
-            padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
+        
+        .video-row:hover {
+            border-color: var(--ios-blue);
+            background: #f0f7ff;
         }
-        .btn-add-video {
-            background: transparent; border: 1px solid #3498db; color: #3498db;
-            padding: 10px; width: 100%; border-radius: 6px; cursor: pointer;
-            font-weight: bold; margin-top: 5px; transition: all 0.2s;
-        }
-        .btn-add-video:hover { background: #ebf5fb; }
 
-        /* Style cho form nhập liệu */
-        .form-group { margin-bottom: 15px; position: relative; }
+        /* Custom File Input for iOS look */
+        input[type="file"] {
+            width: 100%;
+            font-size: 14px;
+            color: var(--ios-gray);
+        }
+        input[type="file"]::file-selector-button {
+            background-color: var(--ios-blue);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: opacity 0.2s;
+        }
+        input[type="file"]::file-selector-button:hover {
+            opacity: 0.8;
+        }
+
+        .btn-remove {
+            background: transparent;
+            color: var(--ios-red);
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 5px;
+            line-height: 1;
+            margin-left: auto;
+        }
+
+        /* Form Inputs */
+        .form-group {
+            position: relative;
+            border-bottom: 0.5px solid var(--ios-separator);
+            padding: 10px 0;
+        }
+        .form-group:last-child {
+            border-bottom: none;
+        }
+
         .label-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px;
-        }
-        .label-row label { margin-bottom: 0; font-weight: bold; color: #555; font-size: 14px; }
-        .btn-clear {
-            background: #e74c3c; color: white; border: none;
-margin-bottom:-50px;
-            width: 22px; height: 22px; border-radius: 50%;
-            font-size: 14px; line-height: 22px; text-align: center;
-            cursor: pointer; padding: 0; opacity: 0.7; transition: opacity 0.2s;
-        }
-        .btn-clear:hover { opacity: 1; }
-        textarea {
-            width: 100%; padding: 10px; border: 1px solid #ccc;
-            border-radius: 5px; resize: vertical; min-height: 70px;
-            font-family: inherit; box-sizing: border-box; font-size: 14px;
+            margin-bottom: 5px;
         }
 
-        /* Nút submit và trạng thái */
-        .btn-submit {
-            width: 100%; padding: 14px; background-color: #28a745;
-            color: white; border: none; border-radius: 5px;
-            font-size: 16px; font-weight: bold; cursor: pointer;
-            margin-top: 10px; transition: background-color 0.3s;
+        label {
+            font-size: 15px;
+            font-weight: 500;
         }
-        .btn-submit:hover { background-color: #218838; }
-        .btn-submit:disabled { background-color: #95a5a6; cursor: not-allowed; }
-        #status { margin-top: 15px; font-weight: bold; text-align: center; min-height: 20px; }
-        .success { color: #28a745; }
-        .error { color: #e74c3c; }
-        .processing { color: #f39c12; }
+
+        textarea {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 16px; /* Prevent zoom on iOS */
+            font-family: inherit;
+            resize: none;
+            min-height: 60px;
+            outline: none;
+            color: #333;
+            box-sizing: border-box;
+        }
+        
+        textarea::placeholder {
+            color: #c7c7cc;
+        }
+
+        .btn-clear {
+            background: #e5e5ea;
+            color: #8e8e93;
+            border: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 12px;
+            line-height: 20px;
+            text-align: center;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--ios-blue);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .btn-submit:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+        .btn-submit:disabled {
+            background-color: #b0c4de;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 15px;
+            min-height: 20px;
+        }
+        .success { color: var(--ios-green); font-weight: 600; }
+        .error { color: var(--ios-red); font-weight: 600; }
+        .processing { color: var(--ios-blue); }
+
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Gửi Lệnh Sản Xuất Video</h2>
+    <h2>Lệnh Sản Xuất</h2>
     
     <!-- PHẦN 1: UPLOAD VIDEO -->
-    <div class="video-section">
-        <label style="margin-bottom: 10px;">📁 Nhập video</label>
-        <div id="video-container">
+    <div class="section-title">Tệp Video Đính Kèm</div>
+    <div class="card">
+        <div id="video-container" class="video-list">
+            <!-- Dòng mặc định -->
             <div class="video-row">
-                <input type="file" accept="video/mp4" class="video-file">
-                <button class="btn-remove" onclick="removeRow(this)">X</button>
+                <input type="file" accept="video/mp4" class="video-file" onchange="handleFileSelect(this)">
+                <button class="btn-remove" onclick="removeRow(this)">×</button>
             </div>
         </div>
-        <button class="btn-add-video" onclick="addVideoRow()">+ Thêm </button>
     </div>
 
     <!-- PHẦN 2: NHẬP THÔNG TIN JSON -->
-    <div class="form-group">
-        <div class="label-row">
-            <label for="chuDe">Chủ đề video:</label>
-            <button class="btn-clear" title="Xóa nội dung" onclick="clearField('chuDe')">×</button>
+    <div class="section-title">Thông Tin Mô Tả</div>
+    <div class="card">
+        <div class="form-group">
+            <div class="label-row">
+                <label for="chuDe">Chủ đề video</label>
+                <button class="btn-clear" onclick="clearField('chuDe')">×</button>
+            </div>
+            <textarea id="chuDe" placeholder="Nhập chủ đề...">Video giới thiệu Cân điện tử xxx</textarea>
         </div>
-        <textarea id="chuDe">Video giới thiệu Cân điện tử xxx</textarea>
+
+        <div class="form-group">
+            <div class="label-row">
+                <label for="mucTieu">Mục tiêu</label>
+                <button class="btn-clear" onclick="clearField('mucTieu')">×</button>
+            </div>
+            <textarea id="mucTieu" placeholder="Nhập mục tiêu...">Cho khách hàng biết cân này có phù hợp với nhu cầu của họ không</textarea>
+        </div>
+
+        <div class="form-group">
+            <div class="label-row">
+                <label for="khachHang">Khách hàng mục tiêu</label>
+                <button class="btn-clear" onclick="clearField('khachHang')">×</button>
+            </div>
+            <textarea id="khachHang" placeholder="Nhập đối tượng khách hàng...">Cân WHB 28 này độ chính xác đến 0,1 gram dùng cho:Pha chế, nấu ăn tại nhà hoặc cửa hàng: giúp cân nguyên liệu quán cafe, mẻ bánh một lần cực tiện.Cân đồ khô, yến sào rõ ràng: Tránh thất thoát, kiểm tra trọng lượng minh bạch, tạo uy tín với khách.Định lượng thực phẩm ăn chế độ nhanh gọn: Chia khẩu phần ăn theo tuần cho gia đình hoặc khách đặt hàng.Cân gia vị, thuốc bắc chính xác: Đong đếm nhanh các mẻ thảo dược lớn, tiết kiệm thời gian chia lẻ. Pin sạc, chống nước, độ chính xác cao</textarea>
+        </div>
     </div>
 
-    <div class="form-group">
-        <div class="label-row">
-            <label for="mucTieu">Mục tiêu:</label>
-            <button class="btn-clear" title="Xóa nội dung" onclick="clearField('mucTieu')">×</button>
-        </div>
-        <textarea id="mucTieu">Cho khách hàng biết cân này có phù hợp với nhu cầu của họ không</textarea>
-    </div>
-
-    <div class="form-group">
-        <div class="label-row">
-            <label for="khachHang">Khách hàng mục tiêu:</label>
-            <button class="btn-clear" title="Xóa nội dung" onclick="clearField('khachHang')">×</button>
-        </div>
-        <textarea id="khachHang">Cân WHB 28 này độ chính xác đến 0,1 gram dùng cho:Pha chế, nấu ăn tại nhà hoặc cửa hàng: giúp cân nguyên liệu quán cafe, mẻ bánh một lần cực tiện.Cân đồ khô, yến sào rõ ràng: Tránh thất thoát, kiểm tra trọng lượng minh bạch, tạo uy tín với khách.Định lượng thực phẩm ăn chế độ nhanh gọn: Chia khẩu phần ăn theo tuần cho gia đình hoặc khách đặt hàng.Cân gia vị, thuốc bắc chính xác: Đong đếm nhanh các mẻ thảo dược lớn, tiết kiệm thời gian chia lẻ. Pin sạc, chống nước, độ chính xác cao</textarea>
-    </div>
-
-    <button id="btn-submit" class="btn-submit" onclick="processAndSend()">GỬI LÊN TELEGRAM</button>
+    <button id="btn-submit" class="btn-submit" onclick="processAndSend()">LÀM VIDEO</button>
     <div id="status"></div>
 </div>
 
@@ -145,32 +266,43 @@ margin-bottom:-50px;
         document.getElementById(id).focus();
     }
 
-    // --- XỬ LÝ GIAO DIỆN VIDEO ---
+    // --- XỬ LÝ GIAO DIỆN VIDEO (LOGIC MỚI) ---
+    
+    // Hàm xử lý khi chọn file: Tự động thêm dòng mới nếu dòng hiện tại có file
+    function handleFileSelect(input) {
+        if (input.files && input.files.length > 0) {
+            addVideoRow();
+        }
+    }
+
     function addVideoRow() {
         const container = document.getElementById('video-container');
-        if (container.children.length >= 10) {
-            alert("Bạn chỉ nên gửi tối đa 10 file mỗi lần!");
-            return;
-        }
+        // Giới hạn tối đa 10 file để tránh lỗi
+        if (container.children.length >= 10) return;
+
         const row = document.createElement('div');
         row.className = 'video-row';
+        // Gán sự kiện onchange vào input mới tạo
         row.innerHTML = `
-            <input type="file" accept="video/mp4" class="video-file">
-            <button class="btn-remove" onclick="removeRow(this)">Xóa</button>
+            <input type="file" accept="video/mp4" class="video-file" onchange="handleFileSelect(this)">
+            <button class="btn-remove" onclick="removeRow(this)">×</button>
         `;
         container.appendChild(row);
     }
 
     function removeRow(btn) {
         const container = document.getElementById('video-container');
+        // Luôn giữ ít nhất 1 dòng (dù trống)
         if (container.children.length > 1) {
             btn.parentElement.remove();
         } else {
-            alert("Phải giữ lại ít nhất một dòng chọn file!");
+            // Nếu là dòng duy nhất, chỉ xóa file đã chọn (reset input)
+            const input = container.querySelector('input[type="file"]');
+            if(input) input.value = '';
         }
     }
 
-    // --- XỬ LÝ LOGIC CHÍNH ---
+    // --- XỬ LÝ LOGIC CHÍNH (GIỮ NGUYÊN) ---
     async function processAndSend() {
         const submitBtn = document.getElementById('btn-submit');
         const statusDiv = document.getElementById('status');
@@ -202,7 +334,7 @@ margin-bottom:-50px;
             // 2. Upload từng video lên tmpfiles.org
             const videoUrls = [];
             for (let i = 0; i < validFiles.length; i++) {
-                statusDiv.innerText = `⏳ Đang upload video ${i + 1}/${validFiles.length} lên máy chủ trung gian...`;
+                statusDiv.innerText = `⏳ Đang upload video ${i + 1}/${validFiles.length}...`;
                 
                 const formData = new FormData();
                 formData.append('file', validFiles[i]);
@@ -211,10 +343,9 @@ margin-bottom:-50px;
                 const result = await response.json();
 
                 if (result.status !== 'success' || !result.data?.url) {
-                    throw new Error(`Upload thất bại ở video ${i + 1}: ${result.message || 'Lỗi không xác định'}`);
+                    throw new Error(`Upload thất bại ở video ${i + 1}`);
                 }
 
-                // Chuyển sang direct link: https://tmpfiles.org/dl/xxxxx/file.mp4
                 const rawUrl = result.data.url;
                 const directUrl = rawUrl.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
                 videoUrls.push(directUrl);
@@ -229,7 +360,7 @@ margin-bottom:-50px;
             };
 
             // 4. Gửi file mo_ta.json lên Telegram
-            statusDiv.innerText = '📤 Đang gửi file mo_ta.json lên Telegram...';
+            statusDiv.innerText = '📤 Đang gửi dữ liệu lên Telegram...';
             
             const jsonString = JSON.stringify(jsonData, null, 4);
             const blob = new Blob([jsonString], { type: 'application/json' });
@@ -250,7 +381,7 @@ margin-bottom:-50px;
                 throw new Error(`Telegram lỗi: ${tgResult.description}`);
             }
 
-            statusDiv.innerHTML = `<span class="success">✅ Đã gửi thành công ${videoUrls.length} video + file mo_ta.json lên Telegram!</span>`;
+            statusDiv.innerHTML = `<span class="success">✅ Đã gửi thành công!</span>`;
 
         } catch (error) {
             statusDiv.innerHTML = `<span class="error">❌ Lỗi: ${error.message}</span>`;
