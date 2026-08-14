@@ -136,21 +136,26 @@
             font-weight: 500;
         }
 
-       textarea {
-    width: 100%;
-    border: none;
-    background: #f1f1f178;
-    font-size: 16px;
-    font-family: inherit;
-    resize: none;
-    min-height: 60px;
-    outline: none;
-    color: #333;
-    box-sizing: border-box;
-    BORDER: 1PX SOLID #e8e0e0;
-    BORDER-RADIUS: 6PX;
-    PADDING: 10PX;
-}
+        textarea {
+            width: 100%;
+            border: none;
+            background: #f1f1f178;
+            font-size: 16px;
+            font-family: inherit;
+            resize: none;
+            min-height: 60px; /* Chiều cao mặc định */
+            outline: none;
+            color: #333;
+            box-sizing: border-box;
+            border: 1px solid #e8e0e0;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        /* THÊM CLASS NÀY ĐỂ TĂNG CHIỀU CAO GẤP ĐÔI CHO KHACH HANG */
+        textarea.textarea-large {
+            min-height: 320px;
+        }
         
         textarea::placeholder {
             color: #c7c7cc;
@@ -250,7 +255,8 @@
                 <label for="khachHang">Khách hàng mục tiêu</label>
                 <button class="btn-clear" onclick="clearField('khachHang')">×</button>
             </div>
-            <textarea id="khachHang" placeholder="Nhập đối tượng khách hàng...">Cân WHB 28 này độ chính xác đến 0,1 gram dùng cho:Pha chế, nấu ăn tại nhà hoặc cửa hàng: giúp cân nguyên liệu quán cafe, mẻ bánh một lần cực tiện.Cân đồ khô, yến sào rõ ràng: Tránh thất thoát, kiểm tra trọng lượng minh bạch, tạo uy tín với khách.Định lượng thực phẩm ăn chế độ nhanh gọn: Chia khẩu phần ăn theo tuần cho gia đình hoặc khách đặt hàng.Cân gia vị, thuốc bắc chính xác: Đong đếm nhanh các mẻ thảo dược lớn, tiết kiệm thời gian chia lẻ. Pin sạc, chống nước, độ chính xác cao</textarea>
+            <!-- ĐÃ THÊM CLASS textarea-large VÀO ĐÂY -->
+            <textarea id="khachHang" class="textarea-large" placeholder="Nhập đối tượng khách hàng...">Cân WHB 28 này độ chính xác đến 0,1 gram dùng cho:Pha chế, nấu ăn tại nhà hoặc cửa hàng: giúp cân nguyên liệu quán cafe, mẻ bánh một lần cực tiện.Cân đồ khô, yến sào rõ ràng: Tránh thất thoát, kiểm tra trọng lượng minh bạch, tạo uy tín với khách.Định lượng thực phẩm ăn chế độ nhanh gọn: Chia khẩu phần ăn theo tuần cho gia đình hoặc khách đặt hàng.Cân gia vị, thuốc bắc chính xác: Đong đếm nhanh các mẻ thảo dược lớn, tiết kiệm thời gian chia lẻ. Pin sạc, chống nước, độ chính xác cao</textarea>
         </div>
     </div>
 
