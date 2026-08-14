@@ -136,18 +136,21 @@
             font-weight: 500;
         }
 
-        textarea {
-            width: 100%;
-            border: none;
-            background: transparent;
-            font-size: 16px; /* Prevent zoom on iOS */
-            font-family: inherit;
-            resize: none;
-            min-height: 60px;
-            outline: none;
-            color: #333;
-            box-sizing: border-box;
-        }
+       textarea {
+    width: 100%;
+    border: none;
+    background: #f1f1f178;
+    font-size: 16px;
+    font-family: inherit;
+    resize: none;
+    min-height: 60px;
+    outline: none;
+    color: #333;
+    box-sizing: border-box;
+    BORDER: 1PX SOLID #e8e0e0;
+    BORDER-RADIUS: 6PX;
+    PADDING: 10PX;
+}
         
         textarea::placeholder {
             color: #c7c7cc;
@@ -168,6 +171,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-bottom: -30px;
         }
 
         /* Submit Button */
