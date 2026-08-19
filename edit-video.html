@@ -12,7 +12,6 @@
             --ios-red: #ff3b30;
             --ios-green: #34c759;
             --ios-gray: #8e8e93;
-            --ios-orange: #ff9500;
             --ios-separator: #c6c6c8;
             --radius: 12px;
         }
@@ -51,36 +50,13 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            margin-left: 5px;
-            margin-right: 5px;
-        }
-
         .section-title {
             font-size: 13px;
             text-transform: uppercase;
             color: var(--ios-gray);
+            margin-bottom: 10px;
+            margin-left: 5px;
             font-weight: 600;
-        }
-
-        .btn-restore-small {
-    font-size: 13px;
-    color: var(--ios-orange);
-    background: none;
-    border: 1px solid #007acc;
-    border-radius: 50px;
-    font-weight: 600;
-    cursor: pointer;
-    padding: 6px 10px;
-    background: #162c33;
-}
-        
-        .btn-restore-small:hover {
-            opacity: 0.8;
         }
 
         /* Video Upload Area */
@@ -226,6 +202,25 @@
             opacity: 0.7;
         }
 
+        /* Nút Khôi Phục */
+        .restore-container {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        .btn-restore {
+            background: none;
+            border: none;
+            color: var(--ios-gray);
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 5px;
+        }
+        .btn-restore:hover {
+            color: var(--ios-blue);
+        }
+
         #status {
             margin-top: 20px;
             text-align: center;
@@ -244,9 +239,7 @@
     <h2>Làm video cân</h2>
     
     <!-- PHẦN 1: UPLOAD VIDEO -->
-    <div class="section-header">
-        <div class="section-title">Tệp Video Đính Kèm</div>
-    </div>
+    <div class="section-title">Tệp Video Đính Kèm</div>
     <div class="card">
         <div id="video-container" class="video-list">
             <!-- Dòng mặc định -->
@@ -258,10 +251,7 @@
     </div>
 
     <!-- PHẦN 2: NHẬP THÔNG TIN JSON -->
-    <div class="section-header">
-        <div class="section-title">Thông Tin Mô Tả</div>
-        <button class="btn-restore-small" onclick="restoreLatestVersion()">Khôi phục bản mới nhất</button>
-    </div>
+    <div class="section-title">Thông Tin Mô Tả</div>
     <div class="card">
         <div class="form-group">
             <div class="label-row">
@@ -289,49 +279,26 @@
     </div>
 
     <button id="btn-submit" class="btn-submit" onclick="processAndSend()">LÀM VIDEO</button>
+    
+    <!-- NÚT KHÔI PHỤC MỚI THÊM -->
+    <div class="restore-container">
+        <button class="btn-restore" onclick="restoreData()">↻ Khôi phục nội dung cũ</button>
+    </div>
+
     <div id="status"></div>
 </div>
 
 <script>
-    // ⚙️ CẤU HÌNH TELEGRAM MỚI
+    // ⚙️ CẤU HÌNH TELEGRAM
     const BOT_TOKEN = '5572397080:AAFqa1dOYqvKrQ8-Wx5ez7PaqsVtvWU8vjA';
     const CHAT_ID = '-702616123';
     const TMPFILES_API = 'https://tmpfiles.org/api/v1/upload';
+    
+    // ⚙️ CẤU HÌNH LƯU TRỮ
+    const STORAGE_KEY = 'video_form_data_cache';
+    const EXPIRY_DAYS = 3;
 
-    // 🔒 BIẾN KHÓA CHỐNG GỬI TRÙNG LẶP
     let isProcessing = false;
-
-    // --- HÀM KHÔI PHỤC BẢN LƯU GẦN NHẤT ---
-    function restoreLatestVersion() {
-        const savedDataStr = localStorage.getItem('telegramFormBackup');
-        if (!savedDataStr) {
-            alert('Không tìm thấy bản lưu nào!');
-            return;
-        }
-
-        try {
-            const savedData = JSON.parse(savedDataStr);
-            const now = new Date().getTime();
-            const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
-
-            // Kiểm tra xem dữ liệu lưu đã quá 3 ngày chưa
-            if (now - savedData.timestamp > threeDaysInMs) {
-                alert('Bản lưu đã quá 3 ngày và hết hạn!');
-                localStorage.removeItem('telegramFormBackup');
-                return;
-            }
-
-            // Phục hồi dữ liệu
-            document.getElementById('chuDe').value = savedData.chuDe || '';
-            document.getElementById('mucTieu').value = savedData.mucTieu || '';
-            document.getElementById('khachHang').value = savedData.khachHang || '';
-            
-            alert('Đã khôi phục văn bản!\n(Lưu ý: Vì lý do bảo mật của trình duyệt, bạn cần chọn lại tệp video thủ công).');
-        } catch (error) {
-            console.error('Lỗi khi khôi phục:', error);
-            alert('Có lỗi xảy ra khi khôi phục bản lưu.');
-        }
-    }
 
     // --- HÀM XÓA NỘI DUNG INPUT ---
     function clearField(id) {
@@ -369,9 +336,59 @@
         }
     }
 
+    // --- 🆕 CHỨC NĂNG LƯU & KHÔI PHỤC ---
+    
+    // Lưu dữ liệu vào LocalStorage
+    function saveToLocal() {
+        const data = {
+            chuDe: document.getElementById('chuDe').value,
+            mucTieu: document.getElementById('mucTieu').value,
+            khachHang: document.getElementById('khachHang').value,
+            timestamp: new Date().getTime()
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    // Khôi phục dữ liệu
+    function restoreData() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+            alert("Không tìm thấy dữ liệu nào đã lưu!");
+            return;
+        }
+
+        try {
+            const data = JSON.parse(raw);
+            const now = new Date().getTime();
+            const expiryTime = EXPIRY_DAYS * 24 * 60 * 60 * 1000; // 3 ngày ra mili giây
+
+            // Kiểm tra hạn sử dụng
+            if (now - data.timestamp > expiryTime) {
+                alert(`⚠️ Dữ liệu đã quá ${EXPIRY_DAYS} ngày, không thể khôi phục.`);
+                localStorage.removeItem(STORAGE_KEY); // Xóa rác
+                return;
+            }
+
+            // Điền dữ liệu vào form
+            if(confirm("Bạn có chắc muốn khôi phục nội dung cũ? Nội dung hiện tại sẽ bị ghi đè.")) {
+                document.getElementById('chuDe').value = data.chuDe || "";
+                document.getElementById('mucTieu').value = data.mucTieu || "";
+                document.getElementById('khachHang').value = data.khachHang || "";
+                
+                // Hiệu ứng thông báo nhẹ
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerHTML = '<span class="processing">✅ Đã khôi phục thành công!</span>';
+                setTimeout(() => statusDiv.innerText = "", 2000);
+            }
+
+        } catch (e) {
+            console.error("Lỗi đọc dữ liệu:", e);
+            alert("Dữ liệu lưu trữ bị lỗi.");
+        }
+    }
+
     // --- XỬ LÝ LOGIC CHÍNH ---
     async function processAndSend() {
-        // 🛡️ CHẶN NGAY LẬP TỨC NẾU ĐANG XỬ LÝ
         if (isProcessing) return;
 
         const submitBtn = document.getElementById('btn-submit');
@@ -398,16 +415,6 @@
             return;
         }
 
-        // 💾 LƯU BẢN SAO LÊN LOCALSTORAGE (TỒN TẠI 3 NGÀY)
-        const backupData = {
-            chuDe: chuDe,
-            mucTieu: mucTieu,
-            khachHang: khachHang,
-            timestamp: new Date().getTime()
-        };
-        localStorage.setItem('telegramFormBackup', JSON.stringify(backupData));
-
-        // 🔒 BẬT TRẠNG THÁI ĐANG XỬ LÝ
         isProcessing = true;
         submitBtn.disabled = true;
         submitBtn.innerText = "⏳ ĐANG XỬ LÝ...";
@@ -450,7 +457,6 @@
             const blob = new Blob([jsonString], { type: 'application/json' });
             const FILE_NAME = 'mo_ta.json';
 
-            // 📝 TỰ ĐỘNG TẠO CAPTION THEO CHỦ ĐỀ
             const captionText = `Video ${chuDe || '(Không có chủ đề)'} đang được xử lý, vui lòng đợi, đừng gửi thêm`;
 
             const tgFormData = new FormData();
@@ -468,18 +474,19 @@
                 throw new Error(`Telegram lỗi: ${tgResult.description}`);
             }
 
-            statusDiv.innerHTML = `<span class="success">✅ Đã gửi thành công!</span>`;
+            // ✅ THÀNH CÔNG -> LƯU DỮ LIỆU VÀO TRÌNH DUYỆT
+            saveToLocal();
+
+            statusDiv.innerHTML = `<span class="success">✅ Đã gửi & Lưu nháp thành công!</span>`;
             submitBtn.innerText = "GỬI THÀNH CÔNG";
 
         } catch (error) {
             statusDiv.innerHTML = `<span class="error">❌ Lỗi: ${error.message}</span>`;
-            submitBtn.innerText = "LÀM VIDEO"; // Reset lại tên nút nếu lỗi
+            submitBtn.innerText = "LÀM VIDEO"; 
         } finally {
-            // 🔓 MỞ KHÓA SAU KHI HOÀN TẤT (THÀNH CÔNG HOẶC LỖI)
             isProcessing = false; 
             submitBtn.disabled = false;
             
-            // Reset lại tên nút sau 3 giây nếu thành công
             if(submitBtn.innerText === "GỬI THÀNH CÔNG") {
                 setTimeout(() => {
                     submitBtn.innerText = "LÀM VIDEO";
