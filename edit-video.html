@@ -12,6 +12,7 @@
             --ios-red: #ff3b30;
             --ios-green: #34c759;
             --ios-gray: #8e8e93;
+            --ios-orange: #ff9500;
             --ios-separator: #c6c6c8;
             --radius: 12px;
         }
@@ -50,13 +51,36 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
         .section-title {
             font-size: 13px;
             text-transform: uppercase;
             color: var(--ios-gray);
-            margin-bottom: 10px;
-            margin-left: 5px;
             font-weight: 600;
+        }
+
+        .btn-restore-small {
+    font-size: 13px;
+    color: var(--ios-orange);
+    background: none;
+    border: 1px solid #007acc;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 10px;
+    background: #162c33;
+}
+        
+        .btn-restore-small:hover {
+            opacity: 0.8;
         }
 
         /* Video Upload Area */
@@ -220,7 +244,9 @@
     <h2>Làm video cân</h2>
     
     <!-- PHẦN 1: UPLOAD VIDEO -->
-    <div class="section-title">Tệp Video Đính Kèm</div>
+    <div class="section-header">
+        <div class="section-title">Tệp Video Đính Kèm</div>
+    </div>
     <div class="card">
         <div id="video-container" class="video-list">
             <!-- Dòng mặc định -->
@@ -232,7 +258,10 @@
     </div>
 
     <!-- PHẦN 2: NHẬP THÔNG TIN JSON -->
-    <div class="section-title">Thông Tin Mô Tả</div>
+    <div class="section-header">
+        <div class="section-title">Thông Tin Mô Tả</div>
+        <button class="btn-restore-small" onclick="restoreLatestVersion()">Khôi phục bản mới nhất</button>
+    </div>
     <div class="card">
         <div class="form-group">
             <div class="label-row">
@@ -271,6 +300,38 @@
 
     // 🔒 BIẾN KHÓA CHỐNG GỬI TRÙNG LẶP
     let isProcessing = false;
+
+    // --- HÀM KHÔI PHỤC BẢN LƯU GẦN NHẤT ---
+    function restoreLatestVersion() {
+        const savedDataStr = localStorage.getItem('telegramFormBackup');
+        if (!savedDataStr) {
+            alert('Không tìm thấy bản lưu nào!');
+            return;
+        }
+
+        try {
+            const savedData = JSON.parse(savedDataStr);
+            const now = new Date().getTime();
+            const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
+
+            // Kiểm tra xem dữ liệu lưu đã quá 3 ngày chưa
+            if (now - savedData.timestamp > threeDaysInMs) {
+                alert('Bản lưu đã quá 3 ngày và hết hạn!');
+                localStorage.removeItem('telegramFormBackup');
+                return;
+            }
+
+            // Phục hồi dữ liệu
+            document.getElementById('chuDe').value = savedData.chuDe || '';
+            document.getElementById('mucTieu').value = savedData.mucTieu || '';
+            document.getElementById('khachHang').value = savedData.khachHang || '';
+            
+            alert('Đã khôi phục văn bản!\n(Lưu ý: Vì lý do bảo mật của trình duyệt, bạn cần chọn lại tệp video thủ công).');
+        } catch (error) {
+            console.error('Lỗi khi khôi phục:', error);
+            alert('Có lỗi xảy ra khi khôi phục bản lưu.');
+        }
+    }
 
     // --- HÀM XÓA NỘI DUNG INPUT ---
     function clearField(id) {
@@ -336,6 +397,15 @@
             statusDiv.innerHTML = '<span class="error">❌ Vui lòng nhập ít nhất 1 trường thông tin mô tả!</span>';
             return;
         }
+
+        // 💾 LƯU BẢN SAO LÊN LOCALSTORAGE (TỒN TẠI 3 NGÀY)
+        const backupData = {
+            chuDe: chuDe,
+            mucTieu: mucTieu,
+            khachHang: khachHang,
+            timestamp: new Date().getTime()
+        };
+        localStorage.setItem('telegramFormBackup', JSON.stringify(backupData));
 
         // 🔒 BẬT TRẠNG THÁI ĐANG XỬ LÝ
         isProcessing = true;
@@ -406,8 +476,6 @@
             submitBtn.innerText = "LÀM VIDEO"; // Reset lại tên nút nếu lỗi
         } finally {
             // 🔓 MỞ KHÓA SAU KHI HOÀN TẤT (THÀNH CÔNG HOẶC LỖI)
-            // Lưu ý: Nếu muốn khóa vĩnh viễn sau khi gửi thành công thì bỏ dòng isProcessing = false ở dưới
-            // và chỉ mở khóa trong catch. Tuy nhiên tốt nhất vẫn nên mở khóa để người dùng có thể gửi tiếp nếu cần.
             isProcessing = false; 
             submitBtn.disabled = false;
             
