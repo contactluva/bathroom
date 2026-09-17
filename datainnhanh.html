@@ -52,7 +52,8 @@ input[type=file]{display:none}
   padding:12px 20px;border:none;border-radius:var(--radius);
   font-size:16px;font-weight:500;color:#fff;cursor:pointer;
 }
-#addBtn{background:var(--primary);}
+#addBtn{background:var(--primary);padding: 6px 18px; margin-bottom: 12px;}
+
 
 /* Hàng nút phụ Delete – Save – Restore */
 .secondary-btns{
@@ -147,7 +148,7 @@ h3 {margin:auto; margin-bottom: 40px; align-items:center;}
   <div class="row">
   <textarea id="fAddress" class="inp auto-resize" rows="1" placeholder="Địa chỉ" oninput="autoResize(this)"></textarea>
 </div>
-
+  <button id="addBtn" class="btn" onclick="addPro()">+ Thêm SP</button>
   <div id="proList">
     <div class="proItem">
       <div class="row"><input class="pName inp" placeholder="Tên sản phẩm"></div>
@@ -172,7 +173,7 @@ h3 {margin:auto; margin-bottom: 40px; align-items:center;}
     </div>
   </div>
 
-  <button id="addBtn" class="btn" onclick="addPro()">+ Thêm SP</button>
+
   <button id="okBtn" class="btn" onclick="saveAndGo()">Hoàn tất</button>
   <br>
   <div class="secondary-btns">
