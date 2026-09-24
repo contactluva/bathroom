@@ -842,10 +842,16 @@ span#totalSpanx1.loading {
   phoneInput.addEventListener('input', () => { resetCapture(); captured = false; triggerCapture(); });
 
   /* 11. Submit */
+    /* 11. Submit */
   submitBtn.addEventListener('click', async () => {
     resetCapture();
-    if (document.getElementById('websitex1').value.trim() !== '') { responseMsg.textContent = 'Bot detected – order NOT sent!'; return; }
+    // Chống spam bot
+    if (document.getElementById('websitex1').value.trim() !== '') { 
+        responseMsg.textContent = 'Bot detected – order NOT sent!'; 
+        return; 
+    }
     
+    // Lấy dữ liệu từ form
     const qty = qtySel.value;
     const priceVal = parseFloat(document.getElementById('totalSpanx1').dataset.price) || 0;
     const total = priceVal * qty;
@@ -855,15 +861,19 @@ span#totalSpanx1.loading {
     const phone = document.getElementById('phonex1').value.trim();
     const note = noteInput.value.trim();
 
+    // Validate dữ liệu đầu vào
     if (!province || province === 'Tỉnh/TP' || !ward || !address || !phone) {
-      responseMsg.textContent = 'Vui lòng điền đầy đủ thông tin!'; return;
+      responseMsg.textContent = 'Vui lòng điền đầy đủ thông tin!'; 
+      return;
     }
     if (!/^\d{10}$/.test(phone)) {
-      responseMsg.textContent = 'Số điện thoại không hợp lệ!'; return;
+      responseMsg.textContent = 'Số điện thoại không hợp lệ!'; 
+      return;
     }
 
     submitBtn.disabled = true;
 
+    // Soạn tin nhắn Telegram
     const message = `🛒 *ĐƠN HÀNG MỚI*\n\n🔹 Sản phẩm: ${title}\n🔹 Số lượng: ${qty}\n🔹 Tổng tiền: ${total.toLocaleString('vi-VN')}₫\n🔹 Địa chỉ: ${address}, ${ward}, ${province}\n\n🔹 Số điện thoại:   *${phone}*   [Gọi](https://cantieuly.net/goi/${phone}) | [Zalo](https://zalo.me/${phone})\n\n📝 Ghi chú: ${note || 'Không'}`;
 
     try {
@@ -874,14 +884,53 @@ span#totalSpanx1.loading {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: TELEGRAM_BOT_TOKEN, chat_id: CHAT_ID, text: message })
       });
+      
       if (res.ok) {
-        window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({ event: 'purchase_success', value: total, currency: 'VND', transaction_id: 'order_' + Date.now() });
+        /* ==========================================
+           🔥 BẮT ĐẦU BẮN MÃ ĐO LƯỜNG CHUYỂN ĐỔI 🔥
+           ========================================== */
 
+        // 1. Bắn sự kiện về Google Tag Manager (DataLayer)
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ 
+            event: 'purchase_success', 
+            value: total, 
+            currency: 'VND', 
+            transaction_id: 'order_' + Date.now() 
+        });
+
+        // 2. Bắn mã chuyển đổi oaiq (Có lớp bọc bảo vệ an toàn)
+        // Kiểm tra hàm oaiq có tồn tại không trước khi gọi để tránh lỗi crash form
+        if (typeof oaiq === 'function') {
+            oaiq("measure", "order_created", { 
+                type: "contents", 
+                value: total,       // Gửi kèm giá trị đơn hàng để AI tối ưu ROAS
+                currency: "VND"     // Gửi kèm đơn vị tiền tệ
+            });
+        } else if (typeof window.oaiq === 'function') {
+            window.oaiq("measure", "order_created", { 
+                type: "contents", 
+                value: total, 
+                currency: "VND" 
+            });
+        }
+        
+        // Nếu bạn chạy thêm Facebook / Google / TikTok, bạn chèn tiếp vào đây:
+        // if (typeof fbq === 'function') fbq('track', 'Purchase', {value: total, currency: 'VND'});
+        // if (typeof gtag === 'function') gtag('event', 'purchase', {send_to: 'AW-XXXX', value: total, currency: 'VND'});
+        // if (typeof ttq === 'object') ttq.track('CompletePayment', {value: total, currency: 'VND'});
+
+        /* ==========================================
+           🔥 KẾT THÚC BẮN MÃ ĐO LƯỜNG CHUYỂN ĐỔI 🔥
+           ========================================== */
+
+        // Ẩn form mua hàng và hiển thị thông báo thành công
         document.querySelectorAll('#popupmhx1 > *:not(#responseMsgx1):not(.modal-footerx1)')
           .forEach(el => el.style.display = 'none');
         responseMsg.style.display = 'block';
         modalFooter.style.display = 'flex';
+        
+        // Kích hoạt đếm ngược tự đóng popup
         countdown(5);
       } else {
         const err = await res.json();
@@ -890,6 +939,7 @@ span#totalSpanx1.loading {
     } catch (e) {
       responseMsg.textContent = 'Lỗi gửi đơn: ' + e.message;
     } finally {
+      // Mở lại nút submit dù thành công hay thất bại
       submitBtn.disabled = false;
     }
   });
