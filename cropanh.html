@@ -201,17 +201,18 @@ img{
 <div id="enhanceGlobalStatus"></div>
 <div id="enhanceOutput" class="grid"></div>
 
-<h3>7. Auto Crop Lưới Tùy Chỉnh & AI & Resize 1200px</h3>
+<h3>7. Auto Crop Lưới Tùy Chỉnh</h3>
 <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
   <div>
     <label style="font-weight: bold;">Số hàng: </label>
-    <input type="number" id="autoCropRows" value="3" min="1" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 80px;">
+    <!-- Đổi value thành 2 -->
+    <input type="number" id="autoCropRows" value="2" min="1" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 80px;">
   </div>
   <div>
     <label style="font-weight: bold;">Số cột: </label>
-    <input type="number" id="autoCropCols" value="2" min="1" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 80px;">
+    <!-- Đổi value thành 3 -->
+    <input type="number" id="autoCropCols" value="3" min="1" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 80px;">
   </div>
-  <!-- THÊM MỚI: Ô nhập % cắt viền -->
   <div>
     <label style="font-weight: bold;">% Cắt viền xung quanh: </label>
     <input type="number" id="autoCropBorderPercent" value="0" min="0" max="45" step="0.5" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 80px;" title="Ví dụ: Nhập 5 thì mỗi bên sẽ bị cắt vào 2.5%">
@@ -1166,7 +1167,8 @@ async function processSingleEnhanceFile(file, uiElements) {
 }
 
 // ==========================
-// 7. TOOL AUTO CROP LƯỚI TÙY CHỈNH & AI & RESIZE 1200PX (ĐÃ CẬP NHẬT)
+// ==========================
+// 7. TOOL AUTO CROP LƯỚI TÙY CHỈNH (OFFLINE - NO UPSCALE)
 // ==========================
 
 function generateSubFilename(originalFilename, index) {
@@ -1179,9 +1181,9 @@ async function handleAutoCropGrid(files) {
   if (!files || files.length === 0) return;
   const file = files[0];
 
-  const rows = parseInt(document.getElementById('autoCropRows').value) || 3;
-  const cols = parseInt(document.getElementById('autoCropCols').value) || 2;
-  // Lấy giá trị % cắt viền mới thêm
+  const rows = parseInt(document.getElementById('autoCropRows').value) || 2;
+  const cols = parseInt(document.getElementById('autoCropCols').value) || 3;
+  // Lấy giá trị % cắt viền
   const borderPercent = parseFloat(document.getElementById('autoCropBorderPercent').value) || 0;
 
   if (rows < 1 || cols < 1) {
@@ -1194,7 +1196,7 @@ async function handleAutoCropGrid(files) {
     return;
   }
 
-  autoCropGlobalStatus.innerText = "🚀 Đang đọc file ảnh gốc...";
+  autoCropGlobalStatus.innerText = "🚀 Đang đọc file ảnh gốc và tiến hành cắt...";
   
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -1203,7 +1205,6 @@ async function handleAutoCropGrid(files) {
     img.onload = async function() {
       autoCropGlobalStatus.innerText = `✂️ Đang cắt thành lưới ${rows}x${cols} & loại bỏ ${borderPercent}% viền...`;
       
-      // Truyền thêm tham số borderPercent vào hàm cắt
       const subImages = cutImageGrid(img, rows, cols, borderPercent);
       
       if (subImages.length === 0) {
@@ -1212,42 +1213,34 @@ async function handleAutoCropGrid(files) {
       }
 
       const total = subImages.length;
-      let completed = 0;
-      
-      autoCropGlobalStatus.innerText = `🚀 Đang tải lên server & xử lý AI: 0/${total} ảnh...`;
-      
-      const placeholders = subImages.map((_, index) => {
-        const subFilename = generateSubFilename(file.name, index + 1);
-        return createEnhancePlaceholder(subFilename, autoCropOutput);
-      });
+      autoCropGlobalStatus.innerText = `🚀 Đang xử lý xuất ${total} ảnh...`;
 
-      const CONCURRENCY_LIMIT = 3;
-      for (let i = 0; i < subImages.length; i += CONCURRENCY_LIMIT) {
-        const chunk = subImages.slice(i, i + CONCURRENCY_LIMIT);
-        const chunkPlaceholders = placeholders.slice(i, i + CONCURRENCY_LIMIT);
+      // Xuất ảnh trực tiếp bằng hàm exportImage (để áp dụng Fake EXIF và render nút tải)
+      for (let i = 0; i < subImages.length; i++) {
+        const canvas = subImages[i];
+        const subFilename = generateSubFilename(file.name, i + 1);
         
-        await Promise.all(chunk.map((canvas, chunkIndex) => {
-          return processSingleSubImage(canvas, chunkPlaceholders[chunkIndex]).then(() => {
-            completed++;
-            autoCropGlobalStatus.innerText = `🔄 Tiến độ AI & Resize: ${completed}/${total} ảnh...`;
-          });
-        }));
+        exportImage(
+          canvas, 
+          subFilename, 
+          autoCropOutput, 
+          'image/jpeg'
+        );
       }
       
-      autoCropGlobalStatus.innerHTML = `🎉 Hoàn thành xử lý cả ${total} ảnh (đã cắt lưới, cắt viền, nâng cấp AI & resize 1200px)!`;
+      autoCropGlobalStatus.innerHTML = `🎉 Hoàn thành xử lý cả ${total} ảnh (đã cắt lưới, cắt viền giữ nguyên chất lượng gốc)!`;
     };
   };
   reader.readAsDataURL(file);
 }
 
-// Hàm cắt lưới ĐÃ CẬP NHẬT để hỗ trợ cắt viền %
+// Hàm cắt lưới 
 function cutImageGrid(img, rows, cols, borderPercent) {
   const canvases = [];
   const subW = img.width / cols;
   const subH = img.height / rows;
 
   // Tính toán lượng pixel cần cắt ở mỗi bên dựa trên % tổng kích thước của ô lưới con
-  // Ví dụ: borderPercent = 5 -> cắt 2.5% mỗi bên
   const halfBorderRatio = (borderPercent / 100) / 2;
 
   for (let r = 0; r < rows; r++) {
@@ -1281,61 +1274,6 @@ function cutImageGrid(img, rows, cols, borderPercent) {
     }
   }
   return canvases;
-}
-
-async function processSingleSubImage(canvas, uiElements) {
-  uiElements.status.textContent = '🚀 Up server...';
-
-  try {
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
-    const timestamp = Math.floor(Date.now() / 1000);
-    const signature = await generateSignature(timestamp, API_SECRET);
-
-    const formData = new FormData();
-    formData.append('file', blob, 'sub_image.jpg');
-    formData.append('api_key', API_KEY);
-    formData.append('timestamp', timestamp);
-    formData.append('signature', signature);
-
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-      method: 'POST',
-      body: formData
-    });
-
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-
-    uiElements.status.textContent = '🤖 AI & Resize 1200px...';
-    const publicId = data.public_id;
-    
-    const aiProcessedUrl = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/e_upscale/c_scale,w_1200/q_100,f_jpg/${publicId}.jpg`;
-
-    const imageResponse = await fetch(aiProcessedUrl);
-    if (!imageResponse.ok) throw new Error("Lỗi máy chủ AI");
-
-    const finalBlob = await imageResponse.blob();
-    const finalUrl = URL.createObjectURL(finalBlob);
-
-    uiElements.img.src = finalUrl;
-    uiElements.status.style.display = 'none';
-    uiElements.img.style.display = 'block';
-    uiElements.wrapper.style.display = 'block';
-    uiElements.btn.style.display = 'block';
-
-    uiElements.btn.onclick = () => {
-      const link = document.createElement('a');
-      link.href = finalUrl;
-      link.download = uiElements.filename;
-      link.click();
-      uiElements.btn.classList.add('downloaded');
-      uiElements.btn.textContent = '✓';
-    };
-
-  } catch (error) {
-    uiElements.status.textContent = '❌ Lỗi xử lý';
-    uiElements.status.style.color = '#d9534f';
-    console.error(error);
-  }
 }
 
 // ==========================
